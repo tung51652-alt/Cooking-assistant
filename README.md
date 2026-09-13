@@ -19,17 +19,15 @@
 ## Cấu trúc repository
 
 ```text
-apps/api/              FastAPI API
-apps/web/              Next.js / React PWA
-services/vision/       preprocessing và inference CV
-services/rag/          ingestion, embedding, retrieval, reranking
-agents/nodes|tools|prompts/
-training/              train/evaluate CV
-data/raw|interim|processed|recipes/
-evaluation/cv|retrieval|rag/
-tests/
-docs/                  tài liệu dùng chung
+ai/                    Computer Vision, RAG, LangGraph và evaluation AI
+data/                  Dữ liệu gốc, trung gian, đã xử lý và recipes
+backend/               FastAPI, orchestration API, database và backend tests
+frontend/              Next.js / React PWA
+deploy/                Docker, compose, CI/CD và cấu hình môi trường triển khai
+docs/                  Tài liệu dùng chung và quyết định kỹ thuật
 ```
+
+Xem cấu trúc chi tiết và quy ước đặt mã tại [docs/repository-structure.md](docs/repository-structure.md).
 
 Các thư mục chỉ là khung xương. Không commit dataset lớn, weights, API key hoặc dữ liệu người dùng.
 
