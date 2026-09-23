@@ -31,15 +31,20 @@ Repository được tổ chức theo sáu miền trách nhiệm để mọi thà
 │   ├── recipes/               # Recipe JSON chuẩn cho MVP
 │   └── README.md              # Data contract và cách lấy dữ liệu (sẽ thêm)
 ├── backend/
-│   ├── app/
-│   │   ├── main.py            # FastAPI app factory
-│   │   ├── routers/           # vision, recipes, chat, health endpoints
-│   │   ├── schemas/           # Pydantic request/response models
-│   │   ├── services/          # Điều phối use case giữa API và AI
-│   │   ├── repositories/      # PostgreSQL/Qdrant adapters
-│   │   └── core/              # Settings, logging, error handling
-│   ├── tests/                 # Unit/integration tests backend
-│   └── requirements.txt       # Hoặc pyproject.toml khi backend khởi tạo
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/cooklens/
+│   │   │   │   ├── controller/ # REST controllers: vision, recipes, chat, health
+│   │   │   │   ├── service/    # Điều phối use case và transaction boundary
+│   │   │   │   ├── client/     # HTTP clients gọi các dịch vụ trong ai/
+│   │   │   │   ├── dto/        # Request/response records và ApiResponse
+│   │   │   │   ├── domain/     # JPA entities chỉ cho dữ liệu ứng dụng
+│   │   │   │   ├── repository/ # Spring Data JPA repositories
+│   │   │   │   ├── config/     # Security, OpenAPI, HTTP client, observability
+│   │   │   │   └── exception/  # ControllerAdvice và error contract
+│   │   │   └── resources/application.yml
+│   │   └── test/java/com/cooklens/ # JUnit unit/integration tests
+│   └── pom.xml                # Maven build và dependency lock
 ├── frontend/
 │   ├── src/
 │   │   ├── app/               # Next.js routes/pages
@@ -83,7 +88,7 @@ backend + frontend → deploy
 mọi miền → docs (tham chiếu, không import runtime)
 ```
 
-`ai/` không được import FastAPI route. `backend/` gọi AI qua interface/service rõ ràng. `frontend/` chỉ giao tiếp qua API contract, không gọi trực tiếp Qdrant hay model provider.
+`ai/` không được import Spring controller. `backend/` gọi các dịch vụ AI qua HTTP client/interface rõ ràng. `frontend/` chỉ giao tiếp qua OpenAPI contract, không gọi trực tiếp Qdrant hay model provider.
 
 ## Quy ước commit dữ liệu và artifact
 
@@ -97,6 +102,6 @@ mọi miền → docs (tham chiếu, không import runtime)
 1. Tạo `data` contract và corpus recipe MVP trước.
 2. Khởi tạo `ai/cv` và `ai/rag` độc lập, có evaluation riêng.
 3. Xây `ai/agents` sau khi retrieval đã có contract ổn định.
-4. Khởi tạo `backend/app` để phơi các API contract.
+4. Khởi tạo Spring Boot module trong `backend/src/main/java/com/cooklens` để phơi OpenAPI contract.
 5. Xây `frontend` theo endpoint đã chốt.
 6. Bổ sung Docker/CI trong `deploy` khi có ít nhất một service chạy được.

@@ -15,13 +15,14 @@
 | [CV](docs/cv/README.md) | Dataset, model, thí nghiệm và chỉ số train. |
 | [LangGraph](docs/langgraph/README.md) | State, workflow, node và kiến trúc. |
 | [Data & RAG](docs/data/README.md) | Nguồn dữ liệu, quyền, schema và ingestion. |
+| [Chuẩn kỹ thuật MVP](docs/technical-architecture.md) | Contract CV–RAG, API, state persistence, observability và evaluation gates. |
 
 ## Cấu trúc repository
 
 ```text
 ai/                    Computer Vision, RAG, LangGraph và evaluation AI
 data/                  Dữ liệu gốc, trung gian, đã xử lý và recipes
-backend/               FastAPI, orchestration API, database và backend tests
+backend/               Spring Boot API, orchestration, persistence và backend tests
 frontend/              Next.js / React PWA
 deploy/                Docker, compose, CI/CD và cấu hình môi trường triển khai
 docs/                  Tài liệu dùng chung và quyết định kỹ thuật
@@ -96,7 +97,7 @@ Xem [tài liệu LangGraph](docs/langgraph/README.md).
 
 | Layer | Lựa chọn |
 | --- | --- |
-| Web/API | Next.js, React, Tailwind, PWA / FastAPI REST |
+| Web/API | Next.js, React, Tailwind, PWA / Java 21, Spring Boot 3.x REST |
 | CV | PyTorch, PyTorch Lightning |
 | Orchestration | LangGraph |
 | RAG | Qdrant, multilingual embedding, reranker |
