@@ -5,3 +5,4 @@ Nguồn tham chiếu chung cho quyết định kỹ thuật, dữ liệu, thí n
 - [CV](cv/README.md)
 - [LangGraph](langgraph/README.md)
 - [Data & RAG](data/README.md)
+- [Chuẩn kỹ thuật MVP](technical-architecture.md): contract CV–RAG, API, persistence, observability và evaluation gates.
