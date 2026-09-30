@@ -27,13 +27,20 @@ Không commit dataset/weights. Ghi version, checksum, nơi lưu và quyền dùn
 
 ## Checklist
 
-- [ ] Xác minh quyền/version; EDA ảnh lỗi, trùng, phân bố lớp.
-- [ ] Chốt split có seed/manifest.
-- [ ] Train baseline và so sánh model/cấu hình.
-- [ ] Xem confusion matrix, chọn threshold, export inference và đo latency.
+- [~] Đã EDA ảnh lỗi/trùng; còn xác minh quyền và version dataset.
+- [x] Giữ split gốc sau làm sạch và lưu manifest tái lập được.
+- [~] Đã train baseline EfficientNet-B2; còn so sánh model/cấu hình.
+- [x] Đã xem confusion matrix, chọn threshold, export model và đo latency.
 
 ## Bảng kết quả train
 
 | Experiment | Ngày | Dataset/version & split | Model | Input | Epochs | Augmentation | Top-1 | Top-3 | Macro F1 | Precision | Recall | Latency | Artifact / ghi chú |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| — | — | — | — | — | — | — | — | — | — | — | — | — | Chưa có kết quả |
+| `efficientnet-b2-30vnfoods-2026-09-30` | 2026-09-30 | 30VNFoods; clean split 17,527 / 2,501 / 5,004 | EfficientNet-B2, ImageNet pretrained | 288×288 | 3 warm-up + 10 fine-tune | RandomResizedCrop, horizontal flip, rotation, ColorJitter | 87.61% | 96.08% | 87.70% | 87.93% | 87.75% | 25.60 ms mean; 45.45 ms P95, T4 batch 1 | [Kết quả](../../ai/cv/experiments/efficientnet-b2-30vnfoods-2026-09-30); threshold 0.30; weights lưu ngoài Git |
+
+## Baseline EfficientNet-B2 — 2026-09-30
+
+- Dataset gốc có 25,136 ảnh; bản đánh giá sạch còn 25,032 ảnh sau khi loại 104 file liên quan đến ảnh trùng hoặc nhãn xung đột.
+- Không có ảnh lỗi đọc; phát hiện 66 bản sao chính xác, trong đó 41 bản sao đi qua split và đồng thời xung đột nhãn.
+- [Split manifest](../../data/processed/manifests/30vnfoods_clean_split_manifest.csv) và [báo cáo ảnh trùng](../../data/interim/30vnfoods/audit/exact_duplicates.csv) dùng đường dẫn tương đối, không yêu cầu cấu trúc `/content` của Colab.
+- [Notebook training](../../ai/cv/training/Cooklen_30VNFoods.ipynb) dùng seed 42. Model weights và dataset không được commit; cần tải checkpoint từ kho artifact của nhóm trước khi chạy inference.

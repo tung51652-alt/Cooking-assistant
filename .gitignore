@@ -1,0 +1,25 @@
+# Computer-vision datasets and generated artifacts
+/ai/cv/artifacts/
+/ai/cv/checkpoints/
+/ai/cv/data/
+/ai/cv/datasets/
+/ai/cv/outputs/
+/ai/cv/runs/
+/ai/cv/**/*.pt
+/ai/cv/**/*.pth
+/ai/cv/**/*.ckpt
+/ai/cv/**/*.onnx
+/ai/cv/**/*.zip
+
+# Computer-vision secrets and local caches
+/ai/cv/**/.env
+/ai/cv/**/.env.*
+!/ai/cv/**/.env.example
+/ai/cv/**/kaggle.json
+/ai/cv/**/.kaggle/
+/ai/cv/**/.ipynb_checkpoints/
+/ai/cv/**/__pycache__/
+/ai/cv/**/*.py[cod]
+
+# Local 30VNFoods download; only manifests and audit metadata are tracked
+/data/raw/30vnfoods/

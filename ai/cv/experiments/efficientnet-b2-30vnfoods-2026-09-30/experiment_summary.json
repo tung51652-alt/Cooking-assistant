@@ -1,0 +1,33 @@
+{
+  "dataset": "30VNFoods",
+  "original_images": 25136,
+  "clean_images": 25032,
+  "train_images": 17527,
+  "validation_images": 2501,
+  "test_images": 5004,
+  "classes": 30,
+  "unreadable_images": 0,
+  "exact_duplicate_copies": 66,
+  "excluded_files": 104,
+  "model": "EfficientNet-B2",
+  "confidence_threshold": 0.3,
+  "validation_metrics": {
+    "loss": 1.0635976192952157,
+    "top1": 0.8844462215113954,
+    "top3": 0.9560175929628149,
+    "macro_f1": 0.8833310246606131
+  },
+  "test_metrics": {
+    "loss": 1.0604057976191374,
+    "top1": 0.8760991207034372,
+    "top3": 0.9608313349320543,
+    "macro_f1": 0.8769650306514689
+  },
+  "latency": {
+    "device": "Tesla T4",
+    "batch_size": 1,
+    "mean_ms": 25.602267969989043,
+    "p50_ms": 20.938990999638918,
+    "p95_ms": 45.44641734946708
+  }
+}
