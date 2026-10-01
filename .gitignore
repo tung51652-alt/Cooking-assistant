@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Notebook and editor artifacts
+.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# Large data and model artifacts
+*.ckpt
+*.pth
+*.pt
+*.onnx
+*.safetensors
+*.bin
+*.h5
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.parquet
+*.sqlite
+*.sqlite3
+*.faiss
+*.index
+
+# Local raw/interim data; keep manifests and directory placeholders trackable
+data/raw/**/*
+data/interim/**/*
+!data/raw/**/.gitkeep
+!data/interim/**/.gitkeep
+!data/raw/**/source-manifest.*
+
+# Logs and local outputs
+*.log
+logs/
+outputs/

@@ -1,5 +1,30 @@
 # LangGraph Workflow & Architecture
 
+## Minimal prototype implemented
+
+The first implementation is intentionally smaller than the full MVP workflow:
+
+```text
+START -> classify_query -> answer_directly -> END
+                       \-> search_recipe_web -> format_search_results -> END
+```
+
+It uses an explicit `needs_search` flag when provided, otherwise a conservative
+uncertainty-language check. Web search is an exploratory fallback only; results
+are sources for review, not an authoritative recipe corpus. The search
+implementation is injected into `build_graph()` so tests do not call the network.
+
+Run the focused tests from the repository root after installing
+`ai/requirements.txt`:
+
+```text
+python -m unittest discover -s ai/agents/tests -p "test_*.py"
+```
+
+This prototype does not yet implement CV integration, validated-corpus
+retrieval, checkpointer persistence, human interrupts, or the six MVP chat
+intents. Those remain follow-up work.
+
 ## Workflow MVP
 
 ```text
