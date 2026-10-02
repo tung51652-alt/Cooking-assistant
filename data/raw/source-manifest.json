@@ -1,0 +1,45 @@
+{
+  "dataset_id": "30vnfoods",
+  "name": "30VNFoods",
+  "purpose": "Vietnamese food image classification for computer vision",
+  "source_urls": [
+    "https://www.kaggle.com/datasets/quandang/vietnamese-foods",
+    "https://github.com/ds4v/30VNFoods"
+  ],
+  "version": "2026-09-30-clean-split",
+  "retrieved_at": "2026-10-02",
+  "storage": "External dataset/artifact storage; images are not committed to Git",
+  "checksum": null,
+  "checksum_status": "not-computed-dataset-not-downloaded-in-repository",
+  "license_claims": [
+    {
+      "source": "Kaggle data card",
+      "license": "CC BY-NC-SA 4.0"
+    },
+    {
+      "source": "Bundled LICENSE shown by Kaggle",
+      "license": "MIT"
+    }
+  ],
+  "license_status": "needs-upstream-verification-before-redistribution-or-commercial-use",
+  "dataset_stats": {
+    "original_images": 25136,
+    "clean_images": 25032,
+    "classes": 30,
+    "excluded_files": 104,
+    "exact_duplicate_copies": 66,
+    "train_images": 17527,
+    "validation_images": 2501,
+    "test_images": 5004
+  },
+  "artifacts": {
+    "class_list": "origin/minh/cv:ai/cv/experiments/efficientnet-b2-30vnfoods-2026-09-30/classes.json",
+    "clean_split_manifest": "origin/minh/cv:data/processed/manifests/30vnfoods_clean_split_manifest.csv",
+    "duplicate_report": "origin/minh/cv:data/interim/30vnfoods/audit/exact_duplicates.csv"
+  },
+  "notes": [
+    "This dataset provides CV labels only; it is not a recipe or ingredient source.",
+    "The 2026 Kaggle card warns that the Banh duc category may be noisy.",
+    "Do not commit images, checkpoints, or downloaded archives."
+  ]
+}

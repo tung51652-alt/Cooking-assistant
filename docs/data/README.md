@@ -13,7 +13,19 @@
 | [Vietnamese Recipe Dataset](https://github.com/PTIT-KLTN/vietnamese_recipe_dataset) | Tham chiếu recipe Việt, normalization | Đang đánh giá | Crawl bên thứ ba; chỉ research/education đến khi xác minh quyền. |
 | Recipe tự biên soạn/cấp phép | Corpus MVP | Chưa có | Lưu tác giả, nguồn, license. |
 | [RecipeNLG](https://github.com/Glorf/recipenlg) | Thử nghiệm retrieval | Chưa dùng | Chỉ dùng subset sau kiểm tra license. |
-| 30VNFoods | Label map CV → `normalized_dish` | Chưa dùng | Không phải recipe source. |
+| 30VNFoods | Label map CV → `normalized_dish` | Đã tạo manifest và mapping v1.0.0 | Không phải recipe source; xác minh license trước khi phân phối. |
+
+## CV dataset manifest
+
+The 30VNFoods provenance record is stored in
+[`data/raw/source-manifest.json`](../../data/raw/source-manifest.json). Its
+images remain in external artifact storage and are not committed to Git.
+
+The authoritative 30-class mapping from the CV branch is stored in
+[`data/processed/30vnfoods-label-map.json`](../../data/processed/30vnfoods-label-map.json).
+It maps the model's original class names to the shared `normalized_dish`
+taxonomy used by retrieval. This mapping does not provide recipe ingredients or
+instructions; those must come from a separately verified recipe source.
 
 ## Recipe schema chuẩn
 
