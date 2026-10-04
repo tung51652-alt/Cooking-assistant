@@ -1,5 +1,7 @@
 # Computer Vision
 
+REST API phân loại món ăn đã được triển khai tại `ai/cv/inference`. Xem [audit checkpoint, hướng dẫn chạy và kiểm thử API](api.md).
+
 ## Mục tiêu MVP
 
 Phân loại **một món Việt chính** trong ảnh, trả về Top-K và confidence; không suy luận nguyên liệu từ ảnh.

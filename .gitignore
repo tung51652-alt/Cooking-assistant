@@ -23,3 +23,10 @@
 
 # Local 30VNFoods download; only manifests and audit metadata are tracked
 /data/raw/30vnfoods/
+
+# Local API environment and validation artifacts
+/.venv/
+/.uv-cache/
+/.api-validation/
+__pycache__/
+*.py[cod]

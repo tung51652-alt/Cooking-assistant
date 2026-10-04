@@ -1,0 +1,8 @@
+# Install torch/torchvision as a compatible pair for your CPU/CUDA environment.
+# No torch version override: preserve an existing compatible installation.
+torch
+torchvision
+Pillow
+fastapi
+uvicorn
+python-multipart
