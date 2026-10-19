@@ -37,6 +37,7 @@ jobs:
           docker compose -f deploy/compose/compose.release.yaml -f deploy/compose/compose.dev.yaml --profile debug config --quiet
           docker compose -f deploy/compose/compose.release.yaml -f deploy/compose/compose.dev.yaml build
           docker pull qdrant/qdrant:v1.19.2
+          docker compose -f deploy/compose/compose.release.yaml -f deploy/compose/compose.dev.yaml --profile debug run --rm --no-deps debug -t
       - name: Standalone, persistence, versions, failure recovery and offline flow
         run: python deploy/scripts/smoke_release_stack.py --report /tmp/cooklens-phase5.json
       - name: Validate measured report

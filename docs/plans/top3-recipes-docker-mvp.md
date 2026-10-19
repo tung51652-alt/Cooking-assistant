@@ -294,7 +294,7 @@ Nguyên tắc phối hợp: frontend chỉ gọi public /api cùng origin, dùng
 
 - [x] Rà HTML/CSS/JS/file/IDE/build output/test/screenshots thừa, giữ tests/baseline có mục đích; không COPY docs/reference/tests vào image.
 - [x] Rà secrets và mọi literal mã/hash/SHA/checksum/digest trong source, lockfile, fixtures, env, tài liệu, PR và static bundle. Không đưa source maps hoặc giá trị xác thực vào image; asset filenames dùng tên ổn định, không gắn mã hash.
-- [ ] Tạo PR/báo cáo kèm bằng chứng đối chiếu thiết kế và test; chờ người dùng review/merge rồi fetch xác nhận trước Phase 5.
+- [x] Tạo PR/báo cáo kèm bằng chứng đối chiếu thiết kế và test; chờ người dùng review/merge rồi fetch xác nhận trước Phase 5.
 
 Điều kiện ra phase: người dùng mới hoàn thành ảnh → Top-3 → chọn/sửa món → recipe list/detail trên giao diện Docker với AI thật, không cần Swagger/console. Giao diện theo nguồn Stitch đúng, không chatbot; người dùng review/merge PR.
 

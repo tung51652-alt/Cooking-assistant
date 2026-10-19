@@ -9,6 +9,7 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import socket
 import statistics
@@ -133,10 +134,14 @@ def run(report_path):
                                      state['Config']['Image']).stdout.decode().splitlines()
                     project_commands = []
                     for line in history:
+                        # Docker adds COPY input identifiers to history; these are not source literals.
+                        if re.search(r'\bCOPY\b', line):
+                            line = re.sub(r'\b(?:file|dir):[0-9a-f]{32,}\b', '<docker-copy-input>', line)
                         project_commands.append(line)
-                        if line.startswith('WORKDIR '):
+                        if re.search(r'\bWORKDIR /app(?:\s|$)', line):
                             break
-                    assert not violations('\n'.join(project_commands)), 'Project image history violates policy'
+                    kinds = violations('\n'.join(project_commands))
+                    assert not kinds, service + ' project image history: ' + ', '.join(sorted(kinds))
             frontend = identifier('frontend')
             static = directory / 'static'
             static.mkdir()
