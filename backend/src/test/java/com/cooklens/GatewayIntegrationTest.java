@@ -105,6 +105,8 @@ class GatewayIntegrationTest {
                 "{\"confirmed_dish\":\"pho\",\"query\":\""+"a".repeat(201)+"\"}")) error(search(invalid),422,"VALIDATION_ERROR");
         assertEquals(0,searches.get());
         assertEquals(200,search("{\"confirmed_dish\":\"pho\",\"query\":\"   \"}").statusCode());
+        assertEquals(200,search("{\"confirmed_dish\":\"pho\",\"query\":\""+"\u00a0".repeat(201)+"\"}").statusCode());
+        assertTrue(mapper.readTree(receivedSearch).path("query").isNull());
     }
     @Test void multipartIsSingleFileBoundedAndMemoryOnly() throws Exception {
         error(image(new byte[]{1},"image/webp",""),415,"UNSUPPORTED_MEDIA_TYPE");

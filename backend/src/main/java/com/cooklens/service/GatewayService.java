@@ -67,7 +67,7 @@ public class GatewayService {
             String query = null;
             if (value.hasNonNull("query")) {
                 if (!value.get("query").isTextual()) throw ApiFailure.invalid();
-                query = Normalizer.normalize(value.get("query").textValue().strip(), Normalizer.Form.NFC);
+                query = Normalizer.normalize(stripWhitespace(value.get("query").textValue()), Normalizer.Form.NFC);
                 if (query.codePointCount(0, query.length()) > 200) throw ApiFailure.invalid();
                 if (query.isBlank()) query = null;
             }
@@ -113,5 +113,15 @@ public class GatewayService {
             var uri = URI.create(value);
             contract.require(Set.of("http", "https").contains(uri.getScheme()) && uri.getHost() != null && uri.getUserInfo() == null);
         } catch (IllegalArgumentException e) { throw ApiFailure.unavailable(); }
+    }
+    private String stripWhitespace(String value) {
+        int start=0, end=value.length();
+        while (start < end && whitespace(value.codePointAt(start))) start += Character.charCount(value.codePointAt(start));
+        while (end > start && whitespace(value.codePointBefore(end))) end -= Character.charCount(value.codePointBefore(end));
+        return value.substring(start, end);
+    }
+    private boolean whitespace(int point) {
+        // Match Python str.strip used by recipes, including non-breaking spaces and NEL.
+        return Character.isWhitespace(point) || Character.isSpaceChar(point) || point == 0x85;
     }
 }

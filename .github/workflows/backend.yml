@@ -8,6 +8,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   gateway-and-real-stack:
     runs-on: ubuntu-24.04

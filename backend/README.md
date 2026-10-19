@@ -47,6 +47,13 @@ sh deploy/scripts/generate_frontend_contract.sh
 # Gateway đang chạy: sinh frontend/src/generated/api.d.ts từ OpenAPI public.
 ```
 
+Dừng riêng stack review (giữ volume để chạy lại):
+
+```sh
+docker compose -p cooklens-phase3-local \
+  -f deploy/compose/recipes.phase2.yml -f deploy/compose/backend.phase3.yml down
+```
+
 Probe `/actuator/health/liveness` chỉ phản ánh process; `/actuator/health/readiness` và `/api/health` kiểm tra cả hai AI đúng version. Hai request health chạy song song với deadline tổng dưới hai giây, cache tối đa một giây; không inference/embedding. Không expose actuator config/debug.
 
 ## Giới hạn và kiểm thử
