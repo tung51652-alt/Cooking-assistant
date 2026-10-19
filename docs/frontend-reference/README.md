@@ -1,5 +1,7 @@
 # Khung frontend người dùng cung cấp
 
+> Nguồn lịch sử Phase 0. Người dùng đã sửa đường dẫn ở Phase 4; [Stitch là nguồn chuẩn hiện tại](stitch/README.md). Giữ snapshot và metadata cũ bất biến để audit, không dùng màu/font/bố cục nguồn này làm baseline mới.
+
 Nguồn local lúc audit: `/home/trantung/ict/FrontEndCookLens`, ngày 2026-10-19. Người dùng yêu cầu tận dụng tối đa khung/style, chưa làm chatbot. Ba HTML ở đây là bản sao byte-for-byte để nhóm và CI xem được cùng nguồn mà không cần máy tác giả; kích thước/tên file lưu trong `manifest.json`.
 
 Snapshot giữ CRLF của bản nguồn; `.gitattributes` chỉ áp dụng các file HTML này để checkout không đổi bytes và whitespace checker nhận CRLF hợp lệ. Các source triển khai mới tuân theo quy ước formatter của service, không kế thừa ngoại lệ snapshot.

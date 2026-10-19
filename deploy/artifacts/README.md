@@ -22,6 +22,6 @@ Khi có model mới: tạo release/tag mới, cập nhật model version, URL tr
 
 ## Các artifact khác
 
-Embedding đã chọn nguồn upstream, bundle release có version sẽ chuẩn bị ở Phase 2; chưa tải và đánh giá; corpus hiện 0/30. Việc tạo bundle embedding/corpus, attribution theo recipe và kiểm tra toàn bundle thuộc Phase 2. Không đánh đồng verifier input với accuracy benchmark hoặc nghiệm thu release stack.
+Phase 2 đã có embedding release có version và corpus 33 recipe/30 món. Xem [embedding provenance](embedding-model-v1.md), [recipes README](../../ai/rag/README.md) và [data/attribution](../../data/recipes/README.md). Chạy fetch_embedding_model.py rồi precompute bundle trước build image recipes; verifier input không thay thế accuracy benchmark hoặc nghiệm thu release stack.
 
 Trước commit/review, chạy `python3 deploy/scripts/check_public_metadata.py`. Scanner chặn giá trị mã/hash và credential ghi sẵn, kể cả trong lockfile; chỉ báo đường dẫn/loại vi phạm, không hiển thị giá trị. Npm có thể sinh lại integrity metadata khi cập nhật dependency; phải loại khỏi nội dung sẽ commit và chạy lại scanner.

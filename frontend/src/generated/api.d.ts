@@ -98,35 +98,134 @@ export interface components {
             file: string;
         };
         ErrorResponse: {
-            apiVersion: string;
-            requestId: string;
+            api_version: string;
+            request_id: string;
             code: string;
             message: string;
         };
+        Prediction: {
+            /** Format: int32 */
+            rank: number;
+            /** Format: int32 */
+            class_id: number;
+            normalized_dish: string;
+            display_name: string;
+            /** Format: double */
+            confidence: number;
+        };
+        PredictionResponse: {
+            api_version: string;
+            request_id: string;
+            model_version: string;
+            taxonomy_version: string;
+            predictions: components["schemas"]["Prediction"][];
+        };
         SearchRequest: {
-            confirmedDish: string;
+            confirmed_dish: string;
             /**
              * Format: int32
              * @default 3
              */
-            topK: number;
+            top_k?: number;
             query?: string | null;
+        };
+        RecipeSummary: {
+            id: string;
+            title: string;
+            normalized_dish: string;
+            language: string;
+            cuisine: string;
+            servings: number | null;
+            prep_time_minutes: number | null;
+            cook_time_minutes: number | null;
+            preview: string;
+            /** Format: int32 */
+            rank: number;
+            /** Format: double */
+            retrieval_score: number;
+            source: components["schemas"]["Source"];
+        };
+        SearchResponse: {
+            api_version: string;
+            request_id: string;
+            corpus_version: string;
+            embedding_version: string;
+            taxonomy_version: string;
+            confirmed_dish: string;
+            recipes: components["schemas"]["RecipeSummary"][];
+        };
+        Source: {
+            name: string;
+            url: string;
+            license: string;
+            retrieved_at: string;
+            attribution: string;
+            revision_url: string | null;
+            modifications: string;
+        };
+        DetailResponse: {
+            api_version: string;
+            request_id: string;
+            corpus_version: string;
+            recipe: components["schemas"]["Recipe"];
+        };
+        Ingredient: {
+            name: string;
+            normalized_name: string;
+            optional: boolean;
+            quantity: number | null;
+            unit: string | null;
+            note: string | null;
+        };
+        Instruction: {
+            /** Format: int32 */
+            step: number;
+            text: string;
+            duration_minutes: number | null;
+        };
+        Recipe: {
+            id: string;
+            title: string;
+            normalized_dish: string;
+            language: string;
+            cuisine: string;
+            servings: number | null;
+            prep_time_minutes: number | null;
+            cook_time_minutes: number | null;
+            ingredients: components["schemas"]["Ingredient"][];
+            instructions: components["schemas"]["Instruction"][];
+            tags: string[];
+            created_at: string;
+            updated_at: string;
+            source: components["schemas"]["Source"];
         };
         DependencyState: {
             status: string;
             code?: string | null;
-            modelVersion?: string | null;
-            taxonomyVersion?: string | null;
-            corpusVersion?: string | null;
-            embeddingVersion?: string | null;
+            model_version?: string | null;
+            taxonomy_version?: string | null;
+            corpus_version?: string | null;
+            embedding_version?: string | null;
         };
         HealthResponse: {
-            apiVersion: string;
-            requestId: string;
+            api_version: string;
+            request_id: string;
             status: string;
             dependencies: {
                 [key: string]: components["schemas"]["DependencyState"];
             };
+        };
+        Dish: {
+            /** Format: int32 */
+            class_id: number;
+            normalized_dish: string;
+            display_name: string;
+        };
+        DishesResponse: {
+            api_version: string;
+            request_id: string;
+            taxonomy_version: string;
+            dishes: components["schemas"]["Dish"][];
         };
     };
     responses: never;
@@ -153,6 +252,16 @@ export interface operations {
             };
         };
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "X-Request-ID"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PredictionResponse"];
+                };
+            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -251,6 +360,16 @@ export interface operations {
             };
         };
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "X-Request-ID"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -347,6 +466,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "X-Request-ID"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DetailResponse"];
+                };
+            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -354,7 +483,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Not Found */
@@ -364,7 +493,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Payload Too Large */
@@ -374,7 +503,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Unsupported Media Type */
@@ -384,7 +513,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Unprocessable Entity */
@@ -394,7 +523,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Internal Server Error */
@@ -404,7 +533,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Service Unavailable */
@@ -414,7 +543,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Gateway Timeout */
@@ -424,7 +553,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -441,6 +570,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "X-Request-ID"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -448,7 +587,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Not Found */
@@ -458,7 +597,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Payload Too Large */
@@ -468,7 +607,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Unsupported Media Type */
@@ -478,7 +617,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Unprocessable Entity */
@@ -488,7 +627,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Internal Server Error */
@@ -498,7 +637,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Service Unavailable */
@@ -508,7 +647,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["HealthResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Gateway Timeout */
@@ -518,7 +657,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -535,6 +674,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "X-Request-ID"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DishesResponse"];
+                };
+            };
             /** @description Bad Request */
             400: {
                 headers: {
@@ -542,7 +691,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Not Found */
@@ -552,7 +701,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Payload Too Large */
@@ -562,7 +711,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Unsupported Media Type */
@@ -572,7 +721,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Unprocessable Entity */
@@ -582,7 +731,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Internal Server Error */
@@ -592,7 +741,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Service Unavailable */
@@ -602,7 +751,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Gateway Timeout */
@@ -612,7 +761,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ErrorResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

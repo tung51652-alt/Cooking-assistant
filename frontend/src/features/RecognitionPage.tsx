@@ -1,3 +1,4 @@
+import { CheckSquare, PencilSimple } from '@phosphor-icons/react';
 import type { Dish, Prediction, SelectedImage } from '../types';
 
 interface Props {
@@ -33,8 +34,8 @@ export default function RecognitionPage({ image, predictions, chosen, dishes, bu
       </div>
       <div className="confirmation-panel">
         <div><h2>Đây có phải món bạn muốn tìm?</h2><p>Chọn một gợi ý ở trên hoặc sửa lại món trong danh mục.</p>
-          <button className="text-btn" onClick={onEdit} disabled={busy}>Sửa món trong danh mục</button></div>
-        <button id="confirmButton" className="primary-btn" disabled={!chosen || busy} onClick={onConfirm}>Xác nhận món</button>
+          <button className="text-btn" onClick={onEdit} disabled={busy}><PencilSimple size={17} aria-hidden="true" /> Sửa món trong danh mục</button></div>
+        <button id="confirmButton" className="primary-btn" disabled={!chosen || busy} onClick={onConfirm}><CheckSquare size={19} aria-hidden="true" /> Xác nhận món</button>
       </div>
       {dishes && <div className="dish-editor"><label htmlFor="dishSelect">Chọn món khác</label>
         <select id="dishSelect" value={chosen?.normalized_dish || ''} onChange={event => onChoose(dishes.find(item => item.normalized_dish === event.target.value) || null)}>
