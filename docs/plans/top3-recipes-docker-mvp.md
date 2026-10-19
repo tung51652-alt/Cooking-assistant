@@ -4,7 +4,7 @@ Ngày lập và cập nhật: 2026-10-19. Nhánh đích của PR tài liệu và
 
 Đây là kế hoạch triển khai, chưa phải danh sách tính năng đã hoàn thành. Các ô checklist chỉ được đánh dấu khi có mã, kiểm thử và bằng chứng tương ứng. Hiện trạng nhánh được xác định sau `git fetch origin` cùng ngày.
 
-Đang làm Phase 0 trên `feature/mvp-contracts`; [báo cáo Phase 0](../phases/phase-0.md) ghi kết quả kiểm tra thực và đầu vào chưa đủ. Những ô đánh dấu dưới đây là bằng chứng hoàn thành phần việc trên nhánh PR, không đồng nghĩa PR đã được merge hoặc cả phase đã nghiệm thu.
+Trạng thái đã đối chiếu mã, báo cáo CI và GitHub PR: Phase 0–4 đã tích hợp vào `develop`; phần triển khai/CI Phase 5 nằm ở [PR #16](https://github.com/tung51652-alt/Cooking-assistant/pull/16), Expo ở [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17). Hai PR đang mở, sẵn sàng review và CI đã pass; chưa merge. Checklist này được đồng bộ trên cả hai nhánh PR để phân biệt công việc đã làm với phần còn chờ thiết bị, người review và phát hành. Ô đã tick không đồng nghĩa toàn bộ mã đã nằm trong `develop` hoặc đã phát hành.
 
 Bản hoàn thành toàn bộ Phase 0–7 của kế hoạch này là **CookLens phiên bản 2**, tag phát hành ứng dụng `v2.0.0`. Chỉ công bố khi luồng ảnh → Top-3 → xác nhận món → công thức chạy với service thật, đủ Docker images/Compose và đạt nghiệm thu Phase 7. Các phase và PR trung gian không được gọi là release v2 hoàn chỉnh. Version public API, taxonomy và artifact model được quản lý riêng; release trọng số `vision-model-v1` hiện có không phải phiên bản ứng dụng v1 hoặc v2.
 
@@ -20,7 +20,7 @@ Luồng mục tiêu:
 ```
 
 - Frontend cơ bản dựa trên nguồn Stitch chuẩn tại `/home/trantung/ict/stitch_giao_di_n_chatbot_m_th_c`, tận dụng tối đa bố cục, tên lớp, thành phần, tài nguyên và style của bản gốc. Dùng được trên desktop và điện thoại; có preview ảnh, trạng thái tải, lỗi và kết quả rỗng. Chi tiết tái sử dụng và phần tài nguyên đang thiếu nằm ở Phase 4.
-- Trong MVP, điện thoại dùng web responsive trên trình duyệt; không tạo APK hoặc project native. App điện thoại giai đoạn sau dùng Expo, dùng chung public API và tái sử dụng TypeScript types/logic phù hợp. DOM/CSS web cần chuyển sang component tương thích Expo khi thực hiện giai đoạn đó.
+- Web responsive vẫn phục vụ trình duyệt điện thoại. Theo yêu cầu cập nhật, app Expo/React Native được triển khai cùng Phase 5 trên nhánh riêng, dùng chung public API/types/validation; không tạo APK hoặc pipeline store. Nghiệm thu camera/permissions trên thiết bị thật được ghi riêng, không suy ra từ viewport web.
 - Hỗ trợ 30 lớp của checkpoint hiện tại. Ảnh nhiều món và món ngoài bộ nhãn phải được giải thích là giới hạn của model; người dùng luôn sửa được lựa chọn.
 - Runtime chuẩn dùng CPU, không cần CUDA, Python/Java/Node cài trên máy người dùng hay khóa API LLM.
 - Sau khi lấy bộ phát hành gồm Compose và cấu hình mặc định, người dùng chạy một lệnh Docker để kéo image và khởi động toàn bộ stack. Không phải lấy checkpoint, model embedding hay seed database thủ công.
@@ -284,7 +284,7 @@ Nguyên tắc phối hợp: frontend chỉ gọi public /api cùng origin, dùng
 - [x] Recipe list/detail có title/preview/nguồn/license/attribution/nguyên liệu/bước nấu và dữ liệu thời gian/khẩu phần trung thực; query tùy chọn chỉ xếp hạng trong món xác nhận.
 - [x] Escape text, chỉ link HTTP(S) không credential; không render HTML nguồn. Hiển thị AI-authored provenance và null/empty đúng dữ liệu thật.
 - [x] Hủy/bỏ qua response cũ khi đổi ảnh/món hoặc điều hướng, giải phóng object URL; không giữ recipe cũ dưới tên món mới, không lưu ảnh vào storage.
-- [x] Responsive desktop/mobile, focus/keyboard/radio labels/screen reader, reduced motion và không overflow; đây là web, Expo vẫn ở mốc sau, không APK.
+- [x] Responsive desktop/mobile, focus/keyboard/radio labels/screen reader, reduced motion và không overflow; đây là kiểm thử web; Expo được triển khai/nghiệm thu riêng ở phần mobile bên dưới, không APK.
 - [x] Chụp/upload so sánh cùng viewport, giữ ảnh nguồn và baseline triển khai được chọn; ghi rõ phần giữ và phần thay vì bỏ chatbot/khác chức năng. Không coi source có sẵn các màn recognition/detail khi chỉ cung cấp một trang.
 - [x] Nginx static + reverse proxy backend theo service name; /api cùng origin, upload/deadline/error JSON/request ID thống nhất. Không dùng Vite cho production, không cache asset cũ hoặc phụ thuộc CDN lúc runtime.
 - [x] Dockerfile frontend nhiều stage và overlay Compose Phase 4 chạy cùng AI thật, chỉ publish frontend; không bake địa chỉ máy thành viên.
@@ -298,28 +298,30 @@ Nguyên tắc phối hợp: frontend chỉ gọi public /api cùng origin, dùng
 
 Điều kiện ra phase: người dùng mới hoàn thành ảnh → Top-3 → chọn/sửa món → recipe list/detail trên giao diện Docker với AI thật, không cần Swagger/console. Giao diện theo nguồn Stitch đúng, không chatbot; người dùng review/merge PR.
 
-### Mobile bằng Expo — mốc sau MVP web, cùng domain
+### Mobile bằng Expo — cùng domain, triển khai cùng Phase 5 theo yêu cầu cập nhật
 
-Mobile là một client khác của CookLens, giữ nguyên luồng **chụp/chọn ảnh → Top-3 → xác nhận/sửa món → tối đa ba công thức → chi tiết nguyên liệu/bước nấu/nguồn**, taxonomy 30 món và giới hạn model. Không thêm chatbot, đăng nhập, lịch sử hoặc service AI riêng để làm mobile. Các Phase 0–7 vẫn nghiệm thu bản web/Docker; checklist dưới đây là mốc Expo tiếp theo, không là điều kiện chặn phát hành web và chưa bắt đầu triển khai.
+Mobile là một client khác của CookLens, giữ nguyên luồng **chụp/chọn ảnh → Top-3 → xác nhận/sửa món → tối đa ba công thức → chi tiết nguyên liệu/bước nấu/nguồn**, taxonomy 30 món và giới hạn model. Không thêm chatbot, đăng nhập, lịch sử hoặc service AI riêng để làm mobile. Người dùng yêu cầu triển khai Expo ngay cùng Phase 5; mã trên `feature/mobile-expo`, báo cáo và kiểm chứng thiết bị tách khỏi nghiệm thu web/Docker. Xem [PR Expo #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17), [báo cáo Expo trên nhánh triển khai](https://github.com/tung51652-alt/Cooking-assistant/blob/feature/mobile-expo/docs/phases/mobile-expo.md) và [hướng dẫn chạy Expo Go](https://github.com/tung51652-alt/Cooking-assistant/blob/feature/mobile-expo/mobile/README.md).
 
 Nguyên tắc chung:
 
-- **Tổ chức mã:** khi bắt đầu tạo `mobile/` cho Expo/React Native trên nhánh `feature/mobile-expo` từ `develop` đã tích hợp. Chỉ tách types/validation/logic thuần thực sự dùng chung sang `packages/` khi có hai client cần; không tạo thư viện rỗng từ bây giờ. Tách adapter upload và navigation cho từng nền tảng; giữ màu sắc, typography và cấu trúc màn hình của web nhưng chuyển DOM/CSS sang component native phù hợp.
+- **Tổ chức mã:** `mobile/` chứa Expo/React Native trên nhánh `feature/mobile-expo` từ `develop` đã tích hợp. `packages/cooklens-api` chứa types/validation/transport thuần dùng thật ở cả hai client; schema vẫn sinh từ OpenAPI, không chép taxonomy. Adapter upload/navigation riêng từng nền tảng; giữ màu sắc, typography và cấu trúc luồng với component native.
 - **Cùng backend:** dùng public API version hiện có, cùng `normalized_dish`, schema lỗi và ý nghĩa confidence/retrieval score; không gọi thẳng vision, recipes hoặc Qdrant. Model, corpus và trọng số vẫn ở Docker trên máy chủ; điện thoại không tải model hoặc chạy inference cục bộ. “Offline sau khi pull image” là khả năng của stack server; điện thoại vẫn cần kết nối tới server đó.
 - **Địa chỉ truy cập:** web tiếp tục gọi `/api` cùng origin; Expo cần base URL tuyệt đối tới public gateway `/api`. Điện thoại thật dùng IP LAN của máy chạy Docker hoặc URL HTTPS truy cập được; `127.0.0.1` trên điện thoại là chính điện thoại. Giữ Compose mặc định bind loopback, chỉ thêm cấu hình LAN dev tường minh khi đến mốc Expo; chỉ mở gateway, không mở các service nội bộ. QR/Metro kết nối được chưa chứng minh API truy cập được.
 - **Cách chạy:** ưu tiên thử trên điện thoại bằng Expo Go nếu bộ SDK/dependency đã chọn tương thích; kiểm tra lại tài liệu Expo ở lúc triển khai. Không thêm pipeline APK/AAB, EAS Build hoặc phát hành store trong phạm vi này. Nếu có dependency buộc dùng development build, phải rà lại lựa chọn thư viện và cập nhật phương án với người dùng trước khi đổi cách chạy đã thống nhất.
 - **Ảnh và state:** xin quyền camera/thư viện đúng lúc, xử lý từ chối/hủy chọn và có lựa chọn thay thế. Chuyển ảnh điện thoại sang JPEG/PNG khi cần, giữ đúng orientation và giới hạn upload của API; không mở rộng định dạng phía server ngầm. Dùng multipart qua adapter native; đổi ảnh/món, điều hướng Back, retry hoặc app quay lại foreground không được làm response cũ ghi đè kết quả mới.
-- **Cấu hình:** base URL là cấu hình public; không đưa secret vào `EXPO_PUBLIC_*`, bundle hoặc QR/logs. Quy tắc biến môi trường theo [Expo environment variables](https://docs.expo.dev/guides/environment-variables/); cách chạy trên thiết bị theo [Expo start developing](https://docs.expo.dev/get-started/start-developing/). Đây là tham chiếu hiện tại, không pin SDK cho mốc chưa triển khai.
+- **Cấu hình:** base URL là cấu hình public; không đưa secret vào `EXPO_PUBLIC_*`, bundle hoặc QR/logs. Quy tắc biến môi trường theo [Expo environment variables](https://docs.expo.dev/guides/environment-variables/); cách chạy trên thiết bị theo [Expo start developing](https://docs.expo.dev/get-started/start-developing/). SDK 58 và dependency tương thích được pin khi triển khai.
 
 Checklist khi bắt đầu và nghiệm thu mốc Expo:
 
-- [ ] Chốt SDK/dependencies hỗ trợ Expo Go, vị trí mã và adapter dùng chung; bổ sung hướng dẫn cài dependency/start/scan QR, không yêu cầu người dùng build APK.
-- [ ] Kiểm tra từ điện thoại tới gateway và cùng API contract, taxonomy/model/corpus version; không nhân bản backend hoặc pipeline dữ liệu cho mobile.
-- [ ] Hoàn thành camera/thư viện, permission denied/cancel, preview/đổi ảnh, validation/chuyển định dạng và upload; không lưu ảnh người dùng lâu hơn nhu cầu của luồng.
-- [ ] Hiển thị Top-3, xác nhận/sửa món, danh sách/chi tiết công thức và nguồn với cùng hành vi web; có loading/empty/error/retry, xử lý mất mạng và kết quả trả chậm/sai thứ tự.
+- [x] Chốt SDK/dependencies hỗ trợ Expo Go, vị trí mã và adapter dùng chung; bổ sung hướng dẫn cài dependency/start/scan QR, không yêu cầu người dùng build APK.
+- [x] Dùng chung API contract/types/validation, taxonomy/model/corpus metadata và backend với web; sáu client contract tests và CI web/server thật đã pass, không nhân bản backend hoặc dữ liệu cho mobile.
+- [ ] Kiểm tra từ điện thoại thật tới gateway LAN/HTTPS, native multipart và metadata versions; chưa có thiết bị kết nối để nghiệm thu.
+- [x] Triển khai camera/thư viện, permission denied/cancel, preview/đổi ảnh, validation/chuyển định dạng và upload; không lưu lịch sử ảnh. Typecheck/bundle đã pass; hành vi camera/HEIC trên thiết bị còn chờ kiểm chứng ở mục dưới.
+- [x] Triển khai Top-3, xác nhận/sửa món, danh sách/chi tiết và nguồn; loading/empty/error/retry, hủy request và chặn kết quả cũ. Client contract dùng chung được kiểm thử; chưa coi là nghiệm thu native trên thiết bị thật.
 - [ ] Kiểm thử trên thiết bị thật Android và iOS theo phạm vi bàn giao đã chốt; kiểm tra safe area, chữ lớn, screen reader, nút Back và chuyển nền/quay lại app. Báo rõ nền tảng chưa được kiểm chứng; không dùng test viewport web thay bằng chứng Expo.
-- [ ] Chạy lại luồng web và kiểm tra contract nếu tách mã chung/thay gateway; bảo đảm mobile không làm hỏng bản Docker/web đã nghiệm thu.
-- [ ] Áp dụng [cổng kết thúc phase](#phase-closeout): dọn file/test tạm, cache Metro, generated native/build outputs, QR/logs và ảnh chụp có thông tin cá nhân; giữ test hồi quy cần thiết. Rà secrets và mọi giá trị mã/hash trong commit, config và bundle; gửi PR vào `develop` để người dùng review/merge, ghi bằng chứng và phần chưa kiểm chứng.
+- [x] Web build, 20 Playwright desktop/mobile và sáu client contract tests pass sau tách client. Tám checks PR #17, gồm gateway/browser/Docker/CV/recipes thật và Expo bundle, đã pass; không dùng kết quả này thay bằng chứng Expo trên thiết bị.
+- [x] Rà file/test tạm, cache Metro, generated outputs, source/config/lockfile và nội dung commit; scanner metadata cùng web bundle đã pass. Native export chỉ dùng kiểm tra bundling, không commit/publish output. PR #17 đã sẵn sàng review, mô tả nêu rõ phần chưa kiểm chứng trên điện thoại; không coi đây là nghiệm thu native release.
+- [ ] Người dùng review/merge PR Expo; nghiệm thu thiết bị thật trước khi xác nhận hoàn tất mốc mobile. Không tự merge hoặc bật auto-merge.
 
 ## 9. Phase 5 — Docker Compose và artifact đầy đủ
 
@@ -364,6 +366,8 @@ Compose phải dùng `healthcheck` cùng `depends_on` condition phù hợp. Cont
 - [ ] Người dùng review/merge PR Phase 5; fetch xác nhận trước publish phiên bản phụ thuộc. Không tự merge hoặc bật auto-merge.
 
 Điều kiện ra phase: chạy được trên máy sạch chỉ có Docker Engine/Desktop với Compose, cấu hình mặc định và Internet để pull; không còn bước lấy model/seed bằng tay; PR được người dùng merge vào `develop`.
+
+Đối chiếu phần còn lại: cơ chế runbook, restart và rollback đã có bằng chứng ở candidate Phase 5; các checklist Phase 6–7 vẫn chưa tick vì chưa phát hành/pull bộ image từ registry hoặc nghiệm thu trên chính bộ release. Không dùng smoke candidate thay nghiệm thu release.
 
 ## 10. Phase 6 — Phát hành Docker Hub và runbook
 
