@@ -16,9 +16,21 @@ Local: deploy tests, YAML release/dev, scanner metadata và whitespace được 
 
 CI đã build đủ image candidate, kiểm tra cấu hình release/dev, kiểm tra Nginx debug trên read-only/tmpfs và khởi động stack tới trạng thái healthy. Gate tiếp theo phát hiện phần rà history frontend quét cả layer upstream Nginx vì stage runtime không có WORKDIR. Đã sửa bằng cách xác minh và tách đúng suffix history của base image; test hồi quy vẫn chặn literal trong layer dự án và từ chối base history không khớp. Không nới scanner metadata chung.
 
-Đang chờ toàn bộ gate `Docker standalone candidate / standalone-and-offline`. Chưa ghi nhận số đo hoặc đánh dấu các bước persistence/offline đã pass trước khi có kết quả thực. Checklist Phase 5 chỉ tick các phần đã có bằng chứng build/config/startup; phần chưa nghiệm thu vẫn để trống.
+Gate `Docker standalone candidate / standalone-and-offline` đã pass cả push và pull_request. [CI thành công](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/39234455124), [report đã rà metadata](evidence/phase-5-docker.json). Đã kiểm chứng 30 món, 10 luồng CV/chọn dự đoán thứ hai/search/detail, seed mới/lặp lại, upgrade/rollback, bundle sai bị từ chối, giữ volume qua down/up, dừng/phục hồi ba dependency và luồng offline qua Nginx. Scanner/history/artifact frontend đều pass.
 
-Lượt CI tiếp theo đã qua rà image history, artifact frontend, đủ 30 món, 10 luồng ảnh/chọn dự đoán thứ hai/search/detail và init lặp lại. Test nâng version cần sửa quyền file trong bản sao bundle tạm: image đóng gói JSON read-only, `copytree` giữ mode đó; chỉ chmod bản sao trong `/tmp`, không thay bundle gốc trong image. Phần nâng/rollback và offline vẫn chờ chạy lại.
+Test nâng version đã sửa quyền file trong bản sao bundle tạm: image đóng gói JSON read-only, `copytree` giữ mode đó; chỉ chmod bản sao trong `/tmp`, không thay bundle gốc trong image.
+
+Máy CI Linux/x86_64, 4 logical CPU, khoảng 15,6 GiB RAM, Compose 2.38.2. Cold-start không gồm build/pull: 30,018 giây; init 0,857 giây. Mười mẫu tuần tự: vision median/max 0,089/0,183 giây; search 0,075/0,584 giây. Đây không phải P95 hoặc cấu hình tối thiểu.
+
+| Service | Image MiB | Peak RAM MiB |
+| --- | ---: | ---: |
+| Qdrant | 190,9 | 95,2 |
+| Vision | 1096,5 | 338,7 |
+| Recipes | 1652,3 | 611,2 |
+| Backend | 300,9 | 217,8 |
+| Frontend | 65,6 | 10,2 |
+
+Peak là giá trị lớn nhất theo service giữa các instance lấy mẫu, không phải peak đồng thời toàn stack; image size gồm layer dùng chung, không cộng để suy ra disk thực. Image config/history chỉ rà phần nhóm quản lý và artifact frontend; chưa audit mọi binary/layer bên thứ ba.
 
 ## Giới hạn
 

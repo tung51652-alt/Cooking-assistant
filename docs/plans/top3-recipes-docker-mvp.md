@@ -346,21 +346,22 @@ recipes ready ──────────────────────
 Compose phải dùng `healthcheck` cùng `depends_on` condition phù hợp. Container đang chạy chưa có nghĩa là model/index đã sẵn sàng; `recipe-init` kết thúc 0 là hành vi thành công, không đặt restart vô hạn cho job này. Restart của dependency sau startup vẫn cần timeout/reconnect trong service, không dựa riêng vào thứ tự boot.
 
 - [x] Tạo release/dev Compose tách biệt, cùng cấu hình service names, version và ports. Chỉ frontend bind `127.0.0.1:8080` mặc định; chỉ mở cổng debug AI/Qdrant trong dev profile.
-- [ ] Healthchecks dùng công cụ có thật trong image, có `start_period` đủ thời gian load model/seed; timeout/retries hữu hạn. `recipe-init` phải thất bại rõ ràng khi bundle không vượt kiểm tra toàn vẹn nội bộ/version.
+- [x] Healthchecks dùng công cụ có thật trong image, có `start_period` đủ thời gian load model/seed; timeout/retries hữu hạn. `recipe-init` phải thất bại rõ ràng khi bundle không vượt kiểm tra toàn vẹn nội bộ/version.
 - [x] Image chạy user không phải root khi khả thi, dependency/runtime khóa version, build nhiều stage, `.dockerignore` không gửi secrets/venv lên build context.
 - [x] Pin Qdrant, runtime base và image ứng dụng bằng version/tag dễ đọc; release manifest không ghi giá trị mã/hash. Không dùng `latest` làm định danh tái lập.
-- [ ] Volume Qdrant tồn tại qua restart; `up` lần hai không seed trùng; volume mới tự seed đúng, volume cũ upgrade theo collection version/alias.
-- [ ] Default CPU đủ chạy model, giới hạn worker/concurrency và memory theo số đo. Không tự tạo nhiều bản model vì worker count mặc định cao; GPU chỉ là profile sau này.
+- [x] Volume Qdrant tồn tại qua restart; `up` lần hai không seed trùng; volume mới tự seed đúng, volume cũ upgrade theo collection version/alias.
+- [x] Default CPU đủ chạy model, giới hạn worker/concurrency và memory theo số đo. Không tự tạo nhiều bản model vì worker count mặc định cao; GPU chỉ là profile sau này.
 - [x] Build context cung cấp checkpoint qua quy trình artifact có version và kiểm tra toàn vẹn nội bộ; secret lấy artifact dùng build secret/CI secret, không `ARG`/`ENV` chứa token trong layer.
-- [ ] Chạy stack từ bộ Compose tải riêng, ngoài thư mục source, với cache/volume trống; xác minh mọi artifact được lấy từ image và không cần Python/Java/Node trên host.
-- [ ] Chặn outbound Internet của runtime sau khi pull image và kiểm thử luồng chính; host vẫn cần Internet ở bước pull và mở link nguồn.
-- [ ] Ghi measured cold-start, seed time, disk/image size, peak RAM và latency; runbook nêu cấu hình máy tối thiểu đã kiểm chứng.
+- [x] Chạy stack từ Compose chép riêng ngoài thư mục source, volume mới và không mount cache/model/source; mọi artifact nằm trong image, runtime không cần Python/Java/Node trên host. Image candidate build trên CI; cold pull registry trên máy sạch vẫn thuộc Phase 6.
+- [x] Chặn outbound Internet của runtime sau khi có image và kiểm thử luồng chính; host vẫn cần Internet ở bước pull và mở link nguồn.
+- [x] Ghi measured cold-start, seed time, image size, peak RAM và latency; runbook nêu cấu hình 4 logical CPU/khoảng 16 GiB đã kiểm chứng, chưa suy ra cấu hình thấp nhất hoặc P95 nghiệm thu.
 
 ### Kết thúc Phase 5
 
-- [ ] Rà file thừa, test scripts, bundle thử, logs và build contexts theo [cổng chung](#phase-closeout); test data không cần thiết nằm ngoài các image production.
-- [ ] Rà secrets và mọi giá trị mã/hash trong Compose/env, scripts, CI logs, image config/history/layers; không ghi giá trị mã/hash vào nội dung do nhóm quản lý.
-- [ ] Tạo PR kèm bằng chứng chạy máy sạch; chờ người dùng merge rồi fetch xác nhận trước publish phiên bản phụ thuộc.
+- [x] Rà file thừa, test scripts, bundle thử, logs và build contexts theo [cổng chung](#phase-closeout); test data không cần thiết nằm ngoài các image production.
+- [x] Rà secrets/mã/hash trong nội dung dự án, Compose/env, scripts, report CI và history layer do dự án tạo; scanner không nới policy. Metadata upstream do Docker quản lý không sao chép vào nội dung dự án; không tuyên bố audit toàn bộ binary/layer bên thứ ba.
+- [x] Tạo PR #16 kèm bằng chứng CI volume mới/Compose ngoài source; cold pull registry còn ở Phase 6.
+- [ ] Người dùng review/merge PR Phase 5; fetch xác nhận trước publish phiên bản phụ thuộc. Không tự merge hoặc bật auto-merge.
 
 Điều kiện ra phase: chạy được trên máy sạch chỉ có Docker Engine/Desktop với Compose, cấu hình mặc định và Internet để pull; không còn bước lấy model/seed bằng tay; PR được người dùng merge vào `develop`.
 
