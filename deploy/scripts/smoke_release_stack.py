@@ -39,7 +39,9 @@ def managed_history(history, base_history):
 def command(parts, *, cwd=None, env=None, data=None, success=True):
     result = subprocess.run(parts, cwd=cwd, env=env, input=data, capture_output=True)
     if success and result.returncode:
-        raise RuntimeError('Operation failed: ' + ' '.join(parts[:2]) + ' (raw output withheld)')
+        error_types = re.findall(r'\b([A-Za-z]+Error):', result.stderr.decode(errors='replace'))
+        category = error_types[-1] if error_types else 'exit ' + str(result.returncode)
+        raise RuntimeError('Operation failed: ' + ' '.join(parts[:2]) + ' (' + category + '; raw output withheld)')
     return result
 
 
@@ -198,6 +200,7 @@ with tempfile.TemporaryDirectory() as tmp:
     shutil.copytree('/opt/cooklens/recipes',target)
     for name in ('manifest.json','vectors.json'):
         path=target/name
+        path.chmod(0o600)
         value=json.loads(path.read_text())
         value['corpus_version']='cooklens-recipes-phase5-check'
         path.write_text(json.dumps(value))

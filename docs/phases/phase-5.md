@@ -18,6 +18,8 @@ CI đã build đủ image candidate, kiểm tra cấu hình release/dev, kiểm 
 
 Đang chờ toàn bộ gate `Docker standalone candidate / standalone-and-offline`. Chưa ghi nhận số đo hoặc đánh dấu các bước persistence/offline đã pass trước khi có kết quả thực. Checklist Phase 5 chỉ tick các phần đã có bằng chứng build/config/startup; phần chưa nghiệm thu vẫn để trống.
 
+Lượt CI tiếp theo đã qua rà image history, artifact frontend, đủ 30 món, 10 luồng ảnh/chọn dự đoán thứ hai/search/detail và init lặp lại. Test nâng version cần sửa quyền file trong bản sao bundle tạm: image đóng gói JSON read-only, `copytree` giữ mode đó; chỉ chmod bản sao trong `/tmp`, không thay bundle gốc trong image. Phần nâng/rollback và offline vẫn chờ chạy lại.
+
 ## Giới hạn
 
 Phase 5 dùng image build local có tag candidate. Fresh volume và Compose ngoài source không chứng minh pull từ registry trên máy sạch; push/pull Docker Hub và bộ release chính thức thuộc Phase 6. Không công bố cấu hình máy tối thiểu hoặc P95 chỉ từ mẫu CI. Quyền phân phối và giới hạn provenance model/corpus giữ nguyên trong manifest/notices.
