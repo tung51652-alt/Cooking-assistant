@@ -68,7 +68,7 @@ Rollback dùng bộ image và manifest tương thích cũ, chạy lại init t�
 
 Vision, recipes, init, backend và Qdrant chỉ trên network internal. Frontend có bridge để Docker publish loopback; bridge này không phải firewall chặn Internet. CI tháo bridge của frontend, xác nhận mọi service chỉ còn mạng internal và chạy luồng ảnh → Nginx → gateway → CV/recipes → chi tiết. Font/icon ở image frontend, model/tokenizer/corpus/vector ở image AI; không cần tải lúc startup. Người dùng cần mạng nếu mở nguồn công thức bên ngoài.
 
-Mobile dùng **Expo ở mốc sau**, cùng API/server; không thêm app native, APK hoặc port LAN ở Phase 5. Điện thoại vẫn cần kết nối server, dù server chạy không cần Internet. Xem [kế hoạch Expo](../plans/top3-recipes-docker-mvp.md).
+Mobile dùng **Expo**, cùng API/server, được triển khai riêng ở [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17) theo yêu cầu cùng đợt Phase 5. Compose release vẫn không mở cổng LAN mặc định; PR mobile có cấu hình LAN dev tường minh và hướng dẫn Expo Go. Điện thoại vẫn cần kết nối server, dù server chạy không cần Internet. Xem [kế hoạch Expo](../plans/top3-recipes-docker-mvp.md).
 
 ## Kiểm chứng và tài nguyên
 

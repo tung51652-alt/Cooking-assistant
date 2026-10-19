@@ -19,7 +19,7 @@ docker pull qdrant/qdrant:v1.19.2
 docker compose -f deploy/compose/compose.release.yaml up -d --wait --wait-timeout 240
 ```
 
-Mở **http://127.0.0.1:8080/**. Có thể chép riêng compose.release.yaml ra thư mục ngoài source và chạy với các image đã có; runtime không cần model/Python/Java/Node trên host. Chỉ web được publish, AI/backend/Qdrant ở mạng internal. Xem [runbook Docker](docs/runbooks/docker.md) cho build/dev/debug, volume, di chuyển image, upgrade/rollback và giới hạn offline; [báo cáo Phase 5](docs/phases/phase-5.md) ghi bằng chứng kiểm thử. Mobile dùng **Expo ở mốc sau MVP web**, cùng gateway; Phase 5 không tạo APK hoặc mở cổng LAN mặc định.
+Mở **http://127.0.0.1:8080/**. Có thể chép riêng compose.release.yaml ra thư mục ngoài source và chạy với các image đã có; runtime không cần model/Python/Java/Node trên host. Chỉ web được publish, AI/backend/Qdrant ở mạng internal. Xem [runbook Docker](docs/runbooks/docker.md) cho build/dev/debug, volume, di chuyển image, upgrade/rollback và giới hạn offline; [báo cáo Phase 5](docs/phases/phase-5.md) ghi bằng chứng kiểm thử. Mobile Expo dùng cùng gateway, đang triển khai riêng ở [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); Compose release không mở cổng LAN mặc định.
 
 ## Stack review Phase 4 trên máy đã có image
 

@@ -1,6 +1,6 @@
 # Phase 5 — Compose độc lập và runtime offline
 
-Đang thực hiện trên `feature/docker-release` từ `develop` sau khi PR Phase 4 #14 đã merge. Candidate kỹ thuật `2.0.0-rc.1`, chưa phát hành ứng dụng `v2.0.0`, chưa push Docker Hub và chưa chuyển sang Phase 6. Mobile Expo vẫn là mốc sau MVP web theo kế hoạch.
+Đang thực hiện trên `feature/docker-release` từ `develop` sau khi PR Phase 4 #14 đã merge. Candidate kỹ thuật `2.0.0-rc.1`, chưa phát hành ứng dụng `v2.0.0`, chưa push Docker Hub và chưa chuyển sang Phase 6. Theo yêu cầu cập nhật, mobile Expo được triển khai cùng đợt ở [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17), dùng chung gateway và nghiệm thu thiết bị riêng.
 
 ## Thay đổi
 
