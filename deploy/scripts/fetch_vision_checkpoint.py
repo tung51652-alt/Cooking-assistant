@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 from verify_mvp_inputs import ROOT, verify
 
@@ -49,7 +49,12 @@ def release_validation(vision, opener=urlopen):
     """Read upstream transfer metadata transiently; never persist or print its value."""
     url = ("https://api.github.com/repos/tung51652-alt/Cooking-assistant/releases/tags/"
            + vision["artifact_release_tag"])
-    with opener(url, timeout=60) as response:
+    headers = {"Accept": "application/vnd.github+json"}
+    token = os.environ.get("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = "Bearer " + token
+    # Authenticate only the API metadata request; public asset downloads stay anonymous.
+    with opener(Request(url, headers=headers), timeout=60) as response:
         release = json.load(response)
     if release.get("draft") or release.get("tag_name") != vision["artifact_release_tag"]:
         raise ValueError("Unexpected public model release")

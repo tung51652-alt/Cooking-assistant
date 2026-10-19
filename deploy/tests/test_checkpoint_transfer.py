@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from fetch_vision_checkpoint import download, release_validation
@@ -65,6 +66,25 @@ class ReleaseMetadataTests(unittest.TestCase):
         vision = {"artifact_release_tag": "vision-model-v1", "filename": "model.pt", "size_bytes": 7}
         result = release_validation(vision, lambda *a, **k: BytesIO(json.dumps(data).encode()))
         self.assertTrue(result == value, "Validation metadata mismatch (values hidden)")
+
+    def test_metadata_authentication_is_optional_and_scoped_to_api(self):
+        value = hashlib.sha256(b"fixture").hexdigest()
+        vision = {"artifact_release_tag": "vision-model-v1", "filename": "model.pt", "size_bytes": 7}
+        data = {"tag_name": "vision-model-v1", "assets": [
+            {"name": "model.pt", "size": 7, "digest": "sha256:" + value}]}
+        for token in ["", "temporary-test-token"]:
+            def metadata(request, **kwargs):
+                self.assertEqual(request.host, "api.github.com")
+                self.assertEqual(request.get_header("Authorization"), "Bearer " + token if token else None)
+                return BytesIO(json.dumps(data).encode())
+            with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
+                validation = release_validation(vision, metadata)
+                with tempfile.TemporaryDirectory() as directory:
+                    def asset(request, **kwargs):
+                        self.assertIsInstance(request, str)
+                        return BytesIO(b"fixture")
+                    download("https://github.com/public-asset", Path(directory) / "model.pt",
+                             7, validation, asset)
 
     def test_rejects_wrong_release_or_missing_validation(self):
         vision = {"artifact_release_tag": "vision-model-v1", "filename": "model.pt", "size_bytes": 7}

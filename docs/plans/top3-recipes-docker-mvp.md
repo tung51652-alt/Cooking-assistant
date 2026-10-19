@@ -211,7 +211,7 @@ Nguyên tắc phối hợp: CV sở hữu prediction; mapping là artifact dùng
 
 ## 6. Phase 2 — Corpus và service công thức có xếp hạng
 
-Triển khai/kiểm thử kỹ thuật đã hoàn tất, chờ người dùng review và merge data → service. Corpus có 33 recipe, phủ 30/30 món: 21 Wikibooks và 12 AI biên soạn theo quyền chủ dự án cấp. Bộ 204 query đã qua cổng kỹ thuật, gồm 18 contrastive holdout; xem [báo cáo Phase 2](../phases/phase-2.md). Review bên ngoài và thử nấu chưa được thực hiện, tiếp tục là gate Phase 7; không nhận đã có reviewer thứ hai hoặc công thức đã được nấu kiểm chứng.
+Triển khai/kiểm thử kỹ thuật đã hoàn tất; người dùng đã merge data #10 → service #11, agent đã fetch xác nhận local develop đồng bộ origin/develop. Corpus có 33 recipe, phủ 30/30 món: 21 Wikibooks và 12 AI biên soạn theo quyền chủ dự án cấp. Bộ 204 query đã qua cổng kỹ thuật, gồm 18 contrastive holdout; xem [báo cáo Phase 2](../phases/phase-2.md). Review bên ngoài và thử nấu chưa được thực hiện, tiếp tục là gate Phase 7; không nhận đã có reviewer thứ hai hoặc công thức đã được nấu kiểm chứng.
 
 Nhánh: tiếp tục `feature/data-recipes` cho dữ liệu, `feature/recipe-retrieval` cho service mới từ `develop`. Dùng notebook `hung/rag` như tài liệu tham khảo; không đưa agent/LLM vào critical path.
 
@@ -235,7 +235,7 @@ Nguyên tắc phối hợp: data pipeline chịu trách nhiệm tính đúng c�
 - [x] Rà file thừa, test/query/recipe trùng, download/index tạm và output đánh giá theo [cổng chung](#phase-closeout); giữ bộ evaluation/fixtures có nguồn rõ ràng.
 - [x] Rà secrets và mọi giá trị mã/hash trong source URL, notebook outputs, corpus, config, commit và image recipes; không mang API key/provider từ notebook vào runtime.
 - [x] Tạo/cập nhật PR và báo cáo đủ coverage, test, policy, image.
-- [ ] Người dùng review dữ liệu/query và merge data trước service; agent fetch xác nhận `origin/develop` trước tích hợp tiếp.
+- [x] Người dùng đã merge data #10 trước service #11; agent fetch xác nhận local develop đồng bộ `origin/develop`. Review độc lập và thử nấu vẫn thuộc Phase 7.
 
 Điều kiện ra phase: corpus phủ đủ 30 món hoặc phải công bố phạm vi hẹp hơn trước phát hành; bộ query đạt gate Phase 7, search/detail chạy thật với Qdrant, init chạy lại không tạo thêm dữ liệu. Người dùng merge PR data trước PR service phụ thuộc dữ liệu.
 
