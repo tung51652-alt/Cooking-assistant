@@ -26,7 +26,7 @@ RUN mkdir -p /opt/cooklens/recipes /opt/cooklens/models/multilingual-e5-small /o
     && chmod 0755 /opt/cooklens /opt/cooklens/recipes /opt/cooklens/models /opt/cooklens/models/multilingual-e5-small /opt/cooklens/notices
 COPY --chmod=0444 deploy/artifacts/staging/embedding/config.json deploy/artifacts/staging/embedding/model.safetensors deploy/artifacts/staging/embedding/tokenizer.json deploy/artifacts/staging/embedding/tokenizer_config.json deploy/artifacts/staging/embedding/special_tokens_map.json deploy/artifacts/staging/embedding/sentencepiece.bpe.model /opt/cooklens/models/multilingual-e5-small/
 COPY --chmod=0444 deploy/artifacts/staging/recipes/*.json /opt/cooklens/recipes/
-COPY deploy/artifacts/embedding-model-v1.md deploy/artifacts/notices/multilingual-e5-LICENSE.txt data/recipes/README.md /opt/cooklens/notices/
+COPY deploy/artifacts/embedding-model-v1.md deploy/artifacts/notices/multilingual-e5-LICENSE.txt data/recipes/README.md data/recipes/AUTHORSHIP.md /opt/cooklens/notices/
 
 USER 10001:10001
 EXPOSE 8001

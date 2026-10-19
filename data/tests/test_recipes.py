@@ -15,6 +15,19 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual(len(coverage), 30)
         self.assertEqual(sum(coverage.values()), len(self.recipes))
         self.assertEqual(self.manifest["covered_dishes"], sum(bool(n) for n in coverage.values()))
+        self.assertTrue(all(n >= 1 for n in coverage.values()), "Phase 2 requires every dish to have a recipe")
+
+    def test_original_recipes_are_explicit_and_complete(self):
+        generated = [r for r in self.recipes if "ai_authored" in r["tags"]]
+        self.assertEqual(len(generated), self.manifest["source_counts"]["cooklens_ai_authored"])
+        for recipe in generated:
+            with self.subTest(recipe=recipe["id"]):
+                self.assertGreaterEqual(len(recipe["ingredients"]), 6)
+                self.assertGreaterEqual(len(recipe["instructions"]), 4)
+                bad = copy.deepcopy(recipe)
+                bad["source"]["name"] = "Wikibooks"
+                with self.assertRaisesRegex(ValueError, "disclose its origin"):
+                    validate([bad], self.taxonomy)
 
     def test_reject_invalid_mutations(self):
         changes = [

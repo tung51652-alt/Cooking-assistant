@@ -76,17 +76,32 @@ class RuntimeTests(unittest.TestCase):
                 self.assertTrue(all(-1 <= r["retrieval_score"] <= 1 for r in body["recipes"]))
 
     def test_catalog_detail_empty_and_errors(self):
-        self.assertEqual(len(self.client.get("/dishes").json()["dishes"]), 30)
+        dishes = self.client.get("/dishes").json()["dishes"]
+        self.assertEqual(len(dishes), 30)
+        for dish in dishes:
+            response = self.client.post("/search", json={"confirmed_dish": dish["normalized_dish"]})
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.json()["recipes"], dish["normalized_dish"])
+            for preview in response.json()["recipes"]:
+                detail = self.client.get("/recipes/" + preview["id"]).json()["recipe"]
+                self.assertEqual(detail["normalized_dish"], dish["normalized_dish"])
+                self.assertTrue(detail["ingredients"] and detail["instructions"])
         self.assertEqual(self.client.get("/health/ready").status_code, 200)
         recipe = self.bundle.recipes[0]
         response = self.client.get("/recipes/" + recipe["id"])
         self.assertEqual(response.json()["recipe"], recipe)
         UUID(response.headers["X-Request-ID"])
-        self.assertEqual(self.client.post("/search", json={"confirmed_dish": "banh_pia"}).json()["recipes"], [])
         missing = self.client.get("/recipes/unknown_recipe")
         self.assertEqual((missing.status_code, missing.json()["code"]), (404, "RECIPE_NOT_FOUND"))
         self.assertEqual(self.client.get("/recipes/invalid.id").status_code, 422)
         self.assertEqual(self.client.post("/search", json={"confirmed_dish": "Phở"}).json()["code"], "INVALID_DISH")
+
+    def test_empty_result_contract_for_a_future_partial_corpus(self):
+        # All 30 classes are now populated. Inject an empty candidate set only for this API contract regression.
+        with patch.object(self.store, "search", return_value=[]):
+            response = self.client.post("/search", json={"confirmed_dish": "banh_pia"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["recipes"], [])
 
     def test_strict_input_and_bounded_json(self):
         for invalid in [True, 1.0, 0, 4, "3"]:

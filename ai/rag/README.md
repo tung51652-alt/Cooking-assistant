@@ -2,7 +2,7 @@
 
 FastAPI service nội bộ: `POST /search`, `GET /recipes/{id}`, `GET /dishes`, `GET /health/live`, `GET /health/ready`, Swagger `/docs`. Public envelope và `/api` thuộc gateway ở Phase 3. Không có LLM/chatbot/web search trong runtime.
 
-Corpus hiện có **21 recipe, phủ 18/30 món**, nguồn/giấy phép/chỉnh sửa trong từng recipe. Xem [data README](../../data/recipes/README.md). Món hợp lệ còn thiếu trả danh sách rỗng; index không sẵn sàng trả 503. Chưa đóng Phase 2 hoặc được chấp nhận phát hành đủ 30 món.
+Corpus hiện có **33 recipe, phủ 30/30 món**, nguồn/giấy phép/chỉnh sửa trong từng recipe. Xem [data README](../../data/recipes/README.md). Món hợp lệ còn thiếu trả danh sách rỗng; index không sẵn sàng trả 503. Gồm 21 bản Wikibooks và 12 bản AI tự biên soạn có nhãn, quyền sử dụng và ghi chú chưa nấu kiểm chứng. Kỹ thuật Phase 2 đã qua cổng kiểm tra, chờ review/merge PR; nghiệm thu bên ngoài và nấu thử thuộc Phase 7.
 
 ## Cấu trúc
 
@@ -11,7 +11,7 @@ Corpus hiện có **21 recipe, phủ 18/30 món**, nguồn/giấy phép/chỉnh 
 - `ingestion/bundle.py`: validate corpus dùng chung và precompute vectors trước build image; không tính toàn corpus khi boot.
 - `ingestion/seed.py`: CLI one-shot dùng cùng image với API; chỉ cần corpus/vectors và Qdrant, không load embedding.
 - `retrieval/store.py`: Qdrant REST qua httpx, filter metadata trước cosine; exact search trong corpus nhỏ, sort score rồi ID. Không reranker.
-- `evaluation/`: 150 query cố định dạng draft và công cụ đo. Chưa review độc lập; 60 query thuộc món thiếu phải trả rỗng và không được tính vào Hit/MRR. 15 query thuộc ba món có hai biến thể, phần lớn query còn lại chỉ có một ứng viên, nên metric cao không chứng minh chất lượng xếp hạng tổng quát.
+- `evaluation/`: 204 query cố định và công cụ đo có cổng CI bắt buộc. Toàn bộ query là positive cho đủ 30 món, có 18 contrastive holdout báo riêng. Review ngữ nghĩa tách khỏi cấu hình nhưng cùng agent thực hiện; chưa có review bên ngoài. 27 món có một ứng viên, nên metric tổng thể chủ yếu xác nhận lọc/truy xuất, không xác thực chất lượng ẩm thực hoặc tính tổng quát.
 - `tests/test_runtime.py`: hồi quy với model và Qdrant thật; có fault injection riêng cho timeout, quá tải, alias sai và import lỗi.
 
 ## Build và chạy local
@@ -49,7 +49,7 @@ API chạy non-root, read-only, một worker; baseline CPU 4 thread và 2 GiB RA
 python3 -m unittest discover -s data/tests -v
 python3 deploy/scripts/check_public_metadata.py
 python3 deploy/scripts/smoke_recipes_container.py --image cooklens-recipes:phase2
-python -m ai.rag.evaluation.evaluate --url http://127.0.0.1:8001
+python -m ai.rag.evaluation.evaluate --url http://127.0.0.1:8001 --require-technical-gate
 ```
 
 Để chạy runtime tests bằng Python, đặt `QDRANT_URL`, `RECIPES_BUNDLE_DIR`, `EMBEDDING_MODEL_DIR` trỏ đến Qdrant riêng và bundle/model local, rồi `python -m unittest discover -s ai/rag/tests -v`. Không dùng database sản phẩm cho test import lỗi.

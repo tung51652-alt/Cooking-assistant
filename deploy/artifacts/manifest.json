@@ -128,7 +128,7 @@
       "special_tokens_map.json",
       "sentencepiece.bpe.model"
     ],
-    "quality_status": "baseline_selected_pending_phase2_evaluation",
+    "quality_status": "phase2_technical_retrieval_gate_passed_external_review_phase7_pending",
     "source_policy": "Use a reviewed bundle with a human-readable release version; do not persist upstream object identifiers.",
     "artifact_release_tag": "embedding-model-v1",
     "archive_filename": "cooklens-embedding-model-v1.zip",
@@ -136,13 +136,13 @@
     "ci_source_uri": "https://github.com/tung51652-alt/Cooking-assistant/releases/download/embedding-model-v1/cooklens-embedding-model-v1.zip"
   },
   "corpus": {
-    "corpus_version": "wikibooks-vi-v1",
-    "recipe_count": 21,
-    "reviewed_class_coverage": 18,
+    "corpus_version": "cooklens-recipes-v1",
+    "recipe_count": 33,
+    "reviewed_class_coverage": 30,
     "required_class_coverage": 30,
-    "source_selection": "Wikibooks Cookbook text; licensed team additions if needed",
+    "source_selection": "21 Wikibooks text recipes and 12 explicitly labeled original AI-authored recipes authorized by project owner",
     "source_policy_url": "https://en.wikibooks.org/wiki/Wikibooks:Copyrights",
-    "status": "partial_corpus_imported_full_coverage_and_human_acceptance_pending"
+    "status": "full_taxonomy_coverage_structure_reviewed_kitchen_validation_not_performed"
   },
   "registry": {
     "provider": "docker_hub",

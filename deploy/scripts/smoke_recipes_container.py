@@ -33,7 +33,16 @@ try:
         time.sleep(.5)
     else: raise RuntimeError('Recipes not ready')
     assert os.getuid() == 10001
-    assert len(call('/dishes')[1]['dishes']) == 30
+    dishes=call('/dishes')[1]['dishes']
+    assert len(dishes) == 30
+    for dish in dishes:
+        status,result=call('/search',{'confirmed_dish':dish['normalized_dish']})
+        assert status==200 and result['recipes']
+        for preview in result['recipes']:
+            status,detail=call('/recipes/'+preview['id'])
+            assert status==200 and detail['recipe']['normalized_dish']==dish['normalized_dish']
+            assert detail['recipe']['ingredients'] and detail['recipe']['instructions']
+    assert pathlib.Path('/opt/cooklens/notices/AUTHORSHIP.md').is_file()
     health = call('/health/ready')[1]
     cases = [('pho','phở bò','wb_pho_bo_ninh_xuong'),('pho','phở gà','wb_pho_ga'),('banh_canh','bánh canh cua','wb_banh_canh_cua'),('banh_canh','bánh canh cá','wb_banh_canh_ca')]
     latencies=[]
@@ -47,7 +56,7 @@ try:
     status,detail=call('/recipes/wb_pho_ga')
     assert status==200 and detail['recipe']['ingredients'] and detail['recipe']['instructions']
     assert detail['recipe']['source']['license']=='CC-BY-SA-4.0'
-    assert call('/search',{'confirmed_dish':'banh_pia'})[1]['recipes']==[]
+    assert call('/search',{'confirmed_dish':'banh_pia'})[1]['recipes'][0]['source']['name']=='CookLens — công thức do AI biên soạn'
     assert call('/search',{'confirmed_dish':'unknown_dish'})[0]==422
     assert call('/search',{'confirmed_dish':'pho','top_k':True})[0]==422
     assert call('/recipes/unknown_recipe')[0]==404
@@ -58,7 +67,7 @@ try:
     except OSError: offline=True
     else: raise RuntimeError('Smoke network unexpectedly permits external traffic')
     peak=int(pathlib.Path('/sys/fs/cgroup/memory.peak').read_text())
-    print(json.dumps({'status':'passed','runtime':'docker_cpu','non_root_uid':os.getuid(),'read_only':True,'network_internal':offline,'seed_runs':2,'requests':100,'p95_ms':round(sorted(latencies)[math.ceil(len(latencies)*.95)-1],3),'peak_memory_bytes':peak,'cpu_limit':4,'memory_limit_bytes':2147483648,'versions':health,'scope':'Smoke/latency and four variant queries; not independent retrieval acceptance or full 30-dish coverage.'}))
+    print(json.dumps({'status':'passed','runtime':'docker_cpu','non_root_uid':os.getuid(),'read_only':True,'network_internal':offline,'seed_runs':2,'covered_dishes':len(dishes),'catalog_search_requests':len(dishes),'latency_requests':100,'p95_ms':round(sorted(latencies)[math.ceil(len(latencies)*.95)-1],3),'peak_memory_bytes':peak,'cpu_limit':4,'memory_limit_bytes':2147483648,'versions':health,'scope':'All 30 dishes searched and returned details, plus 100 timed variant searches; culinary verification and external review belong to Phase 7.'}))
 finally:
     process.terminate()
     process.wait(timeout=10)

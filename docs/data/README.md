@@ -68,4 +68,4 @@ Danh mục dùng chung là [30vnfoods-label-map.json](../../data/processed/30vnf
 
 ## Corpus Phase 2
 
-Đã nhập 21 công thức chi tiết theo CC BY-SA 4.0, phủ 18/30 món. [Corpus README](../../data/recipes/README.md) ghi nguồn, giới hạn và các món còn thiếu; [manifest](../../data/recipes/manifest.json) ghi coverage/version. Validator dùng chung với recipes/init, không phụ thuộc ML hoặc web. Chưa đạt coverage hoặc nghiệm thu độc lập; không đánh dấu đủ 30 công thức từ mapping CV.
+Đã có 33 công thức chi tiết, phủ 30/30 món: 21 bản Wikibooks CC BY-SA 4.0 và 12 bản AI biên soạn CC BY 4.0 theo quyền chủ dự án cấp. [Corpus README](../../data/recipes/README.md), [record tác giả](../../data/recipes/AUTHORSHIP.md) và [manifest](../../data/recipes/manifest.json) mô tả nguồn, version và review. Validator dùng chung với recipes/init; CI bắt buộc full coverage. Công thức AI được gắn nhãn rõ và chưa nấu kiểm chứng; phần nghiệm thu đó còn ở Phase 7.

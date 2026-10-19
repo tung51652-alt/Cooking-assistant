@@ -48,7 +48,7 @@ jobs:
           else:
               raise RuntimeError('Recipe Compose is not ready')
           PY
-      - run: python -m ai.rag.evaluation.evaluate --url http://127.0.0.1:8001
+      - run: python -m ai.rag.evaluation.evaluate --url http://127.0.0.1:8001 --require-technical-gate
       - if: always()
         run: docker rm -f cooklens-recipes-ci-qdrant > /dev/null 2>&1 || true
       - if: always()
