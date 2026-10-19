@@ -1,0 +1,49 @@
+name: Docker standalone candidate
+on:
+  pull_request:
+    paths: ['deploy/**', 'backend/**', 'frontend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/**', '.dockerignore', '.github/workflows/docker-release.yml']
+  push:
+    branches: [feature/docker-release, develop, main]
+    paths: ['deploy/**', '.dockerignore', '.github/workflows/docker-release.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: docker-candidate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  standalone-and-offline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python deploy/scripts/check_public_metadata.py
+      - run: python -m unittest discover -s deploy/tests -v
+      - name: Stage verified build artifacts
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python deploy/scripts/fetch_vision_checkpoint.py
+          python deploy/scripts/fetch_embedding_model.py
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
+          python -m pip install -r ai/rag/requirements.txt
+          python -m ai.rag.ingestion.bundle --model deploy/artifacts/staging/embedding --output deploy/artifacts/staging/recipes
+      - name: Build versioned candidate, validate release and debug configuration
+        run: |
+          docker compose -f deploy/compose/compose.release.yaml config --quiet
+          docker compose -f deploy/compose/compose.release.yaml -f deploy/compose/compose.dev.yaml --profile debug config --quiet
+          docker compose -f deploy/compose/compose.release.yaml -f deploy/compose/compose.dev.yaml build
+          docker pull qdrant/qdrant:v1.19.2
+      - name: Standalone, persistence, versions, failure recovery and offline flow
+        run: python deploy/scripts/smoke_release_stack.py --report /tmp/cooklens-phase5.json
+      - name: Validate measured report
+        run: python deploy/scripts/check_public_metadata.py --file /tmp/cooklens-phase5.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase5-measurements
+          path: /tmp/cooklens-phase5.json
+          if-no-files-found: error
+          retention-days: 14
