@@ -64,7 +64,7 @@ class ReleaseMetadataTests(unittest.TestCase):
             {"name": "model.pt", "size": 7, "digest": "sha256:" + value}]}
         vision = {"artifact_release_tag": "vision-model-v1", "filename": "model.pt", "size_bytes": 7}
         result = release_validation(vision, lambda *a, **k: BytesIO(json.dumps(data).encode()))
-        self.assertEqual(result, value)
+        self.assertTrue(result == value, "Validation metadata mismatch (values hidden)")
 
     def test_rejects_wrong_release_or_missing_validation(self):
         vision = {"artifact_release_tag": "vision-model-v1", "filename": "model.pt", "size_bytes": 7}
