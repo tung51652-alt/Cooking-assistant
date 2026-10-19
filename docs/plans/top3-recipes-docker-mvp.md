@@ -205,17 +205,19 @@ Nguyên tắc phối hợp: CV sở hữu prediction; mapping là artifact dùng
 - [x] Rà file thừa, test/fixture tạm, outputs notebook, cache và checkpoint local theo [cổng chung](#phase-closeout); giữ test hồi quy hữu ích, loại dữ liệu không cần khỏi image.
 - [x] Rà secrets và mọi giá trị mã/hash trong diff/commit, notebook, cấu hình và image CV; xác nhận checkpoint vào đúng artifact, không vào Git.
 - [x] Chuẩn bị PR CV/data mapping kèm bằng chứng, báo cáo file/test/policy/image.
-- [ ] Người dùng merge đúng thứ tự mapping → CV; agent fetch xác nhận trước phần phụ thuộc.
+- [x] Người dùng đã merge mapping → CV; agent fetch và xác nhận develop trước Phase 2.
 
 Điều kiện ra phase: image thử nghiệm nhận ảnh và trả Top-3 đúng contract, health chỉ ready sau load; mapping dùng được từ mọi service; PR CV/data mapping đạt kiểm thử và được người dùng merge vào `develop`.
 
 ## 6. Phase 2 — Corpus và service công thức có xếp hạng
 
+Đang triển khai. Corpus đầu tiên có 21 recipe thật, phủ 18/30 món; xem [báo cáo Phase 2](../phases/phase-2.md). Chưa đạt gate coverage hoặc review nghiệm thu độc lập. Không đánh dấu phase hoàn thành chỉ vì service chạy được.
+
 Nhánh: tiếp tục `feature/data-recipes` cho dữ liệu, `feature/recipe-retrieval` cho service mới từ `develop`. Dùng notebook `hung/rag` như tài liệu tham khảo; không đưa agent/LLM vào critical path.
 
 Nguyên tắc phối hợp: data pipeline chịu trách nhiệm tính đúng của corpus; recipes chỉ phục vụ corpus/index cùng version. Một recipe document tương ứng một vector/payload để giảm phức tạp khi corpus còn nhỏ.
 
-- [ ] Data: validator theo schema trong `docs/data/README.md`: ID duy nhất, món chuẩn, language/cuisine, servings/thời gian hợp lệ hoặc `null`, nguyên liệu, thứ tự bước, source/license.
+- [x] Data: validator theo schema trong `docs/data/README.md`: ID duy nhất, món chuẩn, language/cuisine, servings/thời gian hợp lệ hoặc `null`, nguyên liệu, thứ tự bước, source/license.
 - [ ] Data: tối thiểu một recipe đã review cho từng món trong 30 lớp; mục tiêu ba recipe/biến thể mỗi món khi có nguồn hợp lệ. Ít hơn ba thì trả số thật, không nhân bản hoặc bịa cho đủ.
 - [ ] Data: chuẩn hóa Unicode/alias, loại trùng và link hỏng; ghi corpus version, số recipe mỗi món, source manifest, version và kết quả review.
 - [ ] Embeddings: chạy model local trong bundle release có version, lưu cùng `embedding_version`, chiều vector và cách dựng text; build vectors ở giai đoạn phát hành, không tính lại toàn corpus mỗi lần boot.

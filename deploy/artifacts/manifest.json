@@ -132,13 +132,13 @@
     "source_policy": "Use a reviewed bundle with a human-readable release version; do not persist upstream object identifiers."
   },
   "corpus": {
-    "corpus_version": null,
-    "recipe_count": 0,
-    "reviewed_class_coverage": 0,
+    "corpus_version": "wikibooks-vi-v1",
+    "recipe_count": 21,
+    "reviewed_class_coverage": 18,
     "required_class_coverage": 30,
     "source_selection": "Wikibooks Cookbook text; licensed team additions if needed",
     "source_policy_url": "https://en.wikibooks.org/wiki/Wikibooks:Copyrights",
-    "status": "source_policy_selected_no_recipes_imported_or_reviewed"
+    "status": "partial_corpus_imported_full_coverage_and_human_acceptance_pending"
   },
   "registry": {
     "provider": "docker_hub",

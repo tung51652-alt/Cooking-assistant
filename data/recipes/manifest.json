@@ -1,0 +1,75 @@
+{
+  "corpus_version": "wikibooks-vi-v1",
+  "taxonomy_version": "1.0.0",
+  "recipe_count": 21,
+  "covered_dishes": 18,
+  "required_dishes": 30,
+  "coverage": {
+    "banh_beo": 1,
+    "banh_bot_loc": 2,
+    "banh_can": 0,
+    "banh_canh": 2,
+    "banh_chung": 1,
+    "banh_cuon": 0,
+    "banh_duc": 1,
+    "banh_gio": 0,
+    "banh_khot": 0,
+    "banh_mi": 1,
+    "banh_pia": 0,
+    "banh_tet": 1,
+    "banh_trang_nuong": 0,
+    "banh_xeo": 0,
+    "bun_bo_hue": 1,
+    "bun_dau_mam_tom": 1,
+    "bun_mam": 1,
+    "bun_rieu": 1,
+    "bun_thit_nuong": 0,
+    "ca_kho_to": 1,
+    "canh_chua": 1,
+    "cao_lau": 1,
+    "chao_long": 0,
+    "com_tam": 1,
+    "goi_cuon": 1,
+    "hu_tieu": 1,
+    "mi_quang": 0,
+    "nem_chua": 0,
+    "pho": 2,
+    "xoi_xeo": 0
+  },
+  "review": {
+    "source_and_structure": "reviewed_by_implementation_agent",
+    "human_cooking_review": "not_performed",
+    "retrieval_acceptance_review": "pending",
+    "full_coverage_gate": "not_met"
+  },
+  "license": "CC-BY-SA-4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "retrieved_at": "2026-10-19",
+  "source_policy": "Text only; individual revision, contributor history, attribution, and modifications are included in each recipe. No images imported.",
+  "excluded_sources": [
+    {
+      "url": "https://github.com/xlabsinc/global-recipes",
+      "reason": "Vietnamese records contain placeholder ingredients and generic steps."
+    },
+    {
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_tráng_nướng",
+      "reason": "Overview only, not a complete recipe."
+    },
+    {
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_cuốn_tráng_chảo",
+      "reason": "Incomplete rolling/filling procedure."
+    },
+    {
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_giò",
+      "reason": "Method stops before wrapping/steaming; do not mark complete."
+    },
+    {
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_xèo",
+      "reason": "Ingredient list and method inconsistent; requires editorial repair."
+    },
+    {
+      "url": "https://huggingface.co/datasets/FoodieAtlas/World-Traditional-Recipes-Dataset",
+      "reason": "Sample rights limited; full commercial corpus is paid, not imported."
+    }
+  ]
+}
