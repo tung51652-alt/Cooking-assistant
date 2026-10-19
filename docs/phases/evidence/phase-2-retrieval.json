@@ -1,0 +1,18 @@
+{
+  "corpus_version": "cooklens-recipes-v1",
+  "queries": 204,
+  "positive_queries": 204,
+  "covered_dishes": 30,
+  "truthful_empty_queries": 0,
+  "hit_at_1": 1.0,
+  "hit_at_3": 1.0,
+  "mrr": 1.0,
+  "cross_dish_results": 0,
+  "contrastive_holdout_queries": 18,
+  "contrastive_holdout_hit_at_1": 1.0,
+  "review_status": "separate_semantic_pass_same_agent",
+  "technical_gate_met": true,
+  "external_review_complete": false,
+  "acceptance_gate_met": false,
+  "limitation": "27 dishes have one candidate. Separate semantic pass used the same implementation agent; external review and kitchen verification remain Phase 7 work."
+}

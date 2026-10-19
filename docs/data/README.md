@@ -65,3 +65,7 @@ Contract v1 yêu cầu thêm `source.attribution`, `revision_url` (nullable vớ
 ## Taxonomy Phase 1
 
 Danh mục dùng chung là [30vnfoods-label-map.json](../../data/processed/30vnfoods-label-map.json), xem [quy ước trường và alias](../../data/processed/README.md). Giữ đúng thứ tự 30 nhãn checkpoint; không suy canonical key từ tên hiển thị. Unit test đối chiếu manifest Phase 0 và kiểm tra alias không nhập nhằng được chạy trong CI.
+
+## Corpus Phase 2
+
+Đã có 33 công thức chi tiết, phủ 30/30 món: 21 bản Wikibooks CC BY-SA 4.0 và 12 bản AI biên soạn CC BY 4.0 theo quyền chủ dự án cấp. [Corpus README](../../data/recipes/README.md), [record tác giả](../../data/recipes/AUTHORSHIP.md) và [manifest](../../data/recipes/manifest.json) mô tả nguồn, version và review. Validator dùng chung với recipes/init; CI bắt buộc full coverage. Công thức AI được gắn nhãn rõ và chưa nấu kiểm chứng; phần nghiệm thu đó còn ở Phase 7.

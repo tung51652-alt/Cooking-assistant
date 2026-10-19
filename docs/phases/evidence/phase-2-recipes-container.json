@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "runtime": "docker_cpu",
+  "non_root_uid": 10001,
+  "read_only": true,
+  "network_internal": true,
+  "seed_runs": 2,
+  "covered_dishes": 30,
+  "catalog_search_requests": 30,
+  "latency_requests": 100,
+  "p95_ms": 110.017,
+  "peak_memory_bytes": 653287424,
+  "cpu_limit": 4,
+  "memory_limit_bytes": 2147483648,
+  "versions": {
+    "status": "ready",
+    "corpus_version": "cooklens-recipes-v1",
+    "embedding_version": "multilingual-e5-small-v1",
+    "taxonomy_version": "1.0.0"
+  },
+  "scope": "All 30 dishes searched and returned details, plus 100 timed variant searches; culinary verification and external review belong to Phase 7."
+}

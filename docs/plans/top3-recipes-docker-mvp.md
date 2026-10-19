@@ -211,30 +211,31 @@ Nguyên tắc phối hợp: CV sở hữu prediction; mapping là artifact dùng
 
 ## 6. Phase 2 — Corpus và service công thức có xếp hạng
 
-Corpus hiện có 33 recipe, phủ 30/30 món; gồm 21 bản Wikibooks và 12 bản AI biên soạn theo quyền chủ dự án cấp, xem [báo cáo Phase 2](../phases/phase-2.md). Đã đạt coverage dữ liệu, service cần dựng lại bundle/index cho version mới. Không đánh dấu phase hoàn thành chỉ vì service chạy được.
+Triển khai/kiểm thử kỹ thuật đã hoàn tất, chờ người dùng review và merge data → service. Corpus có 33 recipe, phủ 30/30 món: 21 Wikibooks và 12 AI biên soạn theo quyền chủ dự án cấp. Bộ 204 query đã qua cổng kỹ thuật, gồm 18 contrastive holdout; xem [báo cáo Phase 2](../phases/phase-2.md). Review bên ngoài và thử nấu chưa được thực hiện, tiếp tục là gate Phase 7; không nhận đã có reviewer thứ hai hoặc công thức đã được nấu kiểm chứng.
 
 Nhánh: tiếp tục `feature/data-recipes` cho dữ liệu, `feature/recipe-retrieval` cho service mới từ `develop`. Dùng notebook `hung/rag` như tài liệu tham khảo; không đưa agent/LLM vào critical path.
 
 Nguyên tắc phối hợp: data pipeline chịu trách nhiệm tính đúng của corpus; recipes chỉ phục vụ corpus/index cùng version. Một recipe document tương ứng một vector/payload để giảm phức tạp khi corpus còn nhỏ.
 
 - [x] Data: validator theo schema trong `docs/data/README.md`: ID duy nhất, món chuẩn, language/cuisine, servings/thời gian hợp lệ hoặc `null`, nguyên liệu, thứ tự bước, source/license.
-- [x] Data: tối thiểu một recipe đã review cho từng món trong 30 lớp; mục tiêu ba recipe/biến thể mỗi món khi có nguồn hợp lệ. Ít hơn ba thì trả số thật, không nhân bản cho đủ. Chủ dự án đã cho phép AI biên soạn công thức còn thiếu: ghi rõ tác giả AI, license, định lượng gợi ý và trạng thái chưa nấu kiểm chứng; không giả nguồn/tác giả bên ngoài.
-- [ ] Data: chuẩn hóa Unicode/alias, loại trùng và link hỏng; ghi corpus version, số recipe mỗi món, source manifest, version và kết quả review.
-- [ ] Embeddings: chạy model local trong bundle release có version, lưu cùng `embedding_version`, chiều vector và cách dựng text; build vectors ở giai đoạn phát hành, không tính lại toàn corpus mỗi lần boot.
-- [ ] Retrieval: filter cứng `normalized_dish`, `language=vi`, `cuisine=vietnamese` rồi vector search; hỗ trợ query ngắn về biến thể để phân biệt các recipe cùng món. Nếu chỉ tên món thì dùng tên chuẩn làm query.
-- [ ] Retrieval: xếp hạng theo similarity trong tập đã lọc, có tie-break ID; loại bản trùng. Nếu thêm reranker thì benchmark trước khi bật, không tạo thêm dependency LLM mặc định.
-- [ ] Recipes API: search trả tối đa `top_k`, list preview và endpoint lấy chi tiết; món hợp lệ chưa có recipe trả danh sách rỗng, món không nằm taxonomy báo validation error; ID không có trả 404.
-- [ ] Qdrant/init: tạo payload index cho metadata, import vector/payload theo ID cố định; job idempotent, không nhân bản khi restart.
-- [ ] Qdrant/init: collection gắn corpus/embedding version, validate nội bộ/count/dimension trước chuyển alias active; không ghi đè collection đang phục vụ khi import lỗi. Thu dọn version cũ bằng thao tác riêng.
-- [ ] Recipes readiness: đối chiếu alias active/version với bundle; thiếu/sai version trả not ready, không trả kết quả từ index bất tương thích.
-- [ ] Evaluation: query và relevant recipe IDs được review độc lập, tách khỏi bước chọn cấu hình. Đo Hit@1, Hit@3, MRR và tỷ lệ lẫn món; có query tên có dấu/không dấu, alias và biến thể.
-- [ ] Dockerfile recipes chứa model embedding, tokenizer/config, corpus đã validate và vectors; job seed dùng cùng image, không yêu cầu model/recipe tải từ web khi chạy.
+- [x] Data: tối thiểu một recipe đã review cho từng món trong 30 lớp; mục tiêu ba recipe/biến thể mỗi món khi có nguồn hợp lệ. Ít hơn ba thì trả số thật, không nhân bản cho đủ. Chủ dự án đã cho phép AI biên soạn món còn thiếu; phải ghi rõ nguồn AI, license, định lượng gợi ý và trạng thái chưa nấu kiểm chứng, không giả tác giả hoặc nguồn bên ngoài.
+- [x] Data: chuẩn hóa Unicode/alias, loại trùng và link hỏng; ghi corpus version, số recipe mỗi món, source manifest, version và kết quả review.
+- [x] Embeddings: chạy model local trong bundle release có version, lưu cùng `embedding_version`, chiều vector và cách dựng text; build vectors ở giai đoạn phát hành, không tính lại toàn corpus mỗi lần boot.
+- [x] Retrieval: filter cứng `normalized_dish`, `language=vi`, `cuisine=vietnamese` rồi vector search; hỗ trợ query ngắn về biến thể để phân biệt các recipe cùng món. Nếu chỉ tên món thì dùng tên chuẩn làm query.
+- [x] Retrieval: xếp hạng theo similarity trong tập đã lọc, có tie-break ID; loại bản trùng. Nếu thêm reranker thì benchmark trước khi bật, không tạo thêm dependency LLM mặc định.
+- [x] Recipes API: search trả tối đa `top_k`, list preview và endpoint lấy chi tiết; món hợp lệ chưa có recipe trả danh sách rỗng, món không nằm taxonomy báo validation error; ID không có trả 404.
+- [x] Qdrant/init: tạo payload index cho metadata, import vector/payload theo ID cố định; job idempotent, không nhân bản khi restart.
+- [x] Qdrant/init: collection gắn corpus/embedding version, validate nội bộ/count/dimension trước chuyển alias active; không ghi đè collection đang phục vụ khi import lỗi. Thu dọn version cũ bằng thao tác riêng.
+- [x] Recipes readiness: đối chiếu alias active/version với bundle; thiếu/sai version trả not ready, không trả kết quả từ index bất tương thích.
+- [x] Evaluation kỹ thuật: query/relevance được review theo nội dung ở lượt riêng, tách khỏi cấu hình; đo Hit@1, Hit@3, MRR, lẫn món và contrastive holdout, bật gate CI. Cùng agent thực hiện, chưa có review bên ngoài; người dùng review khi duyệt PR và bổ sung nghiệm thu độc lập ở Phase 7.
+- [x] Dockerfile recipes chứa model embedding, tokenizer/config, corpus đã validate và vectors; job seed dùng cùng image, không yêu cầu model/recipe tải từ web khi chạy.
 
 ### Kết thúc Phase 2
 
-- [ ] Rà file thừa, test/query/recipe trùng, download/index tạm và output đánh giá theo [cổng chung](#phase-closeout); giữ bộ evaluation/fixtures có nguồn rõ ràng.
-- [ ] Rà secrets và mọi giá trị mã/hash trong source URL, notebook outputs, corpus, config, commit và image recipes; không mang API key/provider từ notebook vào runtime.
-- [ ] Tạo PR và báo cáo; người dùng merge data trước service phụ thuộc, agent fetch xác nhận `origin/develop` trước tích hợp tiếp.
+- [x] Rà file thừa, test/query/recipe trùng, download/index tạm và output đánh giá theo [cổng chung](#phase-closeout); giữ bộ evaluation/fixtures có nguồn rõ ràng.
+- [x] Rà secrets và mọi giá trị mã/hash trong source URL, notebook outputs, corpus, config, commit và image recipes; không mang API key/provider từ notebook vào runtime.
+- [x] Tạo/cập nhật PR và báo cáo đủ coverage, test, policy, image.
+- [ ] Người dùng review dữ liệu/query và merge data trước service; agent fetch xác nhận `origin/develop` trước tích hợp tiếp.
 
 Điều kiện ra phase: corpus phủ đủ 30 món hoặc phải công bố phạm vi hẹp hơn trước phát hành; bộ query đạt gate Phase 7, search/detail chạy thật với Qdrant, init chạy lại không tạo thêm dữ liệu. Người dùng merge PR data trước PR service phụ thuộc dữ liệu.
 
