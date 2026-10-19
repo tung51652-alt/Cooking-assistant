@@ -1,7 +1,12 @@
 FROM maven:3.9.11-eclipse-temurin-21 AS build
 WORKDIR /src
 COPY backend/pom.xml backend/pom.xml
-RUN mvn -B -q -f backend/pom.xml dependency:go-offline
+# Retry transient repository misses; -U rechecks Maven's cached missing artifacts.
+RUN for attempt in 1 2 3; do \
+      mvn -B -q -U -f backend/pom.xml dependency:go-offline && break; \
+      if [ "$attempt" -eq 3 ]; then exit 1; fi; \
+      sleep 10; \
+    done
 COPY backend/src/main backend/src/main
 COPY data/processed/30vnfoods-label-map.json data/processed/30vnfoods-label-map.json
 COPY deploy/artifacts/manifest.json deploy/artifacts/manifest.json
