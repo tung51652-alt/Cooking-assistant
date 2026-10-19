@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-10-19",
+  "source_provided_by": "project_user",
+  "source_directory": "/home/trantung/ict/FrontEndCookLens",
+  "usage": "non_runtime_reference_only",
+  "style_baseline_status": "user_authorized_css_reconstruction_pending_visual_review",
+  "files": [
+    {
+      "path": "index.html",
+      "size_bytes": 2887
+    },
+    {
+      "path": "recognition.html",
+      "size_bytes": 2316
+    },
+    {
+      "path": "recipe.html",
+      "size_bytes": 2491
+    }
+  ]
+}

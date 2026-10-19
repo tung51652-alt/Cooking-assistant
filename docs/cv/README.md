@@ -14,7 +14,7 @@ Phân loại **một món Việt chính** trong ảnh, trả về Top-K và conf
 | VietFood67 | Tham khảo V2 multi-dish | [FoodDetector](https://github.com/nvhnam/FoodDetector) | Chưa dùng | Hạn chế research/education cần xác minh. |
 | FoodSeg103 | Tham khảo V3 segmentation | [Benchmark](https://github.com/LARC-CMU-SMU/FoodSeg103-Benchmark-v1) | Chưa dùng | Ngoài MVP. |
 
-Không commit dataset/weights. Ghi version, checksum, nơi lưu và quyền dùng vào experiment.
+Không commit dataset/weights. Ghi version, nơi lưu và quyền dùng vào experiment.
 
 ## Model & cấu hình
 

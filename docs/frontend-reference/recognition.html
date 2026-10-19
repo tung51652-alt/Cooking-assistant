@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0">
+
+    <title>CookLens - Nhận diện</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/recognition.css">
+
+</head>
+
+<body>
+
+<header class="header">
+
+    <a href="../index.html" class="logo">
+        🍜 CookLens
+    </a>
+
+    <nav class="navbar">
+
+        <a href="../index.html">
+            Trang chủ
+        </a>
+
+        <a href="recognition.html">
+            Nhận diện
+        </a>
+
+        <a href="recipe.html">
+            Công thức
+        </a>
+
+        <a href="chat.html">
+            Chat
+        </a>
+
+        <a href="cooking.html">
+            Cooking Mode
+        </a>
+
+    </nav>
+
+</header>
+
+
+<main>
+
+    <section class="section">
+
+        <div class="section-title">
+
+            <h2>
+                🔍 Kết quả nhận diện
+            </h2>
+
+        </div>
+
+
+        <div class="recognition-container">
+
+
+            <div class="result-card">
+
+                <h3>
+                    Món ăn được nhận diện
+                </h3>
+
+                <div
+                        id="mainResult"
+                        class="result-placeholder">
+
+
+                </div>
+
+                <div
+                        id="confidence"
+                        class="confidence-placeholder">
+
+                </div>
+
+
+                <button
+                        id="confirmButton"
+                        class="btn-primary">
+
+                    ✓ Xác nhận món
+
+                </button>
+
+            </div>
+
+
+
+            <div class="result-card">
+
+                <h3>
+                    Các khả năng khác
+                </h3>
+
+                <div
+                        id="topResults"
+                        class="top-results">
+
+                    <!-- chat bot đưa ra kq-->
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <p>
+        © 2026 CookLens
+    </p>
+
+</footer>
+
+
+<script src="../js/recognition.js"></script>
+
+</body>
+
+</html>

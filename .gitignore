@@ -1,32 +1,49 @@
-# Computer-vision datasets and generated artifacts
+# Local environments, dependencies and generated outputs
+venv/
+.venv/
+node_modules/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.uv-cache/
+target/
+dist/
+build/
+coverage/
+htmlcov/
+playwright-report/
+test-results/
+*.log
+.idea/
+*.iml
+.DS_Store
+
+# Credentials; examples contain placeholders only
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+**/kaggle.json
+
+# Binary ML artifacts remain external to Git
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+pytorch_model.bin
+/deploy/artifacts/staging/
 /ai/cv/artifacts/
 /ai/cv/checkpoints/
 /ai/cv/data/
 /ai/cv/datasets/
 /ai/cv/outputs/
 /ai/cv/runs/
-/ai/cv/**/*.pt
-/ai/cv/**/*.pth
-/ai/cv/**/*.ckpt
-/ai/cv/**/*.onnx
-/ai/cv/**/*.zip
-
-# Computer-vision secrets and local caches
-/ai/cv/**/.env
-/ai/cv/**/.env.*
-!/ai/cv/**/.env.example
-/ai/cv/**/kaggle.json
-/ai/cv/**/.kaggle/
-/ai/cv/**/.ipynb_checkpoints/
-/ai/cv/**/__pycache__/
-/ai/cv/**/*.py[cod]
-
-# Local 30VNFoods download; only manifests and audit metadata are tracked
 /data/raw/30vnfoods/
-
-# Local API environment and validation artifacts
-/.venv/
-/.uv-cache/
 /.api-validation/
-__pycache__/
-*.py[cod]
+/ai/cv/**/*.zip
+/ai/cv/**/.kaggle/

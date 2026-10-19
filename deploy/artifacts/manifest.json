@@ -1,0 +1,158 @@
+{
+  "manifest_version": "1.0.0",
+  "audited_at": "2026-10-19",
+  "public_api_version": "1.0.0",
+  "taxonomy_version": "1.0.0",
+  "vision": {
+    "model_version": "efficientnet-b2-30vnfoods-2026-09-30",
+    "architecture": "efficientnet_b2",
+    "filename": "efficientnet_b2_best.pt",
+    "size_bytes": 31434209,
+    "checkpoint_stage": "fine_tune",
+    "checkpoint_epoch": 10,
+    "class_labels": [
+      "Banh beo",
+      "Banh bot loc",
+      "Banh can",
+      "Banh canh",
+      "Banh chung",
+      "Banh cuon",
+      "Banh duc",
+      "Banh gio",
+      "Banh khot",
+      "Banh mi",
+      "Banh pia",
+      "Banh tet",
+      "Banh trang nuong",
+      "Banh xeo",
+      "Bun bo Hue",
+      "Bun dau mam tom",
+      "Bun mam",
+      "Bun rieu",
+      "Bun thit nuong",
+      "Ca kho to",
+      "Canh chua",
+      "Cao lau",
+      "Chao long",
+      "Com tam",
+      "Goi cuon",
+      "Hu tieu",
+      "Mi quang",
+      "Nem chua",
+      "Pho",
+      "Xoi xeo"
+    ],
+    "classifier_weight_shape": [
+      30,
+      1408
+    ],
+    "transform": {
+      "implementation": "torchvision.models.EfficientNet_B2_Weights.DEFAULT.transforms",
+      "rgb": true,
+      "resize_short_edge": 288,
+      "crop_size": [
+        288,
+        288
+      ],
+      "interpolation": "bicubic",
+      "antialias": true,
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ]
+    },
+    "build_staging_path": "deploy/artifacts/staging/vision/efficientnet_b2_best.pt",
+    "runtime_path": "/opt/cooklens/models/efficientnet_b2_best.pt",
+    "ci_source_uri": "https://github.com/tung51652-alt/Cooking-assistant/releases/download/vision-model-v1/efficientnet_b2_best.pt",
+    "acquisition_status": "public_release_download_verified_without_persisting_validation_values",
+    "redistribution_status": "public_distribution_authorized_by_project_owner",
+    "provenance": {
+      "provided_by": "project_user",
+      "source_repository": "https://github.com/ds4v/30VNFoods",
+      "dataset_card": "https://www.kaggle.com/datasets/quandang/vietnamese-foods",
+      "trained_by": "Phạm Hoàng Minh",
+      "confirmed_by": "project_owner",
+      "confirmation_date": "2026-10-19",
+      "public_distribution_authorized": true,
+      "permission_record": "deploy/artifacts/vision-model-v1.md",
+      "implementation_license": "BSD-3-Clause",
+      "implementation_license_url": "https://github.com/pytorch/vision/blob/v0.23.0/LICENSE",
+      "checkpoint_spdx_license": null,
+      "dataset_rights_independently_verified": false
+    },
+    "verification": {
+      "format_load": "torch.load(weights_only=True,map_location=cpu)",
+      "class_list_matches_cv_branch": true,
+      "classifier_shape_matches": true,
+      "accuracy_retested": false,
+      "public_release_download_verified": true
+    },
+    "reported_test_metrics": {
+      "loss": 1.0604057976191374,
+      "top1": 0.8760991207034372,
+      "top3": 0.9608313349320543,
+      "macro_f1": 0.8769650306514689
+    },
+    "metrics_source": "ai/cv/experiments/efficientnet-b2-30vnfoods-2026-09-30/experiment_summary.json",
+    "artifact_release_tag": "vision-model-v1"
+  },
+  "embedding": {
+    "embedding_version": "multilingual-e5-small-v1",
+    "repository": "intfloat/multilingual-e5-small",
+    "revision": "main",
+    "license_claim": "MIT",
+    "license_evidence_url": "https://huggingface.co/intfloat/multilingual-e5-small/blob/main/README.md",
+    "dimension": 384,
+    "pooling": "attention_mask_mean",
+    "normalize_l2": true,
+    "distance": "cosine",
+    "query_prefix": "query: ",
+    "passage_prefix": "passage: ",
+    "max_tokens": 512,
+    "passage_template_version": "recipe-plain-v1",
+    "weights_file": "model.safetensors",
+    "weights_size_bytes": 470641600,
+    "weights_verification": "selected_source_pending_phase2_bundle_validation",
+    "runtime_path": "/opt/cooklens/models/multilingual-e5-small",
+    "required_files": [
+      "config.json",
+      "model.safetensors",
+      "tokenizer.json",
+      "tokenizer_config.json",
+      "special_tokens_map.json",
+      "sentencepiece.bpe.model"
+    ],
+    "quality_status": "baseline_selected_pending_phase2_evaluation",
+    "source_policy": "Use a reviewed bundle with a human-readable release version; do not persist upstream object identifiers."
+  },
+  "corpus": {
+    "corpus_version": null,
+    "recipe_count": 0,
+    "reviewed_class_coverage": 0,
+    "required_class_coverage": 30,
+    "source_selection": "Wikibooks Cookbook text; licensed team additions if needed",
+    "source_policy_url": "https://en.wikibooks.org/wiki/Wikibooks:Copyrights",
+    "status": "source_policy_selected_no_recipes_imported_or_reviewed"
+  },
+  "registry": {
+    "provider": "docker_hub",
+    "namespace": "trantung2006",
+    "visibility": "public",
+    "platforms": [
+      "linux/amd64"
+    ],
+    "status": "namespace_and_visibility_confirmed_push_access_not_verified",
+    "planned_repositories": [
+      "trantung2006/cooklens-vision",
+      "trantung2006/cooklens-recipes",
+      "trantung2006/cooklens-backend",
+      "trantung2006/cooklens-frontend"
+    ]
+  }
+}

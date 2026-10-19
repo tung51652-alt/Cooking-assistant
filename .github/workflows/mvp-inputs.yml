@@ -1,0 +1,25 @@
+name: MVP input artifacts
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check public metadata policy
+        run: python3 deploy/scripts/check_public_metadata.py
+      - name: Reject corrupt or incomplete artifact transfers
+        run: python3 -m unittest discover -s deploy/tests -v
+      - name: Download and verify public checkpoint
+        run: python3 deploy/scripts/fetch_vision_checkpoint.py
