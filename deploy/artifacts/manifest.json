@@ -8,7 +8,6 @@
     "architecture": "efficientnet_b2",
     "filename": "efficientnet_b2_best.pt",
     "size_bytes": 31434209,
-    "sha256": "5be0c342c14f4f102ec851b0b5168e9953090624e93200d56359bdc7561fe67c",
     "checkpoint_stage": "fine_tune",
     "checkpoint_epoch": 10,
     "class_labels": [
@@ -71,11 +70,10 @@
     "build_staging_path": "deploy/artifacts/staging/vision/efficientnet_b2_best.pt",
     "runtime_path": "/opt/cooklens/models/efficientnet_b2_best.pt",
     "ci_source_uri": "https://github.com/tung51652-alt/Cooking-assistant/releases/download/vision-model-v1/efficientnet_b2_best.pt",
-    "acquisition_status": "public_github_release_bytes_roundtrip_verified",
+    "acquisition_status": "public_release_download_verified_without_persisting_validation_values",
     "redistribution_status": "public_distribution_authorized_by_project_owner",
     "provenance": {
       "provided_by": "project_user",
-      "training_branch_commit": "612c67b",
       "source_repository": "https://github.com/ds4v/30VNFoods",
       "dataset_card": "https://www.kaggle.com/datasets/quandang/vietnamese-foods",
       "trained_by": "Phạm Hoàng Minh",
@@ -93,7 +91,7 @@
       "class_list_matches_cv_branch": true,
       "classifier_shape_matches": true,
       "accuracy_retested": false,
-      "public_release_download_sha256_matches": true
+      "public_release_download_verified": true
     },
     "reported_test_metrics": {
       "loss": 1.0604057976191374,
@@ -101,15 +99,15 @@
       "top3": 0.9608313349320543,
       "macro_f1": 0.8769650306514689
     },
-    "metrics_source": "612c67b:ai/cv/experiments/efficientnet-b2-30vnfoods-2026-09-30/experiment_summary.json",
+    "metrics_source": "ai/cv/experiments/efficientnet-b2-30vnfoods-2026-09-30/experiment_summary.json",
     "artifact_release_tag": "vision-model-v1"
   },
   "embedding": {
     "embedding_version": "multilingual-e5-small-v1",
     "repository": "intfloat/multilingual-e5-small",
-    "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+    "revision": "main",
     "license_claim": "MIT",
-    "license_evidence_url": "https://huggingface.co/intfloat/multilingual-e5-small/blob/614241f622f53c4eeff9890bdc4f31cfecc418b3/README.md",
+    "license_evidence_url": "https://huggingface.co/intfloat/multilingual-e5-small/blob/main/README.md",
     "dimension": 384,
     "pooling": "attention_mask_mean",
     "normalize_l2": true,
@@ -120,8 +118,7 @@
     "passage_template_version": "recipe-plain-v1",
     "weights_file": "model.safetensors",
     "weights_size_bytes": 470641600,
-    "weights_sha256": "1a55775f53449dac10a2bcbc312469fac40b96d53198c407081a831f81c98477",
-    "weights_verification": "upstream_lfs_metadata_only_not_downloaded",
+    "weights_verification": "selected_source_pending_phase2_bundle_validation",
     "runtime_path": "/opt/cooklens/models/multilingual-e5-small",
     "required_files": [
       "config.json",
@@ -131,8 +128,8 @@
       "special_tokens_map.json",
       "sentencepiece.bpe.model"
     ],
-    "bundle_sha256": null,
-    "quality_status": "baseline_selected_pending_phase2_evaluation"
+    "quality_status": "baseline_selected_pending_phase2_evaluation",
+    "source_policy": "Use a reviewed bundle with a human-readable release version; do not persist upstream object identifiers."
   },
   "corpus": {
     "corpus_version": null,
@@ -141,7 +138,6 @@
     "required_class_coverage": 30,
     "source_selection": "Wikibooks Cookbook text; licensed team additions if needed",
     "source_policy_url": "https://en.wikibooks.org/wiki/Wikibooks:Copyrights",
-    "bundle_sha256": null,
     "status": "source_policy_selected_no_recipes_imported_or_reviewed"
   },
   "registry": {

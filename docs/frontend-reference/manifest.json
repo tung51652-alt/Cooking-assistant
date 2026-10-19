@@ -7,17 +7,14 @@
   "files": [
     {
       "path": "index.html",
-      "sha256": "a8ad39028c99a9d2117f229658fc692c06778ac7d7053fe64da8f719c3886236",
       "size_bytes": 2887
     },
     {
       "path": "recognition.html",
-      "sha256": "225d8b8e4c982c6e6e53f5ef8c646e2451f4d5a2b1a7f27d5db9b72134cf48ac",
       "size_bytes": 2316
     },
     {
       "path": "recipe.html",
-      "sha256": "7b6fff3e4b99f57946a3c3483e5e169f9621224d9001312cc7ab749e1a2a24f6",
       "size_bytes": 2491
     }
   ]

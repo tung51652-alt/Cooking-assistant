@@ -29,16 +29,16 @@ Tài liệu [chuẩn kỹ thuật](../technical-architecture.md), [data](../data
 
 ## 2. Nhánh có thể tận dụng và cách đưa về develop
 
-| Nhánh / commit đầu nhánh | Bằng chứng hiện có | Cách tận dụng cho lần này |
+| Nhánh | Bằng chứng hiện có | Cách tận dụng cho lần này |
 | --- | --- | --- |
-| `main`, `develop` — `2b8960a` | Cùng commit; cấu trúc và tài liệu, chưa có ứng dụng backend/frontend | `develop` là nhánh tích hợp; đưa kết quả từng phase qua PR, không làm toàn bộ trên một nhánh lớn |
-| `feature/make-data` — `295a4f5` | Tài liệu kiến trúc; đã nằm trong lịch sử `main/develop` | Dùng tài liệu hiện có, không cần merge lại |
-| `minh/cv` — `47e2728` | EfficientNet-B2, notebook, báo cáo, split manifest, FastAPI Top-1 và kiểm thử | Vào nhánh này, cập nhật từ `develop`, sửa Top-3, taxonomy và cấu hình model; nghiệm thu trước PR vào `develop` |
-| `sida/data-30vnfoods-manifest` — `d84e47b` | Mapping 30 nhãn và nguồn dataset; đồng thời kế thừa commit web-search `cd5c732` | Tận dụng riêng commit data `d84e47b`. Tạo `feature/data-recipes` từ `develop`, cherry-pick commit data, chỉnh sửa rồi PR. Không cần kéo graph thử nghiệm vào runtime |
-| `hung/rag` — `b45bdce` | `Food_to_Recipe.ipynb`: agent LLM, DDGS web search và prompt trả lời món quen từ kiến thức model | Chỉ tham khảo ý tưởng/query. Chưa có vector retrieval, corpus hay evaluation. Xây service có dữ liệu thật trên `feature/recipe-retrieval`; không coi notebook là RAG đã hoàn thành |
-| `sida/langgraph-web-search` — `cd5c732` | Graph phân nhánh trả lời/tìm web, chưa có persistence hay nối CV–recipe | Giữ cho milestone chat sau; không là dependency của bản này |
-| `tung/phas4-langgraph` — `ef7df4e` | Chỉ thêm `ai/t.py` rỗng | Chưa có phần triển khai để sử dụng |
-| `dangvinh23012006-art-patch-1` — `25775e3` | Trên origin chỉ có `frontend/modules.xml` của IDE; HTML người dùng cung cấp nằm riêng ở `/home/trantung/ict/FrontEndCookLens` | Dùng HTML ngoài repo làm nền trên `feature/frontend-top3-recipes`, chuyển thành component giữ bố cục/style; không coi file IDE là mã UI |
+| `main`, `develop` | Cùng commit; cấu trúc và tài liệu, chưa có ứng dụng backend/frontend | `develop` là nhánh tích hợp; đưa kết quả từng phase qua PR, không làm toàn bộ trên một nhánh lớn |
+| `feature/make-data` | Tài liệu kiến trúc; đã nằm trong lịch sử `main/develop` | Dùng tài liệu hiện có, không cần merge lại |
+| `minh/cv` | EfficientNet-B2, notebook, báo cáo, split manifest, FastAPI Top-1 và kiểm thử | Vào nhánh này, cập nhật từ `develop`, sửa Top-3, taxonomy và cấu hình model; nghiệm thu trước PR vào `develop` |
+| `sida/data-30vnfoods-manifest` | Mapping 30 nhãn và nguồn dataset; đồng thời kế thừa thay đổi web-search | Chỉ tận dụng thay đổi mapping/data. Tạo `feature/data-recipes` từ `develop`, chọn riêng thay đổi data, chỉnh sửa rồi PR. Không cần kéo graph thử nghiệm vào runtime |
+| `hung/rag` | `Food_to_Recipe.ipynb`: agent LLM, DDGS web search và prompt trả lời món quen từ kiến thức model | Chỉ tham khảo ý tưởng/query. Chưa có vector retrieval, corpus hay evaluation. Xây service có dữ liệu thật trên `feature/recipe-retrieval`; không coi notebook là RAG đã hoàn thành |
+| `sida/langgraph-web-search` | Graph phân nhánh trả lời/tìm web, chưa có persistence hay nối CV–recipe | Giữ cho milestone chat sau; không là dependency của bản này |
+| `tung/phas4-langgraph` | Chỉ thêm `ai/t.py` rỗng | Chưa có phần triển khai để sử dụng |
+| `dangvinh23012006-art-patch-1` | Trên origin chỉ có `frontend/modules.xml` của IDE; HTML người dùng cung cấp nằm riêng ở `/home/trantung/ict/FrontEndCookLens` | Dùng HTML ngoài repo làm nền trên `feature/frontend-top3-recipes`, chuyển thành component giữ bố cục/style; không coi file IDE là mã UI |
 
 Quy trình chung cho từng PR:
 
@@ -56,12 +56,12 @@ Nhận xét quan trọng: notebook trên `hung/rag` hiện dựa vào LLM/web se
 
 ### Cổng kết thúc bắt buộc cho mọi phase
 
-Mỗi phase phải rà soát cả diff so với nhánh đích và file mới/untracked thuộc phạm vi phase, trước commit/push và trước khi bàn giao PR. Ghi kết quả đã kiểm tra và giới hạn kiểm tra trong PR; không chỉ đánh dấu checklist mà không chạy kiểm tra.
+Mỗi phase bắt buộc chạy `python3 deploy/scripts/check_public_metadata.py`, kiểm tra PR/release notes và asset phát hành; CI phải chặn khi có vi phạm. Scanner chỉ báo file/vị trí, không in giá trị. Mỗi phase phải rà soát cả diff so với nhánh đích và file mới/untracked thuộc phạm vi phase, trước commit/push và trước khi bàn giao PR. Ghi kết quả đã kiểm tra và giới hạn kiểm tra trong PR; không chỉ đánh dấu checklist mà không chạy kiểm tra.
 
 - **File thừa:** xem `git status`, danh sách file thay đổi và diff với `origin/develop`; loại file tạm, debug scripts, backup, IDE metadata, cache, logs, build/coverage outputs, bản chép HTML hoặc asset không còn dùng. Không xóa file local của người dùng chỉ vì chúng untracked; giữ ngoài commit/build context và báo rõ nếu ảnh hưởng việc chạy.
 - **File test:** phân loại test hồi quy/contract/E2E còn cần, fixture có chủ đích và script thử một lần. Giữ test hữu ích ở đúng thư mục, xóa test tạm/trùng hoặc chỉ mirror implementation do phase tạo ra, bỏ generated reports/screenshots/video khỏi commit nếu không là bằng chứng được chọn. Không xóa sạch test để đạt tiêu chí “không có file test thừa”. Kiểm tra fixture/ảnh có quyền dùng, không chứa dữ liệu cá nhân; image production không copy test suite, fixture và output không cần cho runtime.
 - **Secrets và hash nhạy cảm:** rà API keys, token, password, private key, connection string có credentials, cookie/session, chữ ký URL truy cập artifact và password/token hashes trong source, config, `.env`, notebook input/output, test fixture, docs, logs và bundle. Kiểm tra các commit sẽ push, không chỉ working tree; dùng secret scanner với output che giá trị khi có thể. Không đưa giá trị nhạy cảm vào báo cáo hoặc lệnh/tool output.
-- **Hash kỹ thuật hợp lệ:** Git commit SHA, checksum SHA-256 của artifact, image digest và integrity hash của lockfile là định danh kiểm chứng, được giữ khi có mục đích rõ ràng. Phân biệt chúng với password hash/token hoặc mã bí mật; không xóa checksum/digest cần cho tính tái lập chỉ vì chuỗi trông giống hash.
+- **Cấm ghi giá trị mã/hash:** tuyệt đối không ghi giá trị SHA, commit hash, checksum, image digest, integrity hash, token/key hoặc mã truy cập vào code, tài liệu, manifest, config, lockfile, notebook, fixture, PR/release notes, log hay asset phát hành do nhóm quản lý. Không còn ngoại lệ cho hash kỹ thuật hoặc lockfile. Chỉ dùng tên nhánh, version/tag và URL không chứa mã hoặc thông tin truy cập. Các giá trị cần để kiểm tra toàn vẹn chỉ xử lý tạm trong bộ nhớ từ metadata upstream, không lưu hoặc in ra. Không dùng mã thật làm ví dụ. Định danh Git/registry do nền tảng tự quản lý không được sao chép vào nội dung dự án.
 - **Đóng gói/phát hành:** kiểm tra `.gitignore`, `.dockerignore`, frontend build bundle, Docker build context và các layer/config/history của image trong phạm vi phase. Xóa secret trong layer sau không làm secret biến mất khỏi layer trước; phải build lại từ đầu vào sạch. Bản release không chứa credential dù registry private.
 - **Nếu phát hiện rò rỉ:** ngừng push/publish phần bị ảnh hưởng, loại khỏi thay đổi mới và báo vị trí/loại dữ liệu mà không in giá trị. Credential đã bị commit/push phải được thu hồi/rotate; xóa file ở commit mới chưa xử lý hết lịch sử. Không tự rewrite lịch sử nhánh chung; phối hợp xử lý và chạy lại kiểm tra trước mở/đánh dấu PR sẵn sàng.
 
@@ -159,10 +159,10 @@ Nguyên tắc phối hợp: CV và recipe thống nhất mapping trước khi vi
 
 - [x] Chốt các API và error/status semantics, đường dẫn public/nội bộ trong [contract v1](../contracts/mvp-v1.md).
 - [x] Chốt UI: upload → ba lựa chọn → xác nhận → danh sách/chi tiết; luôn sửa món được, kể cả confidence cao; chưa có chatbot.
-- [x] Audit nguồn và chốt hướng xử lý style: đã lưu ba HTML/fingerprint, ghi CSS/JS thiếu; người dùng cho phép dựng CSS/JS từ khung HTML. Làm khung độc lập sớm trên nhánh frontend và PR riêng để duyệt baseline desktop/mobile, chưa thay nghiệm thu Phase 4.
+- [x] Audit nguồn và chốt hướng xử lý style: đã lưu ba HTML/metadata, ghi CSS/JS thiếu; người dùng cho phép dựng CSS/JS từ khung HTML. Làm khung độc lập sớm trên nhánh frontend và PR riêng để duyệt baseline desktop/mobile, chưa thay nghiệm thu Phase 4.
 - [x] Chốt gate/thiết bị mục tiêu, concurrency và policy luôn chọn/sửa món trong [runtime decisions](../decisions/mvp-runtime.md); không tự xác nhận bằng threshold 0.30. Chưa tuyên bố benchmark đã đạt.
-- [x] Hoàn tất checkpoint supply: đã load/đối chiếu/hash metadata thật trong [artifact manifest](../../deploy/artifacts/manifest.json); đã chọn GitHub Release `vision-model-v1`, URL public cố định và script tải/xác minh cho developer/CI.
-- [x] Chọn baseline multilingual-e5-small với revision, chiều vector, license claim và cách đóng gói offline trong manifest; kiểm tra chất lượng trên bộ query nghiệm thu thuộc Phase 2, chưa đánh dấu đạt retrieval gate.
+- [x] Hoàn tất checkpoint supply: đã load/đối chiếu metadata thật trong [artifact manifest](../../deploy/artifacts/manifest.json); đã chọn GitHub Release `vision-model-v1`, URL public cố định và script tải/xác minh cho developer/CI.
+- [x] Chọn baseline multilingual-e5-small với version bundle, chiều vector, license claim và cách đóng gói offline trong manifest; kiểm tra chất lượng trên bộ query nghiệm thu thuộc Phase 2, chưa đánh dấu đạt retrieval gate.
 - [x] Chọn policy Wikibooks text có attribution/license theo từng revision và corpus tối thiểu 1 recipe/món; ghi rõ chưa nhập/review, coverage 0/30 và nghĩa vụ bổ sung lớp thiếu ở Phase 2.
 - [x] Ghi provenance checkpoint: Phạm Hoàng Minh huấn luyện EfficientNet-B2; người dùng xác nhận quyền public/phân phối và chọn GitHub Releases ngày 2026-10-19. Lưu permission record và license torchvision riêng, không gán license code cho ảnh/checkpoint hoặc phân phối dataset.
 - [x] Chốt registry: namespace `trantung2006`, public, kiến trúc ban đầu `linux/amd64`; kiểm tra quyền push/repositories ở Phase 6 trước publish, chưa công bố `arm64`.
@@ -171,8 +171,10 @@ Nguyên tắc phối hợp: CV và recipe thống nhất mapping trước khi vi
 
 ### Kết thúc Phase 0
 
+- [x] Chạy `python3 deploy/scripts/check_public_metadata.py`; không chấp nhận giá trị mã/hash trong tracked files.
+
 - [x] Rà file thừa và file test/fixture theo [cổng chung](#phase-closeout); tài liệu/asset nguồn chỉ giữ phần có mục đích, không thêm test ứng dụng cho thay đổi thuần docs.
-- [x] Rà secrets/hash nhạy cảm trong diff, commit, notebook và artifact manifest; checksum/commit SHA hợp lệ được giữ có chủ đích.
+- [x] Rà secrets và mọi giá trị mã/hash trong diff, commit, notebook và artifact manifest; không giữ lại giá trị mã/hash dưới bất kỳ ngoại lệ nào.
 - [x] Tạo PR #6 kèm contract, manifest, verifier và báo cáo kiểm tra để người dùng review.
 - [ ] Người dùng merge PR #6; agent fetch xác nhận `origin/develop` trước Phase 1/2 phụ thuộc.
 
@@ -180,7 +182,7 @@ Nguyên tắc phối hợp: CV và recipe thống nhất mapping trước khi vi
 
 ## 5. Phase 1 — CV Top-3 và taxonomy dùng chung
 
-Nhánh: chỉnh sửa `minh/cv` sau khi cập nhật từ `develop`; đồng thời chuẩn bị `feature/data-recipes` bằng commit `d84e47b`. Hai PR ghi rõ thứ tự phụ thuộc mapping.
+Nhánh: chỉnh sửa `minh/cv` sau khi cập nhật từ `develop`; đồng thời chuẩn bị `feature/data-recipes` bằng phần thay đổi data riêng. Hai PR ghi rõ thứ tự phụ thuộc mapping.
 
 Nguyên tắc phối hợp: CV sở hữu prediction; mapping là artifact dùng chung, không tự viết lại class list trong frontend/backend. Mọi service kiểm tra `taxonomy_version` tương thích.
 
@@ -197,7 +199,7 @@ Nguyên tắc phối hợp: CV sở hữu prediction; mapping là artifact dùng
 ### Kết thúc Phase 1
 
 - [ ] Rà file thừa, test/fixture tạm, outputs notebook, cache và checkpoint local theo [cổng chung](#phase-closeout); giữ test hồi quy hữu ích, loại dữ liệu không cần khỏi image.
-- [ ] Rà secrets/hash nhạy cảm trong diff/commit, notebook, cấu hình và image CV; xác nhận checkpoint vào đúng artifact, không vào Git.
+- [ ] Rà secrets và mọi giá trị mã/hash trong diff/commit, notebook, cấu hình và image CV; xác nhận checkpoint vào đúng artifact, không vào Git.
 - [ ] Tạo PR CV/data mapping kèm bằng chứng; người dùng merge đúng thứ tự, agent fetch xác nhận trước phần phụ thuộc.
 
 Điều kiện ra phase: image thử nghiệm nhận ảnh và trả Top-3 đúng contract, health chỉ ready sau load; mapping dùng được từ mọi service; PR CV/data mapping đạt kiểm thử và được người dùng merge vào `develop`.
@@ -210,13 +212,13 @@ Nguyên tắc phối hợp: data pipeline chịu trách nhiệm tính đúng c�
 
 - [ ] Data: validator theo schema trong `docs/data/README.md`: ID duy nhất, món chuẩn, language/cuisine, servings/thời gian hợp lệ hoặc `null`, nguyên liệu, thứ tự bước, source/license.
 - [ ] Data: tối thiểu một recipe đã review cho từng món trong 30 lớp; mục tiêu ba recipe/biến thể mỗi món khi có nguồn hợp lệ. Ít hơn ba thì trả số thật, không nhân bản hoặc bịa cho đủ.
-- [ ] Data: chuẩn hóa Unicode/alias, loại trùng và link hỏng; ghi corpus version, số recipe mỗi món, source manifest, checksum và kết quả review.
-- [ ] Embeddings: chạy model local có revision cố định, lưu cùng `embedding_version`, chiều vector và cách dựng text; build vectors ở giai đoạn phát hành, không tính lại toàn corpus mỗi lần boot.
+- [ ] Data: chuẩn hóa Unicode/alias, loại trùng và link hỏng; ghi corpus version, số recipe mỗi món, source manifest, version và kết quả review.
+- [ ] Embeddings: chạy model local trong bundle release có version, lưu cùng `embedding_version`, chiều vector và cách dựng text; build vectors ở giai đoạn phát hành, không tính lại toàn corpus mỗi lần boot.
 - [ ] Retrieval: filter cứng `normalized_dish`, `language=vi`, `cuisine=vietnamese` rồi vector search; hỗ trợ query ngắn về biến thể để phân biệt các recipe cùng món. Nếu chỉ tên món thì dùng tên chuẩn làm query.
 - [ ] Retrieval: xếp hạng theo similarity trong tập đã lọc, có tie-break ID; loại bản trùng. Nếu thêm reranker thì benchmark trước khi bật, không tạo thêm dependency LLM mặc định.
 - [ ] Recipes API: search trả tối đa `top_k`, list preview và endpoint lấy chi tiết; món hợp lệ chưa có recipe trả danh sách rỗng, món không nằm taxonomy báo validation error; ID không có trả 404.
 - [ ] Qdrant/init: tạo payload index cho metadata, import vector/payload theo ID cố định; job idempotent, không nhân bản khi restart.
-- [ ] Qdrant/init: collection gắn corpus/embedding version, validate checksum/count/dimension trước chuyển alias active; không ghi đè collection đang phục vụ khi import lỗi. Thu dọn version cũ bằng thao tác riêng.
+- [ ] Qdrant/init: collection gắn corpus/embedding version, validate nội bộ/count/dimension trước chuyển alias active; không ghi đè collection đang phục vụ khi import lỗi. Thu dọn version cũ bằng thao tác riêng.
 - [ ] Recipes readiness: đối chiếu alias active/version với bundle; thiếu/sai version trả not ready, không trả kết quả từ index bất tương thích.
 - [ ] Evaluation: query và relevant recipe IDs được review độc lập, tách khỏi bước chọn cấu hình. Đo Hit@1, Hit@3, MRR và tỷ lệ lẫn món; có query tên có dấu/không dấu, alias và biến thể.
 - [ ] Dockerfile recipes chứa model embedding, tokenizer/config, corpus đã validate và vectors; job seed dùng cùng image, không yêu cầu model/recipe tải từ web khi chạy.
@@ -224,7 +226,7 @@ Nguyên tắc phối hợp: data pipeline chịu trách nhiệm tính đúng c�
 ### Kết thúc Phase 2
 
 - [ ] Rà file thừa, test/query/recipe trùng, download/index tạm và output đánh giá theo [cổng chung](#phase-closeout); giữ bộ evaluation/fixtures có nguồn rõ ràng.
-- [ ] Rà secrets/hash nhạy cảm trong source URL, notebook outputs, corpus, config, commit và image recipes; không mang API key/provider từ notebook vào runtime.
+- [ ] Rà secrets và mọi giá trị mã/hash trong source URL, notebook outputs, corpus, config, commit và image recipes; không mang API key/provider từ notebook vào runtime.
 - [ ] Tạo PR và báo cáo; người dùng merge data trước service phụ thuộc, agent fetch xác nhận `origin/develop` trước tích hợp tiếp.
 
 Điều kiện ra phase: corpus phủ đủ 30 món hoặc phải công bố phạm vi hẹp hơn trước phát hành; bộ query đạt gate Phase 7, search/detail chạy thật với Qdrant, init chạy lại không tạo thêm dữ liệu. Người dùng merge PR data trước PR service phụ thuộc dữ liệu.
@@ -248,7 +250,7 @@ Nguyên tắc phối hợp: backend làm cổng public duy nhất, điều phố
 ### Kết thúc Phase 3
 
 - [ ] Rà file thừa, test/stub tạm, build output và fixture theo [cổng chung](#phase-closeout); giữ contract/integration tests và không đưa chúng vào runtime image.
-- [ ] Rà secrets/hash nhạy cảm trong config, connection strings, logs, commit và image backend; OpenAPI/error response không chứa credential hoặc dữ liệu nội bộ nhạy cảm.
+- [ ] Rà secrets và mọi giá trị mã/hash trong config, connection strings, logs, commit và image backend; OpenAPI/error response không chứa credential hoặc dữ liệu nội bộ nhạy cảm.
 - [ ] Tạo PR có kết quả kiểm tra; chờ người dùng merge rồi fetch xác nhận trước frontend nghiệm thu với backend thật.
 
 Điều kiện ra phase: Swagger backend kiểm thử được toàn luồng với CV/recipes thật; contract và lỗi ổn định; PR được người dùng merge vào `develop`.
@@ -292,7 +294,7 @@ Nguyên tắc phối hợp: frontend chỉ biết public API, `confidence` và `
 ### Kết thúc Phase 4
 
 - [ ] Rà file thừa, HTML/CSS/JS không còn dùng, trang chat/cooking chưa triển khai, test tạm, screenshots/coverage/IDE metadata theo [cổng chung](#phase-closeout); giữ tests và baseline có chủ đích.
-- [ ] Rà secrets/hash nhạy cảm trong source, biến frontend env, fixture, commit, build bundle/source maps và image; mọi dữ liệu frontend bundle đều coi là public.
+- [ ] Rà secrets và mọi giá trị mã/hash trong source, biến frontend env, fixture, commit, build bundle/source maps và image; mọi dữ liệu frontend bundle đều coi là public.
 - [ ] Tạo PR kèm đối chiếu style và kết quả kiểm thử; chờ người dùng review/merge rồi fetch xác nhận trước tích hợp release.
 
 Điều kiện ra phase: người dùng mới hoàn thành upload → chọn món → đọc recipe trên giao diện, không cần Swagger, console hoặc lệnh ngoài Docker; tận dụng khung nguồn và đã review khác biệt style, không có chatbot. PR được người dùng merge vào `develop`.
@@ -318,7 +320,7 @@ Checklist khi bắt đầu và nghiệm thu mốc Expo:
 - [ ] Hiển thị Top-3, xác nhận/sửa món, danh sách/chi tiết công thức và nguồn với cùng hành vi web; có loading/empty/error/retry, xử lý mất mạng và kết quả trả chậm/sai thứ tự.
 - [ ] Kiểm thử trên thiết bị thật Android và iOS theo phạm vi bàn giao đã chốt; kiểm tra safe area, chữ lớn, screen reader, nút Back và chuyển nền/quay lại app. Báo rõ nền tảng chưa được kiểm chứng; không dùng test viewport web thay bằng chứng Expo.
 - [ ] Chạy lại luồng web và kiểm tra contract nếu tách mã chung/thay gateway; bảo đảm mobile không làm hỏng bản Docker/web đã nghiệm thu.
-- [ ] Áp dụng [cổng kết thúc phase](#phase-closeout): dọn file/test tạm, cache Metro, generated native/build outputs, QR/logs và ảnh chụp có thông tin cá nhân; giữ test hồi quy cần thiết. Rà secrets/hash nhạy cảm trong commit, config và bundle; gửi PR vào `develop` để người dùng review/merge, ghi bằng chứng và phần chưa kiểm chứng.
+- [ ] Áp dụng [cổng kết thúc phase](#phase-closeout): dọn file/test tạm, cache Metro, generated native/build outputs, QR/logs và ảnh chụp có thông tin cá nhân; giữ test hồi quy cần thiết. Rà secrets và mọi giá trị mã/hash trong commit, config và bundle; gửi PR vào `develop` để người dùng review/merge, ghi bằng chứng và phần chưa kiểm chứng.
 
 ## 9. Phase 5 — Docker Compose và artifact đầy đủ
 
@@ -328,7 +330,7 @@ Nguyên tắc phối hợp: mỗi image chứa đúng mã/dependency/artifact c�
 
 ### Trọng số và mô hình nằm ở đâu?
 
-- Image `cooklens-vision` chứa checkpoint khoảng 30 MiB hiện tại tại `/opt/cooklens/models/`, kèm taxonomy và manifest SHA-256. Docker build lấy artifact đã kiểm chứng từ staging do pipeline chuẩn bị, không lấy đường dẫn tuyệt đối của laptop.
+- Image `cooklens-vision` chứa checkpoint khoảng 30 MiB hiện tại tại `/opt/cooklens/models/`, kèm taxonomy và manifest version/kích thước. Docker build lấy artifact đã kiểm chứng từ staging do pipeline chuẩn bị, không lấy đường dẫn tuyệt đối của laptop.
 - Image `cooklens-recipes` chứa model embedding/tokenizer/config, corpus và vectors đã precompute. Chế độ offline được bật khi runtime; không gọi model hub, pip, Maven hay npm lúc container khởi động.
 - Qdrant dùng image chính thức; `recipe-init` tự đưa bundle từ image recipes vào named volume. Không phát hành image Qdrant chứa cả thư mục dữ liệu mutable.
 - Image backend/frontend chứa bản build và cấu hình mặc định. Không image nào cần mount `venv`, source tree, file `.pt` hay API key từ máy người dùng.
@@ -345,12 +347,12 @@ recipes ready ──────────────────────
 Compose phải dùng `healthcheck` cùng `depends_on` condition phù hợp. Container đang chạy chưa có nghĩa là model/index đã sẵn sàng; `recipe-init` kết thúc 0 là hành vi thành công, không đặt restart vô hạn cho job này. Restart của dependency sau startup vẫn cần timeout/reconnect trong service, không dựa riêng vào thứ tự boot.
 
 - [ ] Tạo release/dev Compose tách biệt, cùng cấu hình service names, version và ports. Chỉ frontend bind `127.0.0.1:8080` mặc định; chỉ mở cổng debug AI/Qdrant trong dev profile.
-- [ ] Healthchecks dùng công cụ có thật trong image, có `start_period` đủ thời gian load model/seed; timeout/retries hữu hạn. `recipe-init` phải thất bại rõ ràng khi bundle sai checksum/version.
+- [ ] Healthchecks dùng công cụ có thật trong image, có `start_period` đủ thời gian load model/seed; timeout/retries hữu hạn. `recipe-init` phải thất bại rõ ràng khi bundle không vượt kiểm tra toàn vẹn nội bộ/version.
 - [ ] Image chạy user không phải root khi khả thi, dependency/runtime khóa version, build nhiều stage, `.dockerignore` không gửi secrets/venv lên build context.
-- [ ] Pin Qdrant, runtime base và image ứng dụng bằng version; release manifest ghi digest. Không dùng `latest` làm định danh tái lập.
+- [ ] Pin Qdrant, runtime base và image ứng dụng bằng version/tag dễ đọc; release manifest không ghi giá trị mã/hash. Không dùng `latest` làm định danh tái lập.
 - [ ] Volume Qdrant tồn tại qua restart; `up` lần hai không seed trùng; volume mới tự seed đúng, volume cũ upgrade theo collection version/alias.
 - [ ] Default CPU đủ chạy model, giới hạn worker/concurrency và memory theo số đo. Không tự tạo nhiều bản model vì worker count mặc định cao; GPU chỉ là profile sau này.
-- [ ] Build context cung cấp checkpoint qua quy trình artifact có checksum rõ ràng; secret lấy artifact dùng build secret/CI secret, không `ARG`/`ENV` chứa token trong layer.
+- [ ] Build context cung cấp checkpoint qua quy trình artifact có version và kiểm tra toàn vẹn nội bộ; secret lấy artifact dùng build secret/CI secret, không `ARG`/`ENV` chứa token trong layer.
 - [ ] Chạy stack từ bộ Compose tải riêng, ngoài thư mục source, với cache/volume trống; xác minh mọi artifact được lấy từ image và không cần Python/Java/Node trên host.
 - [ ] Chặn outbound Internet của runtime sau khi pull image và kiểm thử luồng chính; host vẫn cần Internet ở bước pull và mở link nguồn.
 - [ ] Ghi measured cold-start, seed time, disk/image size, peak RAM và latency; runbook nêu cấu hình máy tối thiểu đã kiểm chứng.
@@ -358,7 +360,7 @@ Compose phải dùng `healthcheck` cùng `depends_on` condition phù hợp. Cont
 ### Kết thúc Phase 5
 
 - [ ] Rà file thừa, test scripts, bundle thử, logs và build contexts theo [cổng chung](#phase-closeout); test data không cần thiết nằm ngoài các image production.
-- [ ] Rà secrets/hash nhạy cảm trong Compose/env, scripts, CI logs, image config/history/layers; chỉ giữ checksum và digest phục vụ xác minh release.
+- [ ] Rà secrets và mọi giá trị mã/hash trong Compose/env, scripts, CI logs, image config/history/layers; không ghi giá trị mã/hash vào nội dung do nhóm quản lý.
 - [ ] Tạo PR kèm bằng chứng chạy máy sạch; chờ người dùng merge rồi fetch xác nhận trước publish phiên bản phụ thuộc.
 
 Điều kiện ra phase: chạy được trên máy sạch chỉ có Docker Engine/Desktop với Compose, cấu hình mặc định và Internet để pull; không còn bước lấy model/seed bằng tay; PR được người dùng merge vào `develop`.
@@ -376,13 +378,13 @@ Docker Hub được chọn làm registry cho lần phát hành này. Docker khô
 | `<namespace>/cooklens-backend:<release>` | Spring Boot API đã build |
 | `<namespace>/cooklens-frontend:<release>` | React build + Nginx/reverse proxy |
 
-`<namespace>` và `<release>` là placeholder trong kế hoạch; file release giao người dùng phải chứa giá trị/digest thật, không cần họ tự sửa. Qdrant tham chiếu repository chính thức và version/digest đã test, không push bản sao vào namespace nhóm.
+`<namespace>` và `<release>` là placeholder trong kế hoạch; file release giao người dùng phải chứa version/tag đã nghiệm thu, không cần họ tự sửa. Qdrant tham chiếu repository chính thức và version/tag đã test, không push bản sao vào namespace nhóm.
 
-- [ ] CI chạy kiểm thử/contract trước build; tải artifact đúng checksum, build cả bốn image và lưu manifest API/model/taxonomy/corpus/embedding versions.
-- [ ] Image gắn release tag và commit SHA tag; ghi digest trong release Compose, không ghi đè nội dung một release đã phát hành.
+- [ ] CI chạy kiểm thử/contract trước build; tải artifact qua kiểm tra toàn vẹn nội bộ, build cả bốn image và lưu manifest API/model/taxonomy/corpus/embedding versions.
+- [ ] Image gắn release tag dễ đọc; Compose dùng version/tag đã nghiệm thu, không dùng commit/hash làm tag và không ghi đè nội dung release đã phát hành.
 - [ ] Cấu hình quyền push bằng CI secret; public pull không cần token nếu đã đáp ứng quyền phân phối. Private release ghi rõ cần `docker login` một lần, không hứa chạy ẩn danh.
-- [ ] Push vào Docker Hub và xác minh pull lại bằng digest trên máy/CI sạch. Publish là bước phát hành sau khi có namespace/quyền và artifact hợp lệ; viết kế hoạch này chưa thực hiện push.
-- [ ] Giao bộ release: `compose.release.yaml`, config mặc định không nhạy cảm, checksums, release notes, attribution/licenses và runbook tiếng Việt.
+- [ ] Push vào Docker Hub và xác minh pull lại theo release tag trên máy/CI sạch. Publish là bước phát hành sau khi có namespace/quyền và artifact hợp lệ; viết kế hoạch này chưa thực hiện push.
+- [ ] Giao bộ release: `compose.release.yaml`, config mặc định không nhạy cảm, release notes, attribution/licenses và runbook tiếng Việt.
 - [ ] Runbook nêu URL `http://localhost:8080`, readiness/cold-start, cách xem logs, restart, upgrade, rollback và xử lý model/index không tương thích.
 - [ ] Giải thích `docker compose down` giữ named volume; `down -v` xóa dữ liệu index, lần sau phải seed lại. Không đưa lệnh xóa volume vào bước chạy thường ngày.
 - [ ] Gate CI cuối cùng chạy bằng chính image từ registry, không dùng source bind mount hoặc image build local chưa push.
@@ -398,10 +400,10 @@ Runbook phải ghi phiên bản Compose đã test có hỗ trợ các option nà
 ### Kết thúc Phase 6
 
 - [ ] Rà file thừa, release archive/test output và script thử theo [cổng chung](#phase-closeout); chỉ giao file Compose/config/attribution/runbook cần thiết.
-- [ ] Rà secrets/hash nhạy cảm trong commits, workflows, logs, manifest, registry image và bundle tải về; giữ digest/checksum công khai hợp lệ, không giữ login token hoặc signed download URL.
-- [ ] Tạo PR kèm image digest và kết quả pull thật; chờ người dùng merge rồi fetch xác nhận trước phase nghiệm thu cuối.
+- [ ] Rà secrets và mọi giá trị mã/hash trong commits, workflows, logs, manifest, registry image và bundle tải về; không ghi giá trị mã/hash, login token hoặc URL ký tạm thời.
+- [ ] Tạo PR kèm image version/tag và kết quả pull thật; chờ người dùng merge rồi fetch xác nhận trước phase nghiệm thu cuối.
 
-Điều kiện ra phase: release có image thật, digest đúng, tải/chạy được từ máy không có repo hoặc artifact local; người dùng chỉ cần bộ release và Docker, thêm login nếu dùng registry private; PR được người dùng merge vào `develop`.
+Điều kiện ra phase: release có image thật, version/tag đã kiểm chứng, tải/chạy được từ máy không có repo hoặc artifact local; người dùng chỉ cần bộ release và Docker, thêm login nếu dùng registry private; PR được người dùng merge vào `develop`.
 
 ## 11. Phase 7 — Nghiệm thu end-to-end
 
@@ -427,13 +429,13 @@ Nguyên tắc phối hợp: nghiệm thu bằng một bộ version tương thíc
 - [ ] Dừng/restart vision, recipes và Qdrant; backend/UI trả lỗi rõ ràng và hoạt động lại sau dependency hồi phục.
 - [ ] Khởi động volume mới, restart giữ volume, nâng corpus version, lỗi seed và rollback về release trước; kiểm chứng cặp image/index tương thích khi rollback.
 - [ ] Kiểm tra không lộ token, path máy dev, ảnh gốc trong logs, checkpoint trong Git hoặc runtime tải model ngầm.
-- [ ] Lưu báo cáo CV/retrieval/latency/resources, digest image và video/screenshot luồng UI trong tài liệu release.
+- [ ] Lưu báo cáo CV/retrieval/latency/resources, image version/tag và video/screenshot luồng UI trong tài liệu release.
 - [ ] Cập nhật README/checklist theo bằng chứng đã có, hướng dẫn lấy artifact cho developer và lệnh chạy cho người dùng.
 
 ### Kết thúc Phase 7
 
 - [ ] Rà tổng thể file thừa/test tạm và artifacts qua tất cả PR theo [cổng chung](#phase-closeout); giữ bộ test hồi quy và bằng chứng cần thiết, không xóa tài liệu/test hữu ích để làm sạch hình thức.
-- [ ] Chạy lại rà secrets/hash nhạy cảm trên phạm vi commit sẽ phát hành, source, docs, fixtures, bundles và image cuối; báo kết quả/giới hạn, không in giá trị bí mật.
+- [ ] Chạy lại rà secrets và mọi giá trị mã/hash trên phạm vi commit sẽ phát hành, source, docs, fixtures, bundles và image cuối; báo kết quả/giới hạn, không in giá trị bí mật.
 - [ ] Tạo PR nghiệm thu và gửi báo cáo; người dùng merge, agent fetch xác nhận `origin/develop`, chỉ sau đó mới chuẩn bị PR release lên `main` để người dùng quyết định merge.
 
 Điều kiện kết thúc: tất cả gate đã chốt đạt trên release thực; các hạn chế còn lại được ghi cụ thể. Người dùng merge PR để `develop` chứa phiên bản tích hợp đã nghiệm thu trước khi đề xuất release lên `main`.

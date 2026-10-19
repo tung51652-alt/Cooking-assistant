@@ -1,6 +1,7 @@
 """Regression checks: corrupt downloads never become a build input."""
 
 import hashlib
+import json
 from io import BytesIO
 from pathlib import Path
 import sys
@@ -8,7 +9,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from fetch_vision_checkpoint import download
+from fetch_vision_checkpoint import download, release_validation
 
 
 class CheckpointTransferTests(unittest.TestCase):
@@ -54,6 +55,28 @@ class CheckpointTransferTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     download("unused", target, 4, hashlib.sha256(b"good").hexdigest())
                 self.assertEqual(target.read_bytes(), payload)
+
+
+class ReleaseMetadataTests(unittest.TestCase):
+    def test_reads_validation_value_only_in_memory(self):
+        value = hashlib.sha256(b"fixture").hexdigest()
+        data = {"draft": False, "tag_name": "vision-model-v1", "assets": [
+            {"name": "model.pt", "size": 7, "digest": "sha256:" + value}]}
+        vision = {"artifact_release_tag": "vision-model-v1", "filename": "model.pt", "size_bytes": 7}
+        result = release_validation(vision, lambda *a, **k: BytesIO(json.dumps(data).encode()))
+        self.assertEqual(result, value)
+
+    def test_rejects_wrong_release_or_missing_validation(self):
+        vision = {"artifact_release_tag": "vision-model-v1", "filename": "model.pt", "size_bytes": 7}
+        for data in [
+            {"draft": True, "tag_name": "vision-model-v1"},
+            {"draft": False, "tag_name": "another-version"},
+            {"draft": False, "tag_name": "vision-model-v1", "assets": []},
+            {"draft": False, "tag_name": "vision-model-v1", "assets": [{"name": "model.pt", "size": 7}]},
+        ]:
+            with self.subTest(fields=sorted(data)):
+                with self.assertRaises(ValueError):
+                    release_validation(vision, lambda *a, **k: BytesIO(json.dumps(data).encode()))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # Khung frontend người dùng cung cấp
 
-Nguồn local lúc audit: `/home/trantung/ict/FrontEndCookLens`, ngày 2026-10-19. Người dùng yêu cầu tận dụng tối đa khung/style, chưa làm chatbot. Ba HTML ở đây là bản sao byte-for-byte để nhóm và CI xem được cùng nguồn mà không cần máy tác giả; checksum/size lưu trong `manifest.json`.
+Nguồn local lúc audit: `/home/trantung/ict/FrontEndCookLens`, ngày 2026-10-19. Người dùng yêu cầu tận dụng tối đa khung/style, chưa làm chatbot. Ba HTML ở đây là bản sao byte-for-byte để nhóm và CI xem được cùng nguồn mà không cần máy tác giả; kích thước/tên file lưu trong `manifest.json`.
 
 Snapshot giữ CRLF của bản nguồn; `.gitattributes` chỉ áp dụng các file HTML này để checkout không đổi bytes và whitespace checker nhận CRLF hợp lệ. Các source triển khai mới tuân theo quy ước formatter của service, không kế thừa ngoại lệ snapshot.
 
@@ -27,7 +27,7 @@ Do bản nguồn không có CSS/JS, không thể tuyên bố màu/font/spacing d
 
 Lộ trình UI đã chốt: chọn ảnh → nhận diện → chọn một trong Top-3 hoặc sửa từ danh mục → tự tìm recipe → list/detail. Không tự xác nhận Top-1. Bỏ Chat/Hỏi CookLens và cooking navigation chưa triển khai trong runtime. State ảnh chỉ ở RAM trình duyệt, không localStorage/base64 persistence; reload có thể bắt đầu lại, không tạo session backend ở bản này.
 
-Kiểm tra fingerprint, không cần ML dependencies:
+Kiểm tra metadata, không cần ML dependencies:
 
 ```bash
 python3 deploy/scripts/verify_mvp_inputs.py

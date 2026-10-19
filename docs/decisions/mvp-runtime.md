@@ -6,11 +6,11 @@ Ngày audit: 2026-10-19. Đây là cấu hình/contract cho lần giao Top-3 + r
 
 - React + TypeScript + Vite build static, Nginx phục vụ và proxy `/api`; giữ HTML nguồn theo [audit frontend](../frontend-reference/README.md).
 - Spring Boot/Java 21 là public backend; vision FastAPI/PyTorch; recipes FastAPI + model local; Qdrant và một job init. Chưa cần PostgreSQL, LangGraph, LLM hay API key người dùng.
-- Baseline embedding: `intfloat/multilingual-e5-small`, revision và weight checksum ở [artifact manifest](../../deploy/artifacts/manifest.json). Model card công bố MIT, embedding 384 chiều. Dùng masked mean pooling, L2 normalize, cosine; prefix `query: ` và `passage: ` cho cả tiếng Việt, tối đa 512 tokens.
+- Baseline embedding: `intfloat/multilingual-e5-small`, thông tin nguồn/bundle ở [artifact manifest](../../deploy/artifacts/manifest.json). Model card công bố MIT, embedding 384 chiều. Dùng masked mean pooling, L2 normalize, cosine; prefix `query: ` và `passage: ` cho cả tiếng Việt, tối đa 512 tokens.
 - Passage text v1 theo thứ tự: `title`, tên món, tên nguyên liệu, steps; ghép plain text có nhãn trường. Phần đầu chứa title/món; tokenizer truncate 512 tokens và đo tỷ lệ truncate trong báo cáo. Full recipe vẫn lưu đủ trong payload; nếu chất lượng chưa đạt mới đánh giá chunking với version mới.
-- Chọn model làm baseline không đồng nghĩa đã chứng minh retrieval tốt trên corpus dự án. Phase 2 phải đạt gate; thay model/revision/pooling/text template cần version embedding mới, rebuild index và nghiệm thu lại, không đổi im lặng.
+- Chọn model làm baseline không đồng nghĩa đã chứng minh retrieval tốt trên corpus dự án. Phase 2 phải đạt gate; thay model/bundle/pooling/text template cần version embedding mới, rebuild index và nghiệm thu lại, không đổi im lặng.
 - Query không có threshold cắt similarity ở v1, không reranker, không LLM fallback. Filter cứng món/ngôn ngữ/cuisine; top 1–3 thật, không tạo đủ số lượng bằng bản trùng.
-- Prefix/pooling theo [model card chính thức](https://huggingface.co/intfloat/multilingual-e5-small); revision được lấy từ Hugging Face API ngày audit, không dùng `main` khi build.
+- Prefix/pooling theo [model card chính thức](https://huggingface.co/intfloat/multilingual-e5-small); nguồn upstream hiện ghi bằng tên nhánh `main`, không lưu mã revision. Phase 2 phải tạo bundle release có version dễ đọc và không đổi nội dung dưới cùng version.
 
 ## Tiêu chí nghiệm thu đã chọn cho bản v1
 
@@ -22,11 +22,11 @@ Máy audit thực: Intel Core i5-10300H @2.50GHz, 8 logical CPUs, tổng RAM 7.5
 
 ## Checkpoint và artifact supply
 
-Đã load file checkpoint local bằng `torch.load(..., map_location="cpu", weights_only=True)`, đối chiếu architecture, classes, image size và shape classifier; đây là kiểm tra format, không phải chạy lại benchmark accuracy. Hash/metadata chính xác nằm trong manifest; binary không vào Git.
+Đã load file checkpoint local bằng `torch.load(..., map_location="cpu", weights_only=True)`, đối chiếu architecture, classes, image size và shape classifier; đây là kiểm tra format, không phải chạy lại benchmark accuracy. Metadata kiến trúc/kích thước nằm trong manifest; binary không vào Git.
 
-Build staging chuẩn: `deploy/artifacts/staging/vision/efficientnet_b2_best.pt`. Runtime path `/opt/cooklens/models/efficientnet_b2_best.pt`. Nguồn chuẩn là GitHub Release `vision-model-v1`, URL cố định trong manifest. Developer/CI dùng Python 3.11+ chạy `python3 deploy/scripts/fetch_vision_checkpoint.py`; script tải không cần token, kiểm tra size/SHA-256 trước khi atomically đặt file vào staging, từ chối file đang có sai checksum và dọn file tải dở khi lỗi. Không thay asset dưới tag cũ; checkpoint mới phải có release/model version và checksum mới. Workflow `.github/workflows/mvp-inputs.yml` kiểm tra transfer và tải cùng đầu vào public, chỉ có quyền đọc repository. Người dùng cuối kéo image đã chứa trọng số, không cần chạy script này.
+Build staging chuẩn: `deploy/artifacts/staging/vision/efficientnet_b2_best.pt`. Runtime path `/opt/cooklens/models/efficientnet_b2_best.pt`. Nguồn chuẩn là GitHub Release `vision-model-v1`, URL cố định trong manifest. Developer/CI dùng Python 3.11+ chạy `python3 deploy/scripts/fetch_vision_checkpoint.py`; script tải không cần token, kiểm tra kích thước và toàn vẹn nội bộ trước khi atomically đặt file vào staging, từ chối file đang có không vượt kiểm tra toàn vẹn nội bộ và dọn file tải dở khi lỗi. Không thay asset dưới tag cũ; checkpoint mới phải có release/model version mới. Workflow `.github/workflows/mvp-inputs.yml` kiểm tra transfer và tải cùng đầu vào public, chỉ có quyền đọc repository. Người dùng cuối kéo image đã chứa trọng số, không cần chạy script này.
 
-Embedding chỉ tải ở giai đoạn chuẩn bị build với revision cố định; chọn safetensors thay vì đóng gói đồng thời cả `.bin` và `.safetensors`. Runtime bật offline và chỉ đọc model bundle. Model/tokenizer configs cũng phải được fingerprint khi tạo bundle Phase 2; checksum weight hiện lấy từ metadata LFS upstream, **chưa là kiểm tra bytes tải về**.
+Embedding chỉ tải ở giai đoạn chuẩn bị build với bundle release có version; chọn safetensors thay vì đóng gói đồng thời cả `.bin` và `.safetensors`. Runtime bật offline và chỉ đọc model bundle. Model/tokenizer configs phải được kiểm tra khi tạo bundle Phase 2; hiện **chưa tải/kiểm chứng bundle**. Không lưu giá trị mã kiểm tra vào repo/tài liệu; metadata cần kiểm tra được dùng tạm trong bộ nhớ, không in ra.
 
 ## Nguồn recipe và quyền dùng
 
@@ -40,8 +40,12 @@ Checkpoint do **Phạm Hoàng Minh** huấn luyện, người dùng xác nhận 
 
 ## Registry và giới hạn phát hành
 
-Chọn Docker Hub làm registry, bốn image ứng dụng và image Qdrant chính thức. Người dùng đã xác nhận namespace `trantung2006`, visibility `public`; manifest ghi tên repository dự kiến. Quyền push và việc tồn tại đủ bốn repository chưa được kiểm tra, chưa có digest release; chúng được kiểm tra khi chuẩn bị phát hành, không yêu cầu gửi mật khẩu/token qua chat.
+Chọn Docker Hub làm registry, bốn image ứng dụng và image Qdrant chính thức. Người dùng đã xác nhận namespace `trantung2006`, visibility `public`; manifest ghi tên repository dự kiến. Quyền push và việc tồn tại đủ bốn repository chưa được kiểm tra, chưa có image release; chúng được kiểm tra khi chuẩn bị phát hành, không yêu cầu gửi mật khẩu/token qua chat.
 
 Người dùng đã cho phép dựng CSS/JS từ HTML; khung frontend và bốn screenshot baseline mới đã được merge qua PR #7. Chưa nghiệm thu Phase 4 với API thật. Mobile trong MVP là trình duyệt responsive; mốc app tiếp theo dùng Expo, không build APK, theo mục mobile của kế hoạch.
 
 Các quyết định và đầu vào Phase 0 đã sẵn sàng review; bằng chứng transfer được ghi trong [báo cáo Phase 0](../phases/phase-0.md). Corpus coverage/benchmark thuộc Phase 2, quyền push registry thuộc bước phát hành, không bị trình bày là đã kiểm chứng trong Phase 0. Chờ người dùng merge PR #6 và fetch xác nhận `origin/develop` trước khi làm Phase 1/2 phụ thuộc.
+
+## Quy tắc không công bố mã định danh
+
+Theo yêu cầu người dùng, không ghi giá trị SHA/hash, mã revision/commit, checksum, digest, package integrity hoặc thông tin truy cập vào code, docs, manifests, lockfile, PR/release notes, asset và log do dự án quản lý. Chỉ dùng version/tag dễ đọc. Chạy scanner ở cổng cuối mọi phase; kiểm tra toàn vẹn khi tải chỉ xử lý metadata upstream tạm trong bộ nhớ, không lưu hoặc in giá trị.

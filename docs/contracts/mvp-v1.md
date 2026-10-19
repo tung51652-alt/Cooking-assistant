@@ -7,7 +7,7 @@ Trạng thái: quyết định Phase 0 để review, chưa là endpoint đã tri
 - API public dưới `/api`; frontend chỉ dùng relative URL trên cùng origin. JSON UTF-8, tên trường `snake_case`, số thực hữu hạn; không dùng chuỗi cho confidence/score.
 - `X-Request-ID`: nhận UUID hợp lệ từ caller hoặc tạo UUID mới; trả lại trong header và `request_id` trong mọi JSON envelope, truyền xuyên các HTTP client. Header không hợp lệ được thay mới; không echo tùy ý nội dung caller vào logs.
 - Dùng `api_version: "1.0.0"` ở JSON public. Thay đổi trường bắt buộc/ý nghĩa hoặc xóa trường cần cập nhật version và contract tests; thêm trường optional phải được client chấp nhận.
-- Tên class model không phải tên hiển thị: `class_id` là 0-based theo checkpoint; `normalized_dish` là khóa snake_case trong mapping v1.0.0; `display_name` tiếng Việt cho UI. Mapping authoritative được nhập từ commit `d84e47b` và đối chiếu đủ 30 lớp ở Phase 1.
+- Tên class model không phải tên hiển thị: `class_id` là 0-based theo checkpoint; `normalized_dish` là khóa snake_case trong mapping v1.0.0; `display_name` tiếng Việt cho UI. Mapping authoritative được nhập từ nhánh data đã chọn và đối chiếu đủ 30 lớp ở Phase 1.
 - Danh sách có thứ tự; rank là 1-based. Timestamp theo ISO 8601 UTC, ngày theo `YYYY-MM-DD`. Field nullable có mặt và trả `null`, không tự suy đoán giá trị.
 - Giới hạn xử lý mặc định: vision 1 request inference đồng thời/process (1 worker); queue không giới hạn bị cấm, quá tải trả 503 `SERVICE_BUSY`. Backend/recipes tối đa 4 request AI đang xử lý mỗi instance; cân chỉnh chỉ sau benchmark và cập nhật quyết định.
 - Connect timeout 2 giây; vision read timeout 15 giây, recipes read timeout 5 giây. Frontend timeout 25 giây cho upload/predict, 10 giây cho tìm/detail. Reverse proxy tối thiểu 20 giây cho vision. Không retry tự động POST ảnh; user có thể thử lại. Search/detail có thể retry tối đa 1 lần khi lỗi kết nối tạm, trong deadline tổng.
@@ -24,7 +24,7 @@ HTTP 200:
 ```json
 {
   "api_version": "1.0.0",
-  "request_id": "b3dc730c-70b8-4fb0-b198-a2fb0572c27e",
+  "request_id": "<request-id>",
   "model_version": "efficientnet-b2-30vnfoods-2026-09-30",
   "taxonomy_version": "1.0.0",
   "predictions": [
@@ -78,7 +78,7 @@ HTTP 200 khi tất cả dependency bắt buộc đúng version và ready, 503 n�
 ```json
 {
   "api_version":"1.0.0",
-  "request_id":"b3dc730c-70b8-4fb0-b198-a2fb0572c27e",
+  "request_id":"<request-id>",
   "status":"ready",
   "dependencies":{
     "vision":{"status":"ready","model_version":"efficientnet-b2-30vnfoods-2026-09-30","taxonomy_version":"1.0.0"},
@@ -94,7 +94,7 @@ Version corpus trong ví dụ là placeholder để mô tả; implementation tr�
 ```json
 {
   "api_version":"1.0.0",
-  "request_id":"b3dc730c-70b8-4fb0-b198-a2fb0572c27e",
+  "request_id":"<request-id>",
   "code":"INVALID_IMAGE",
   "message":"Không đọc được ảnh. Vui lòng chọn ảnh JPG hoặc PNG hợp lệ."
 }

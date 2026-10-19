@@ -2,22 +2,8 @@ name: MVP input artifacts
 
 on:
   pull_request:
-    paths:
-      - 'deploy/artifacts/**'
-      - 'deploy/scripts/**'
-      - 'deploy/tests/**'
-      - 'docs/frontend-reference/**'
-      - '.gitattributes'
-      - '.github/workflows/mvp-inputs.yml'
   push:
     branches: [develop, main]
-    paths:
-      - 'deploy/artifacts/**'
-      - 'deploy/scripts/**'
-      - 'deploy/tests/**'
-      - 'docs/frontend-reference/**'
-      - '.gitattributes'
-      - '.github/workflows/mvp-inputs.yml'
   workflow_dispatch:
 
 permissions:
@@ -28,9 +14,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Check public metadata policy
+        run: python3 deploy/scripts/check_public_metadata.py
       - name: Reject corrupt or incomplete artifact transfers
         run: python3 -m unittest discover -s deploy/tests -v
       - name: Download and verify public checkpoint

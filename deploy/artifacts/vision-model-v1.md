@@ -1,10 +1,9 @@
 # CookLens vision checkpoint v1
 
 - File: `efficientnet_b2_best.pt`; 31,434,209 bytes.
-- SHA-256: `5be0c342c14f4f102ec851b0b5168e9953090624e93200d56359bdc7561fe67c`.
 - Trainer: Phạm Hoàng Minh, as confirmed by the project owner on 2026-10-19.
 - Architecture: torchvision EfficientNet-B2; 30 classes; input 288×288; fine-tune epoch 10. Ordered labels, transforms and reported metrics are in `deploy/artifacts/manifest.json`.
-- Source code reference: CV branch commit `47e27285e7444a67675d27e98857c1d24e293f26`; experiment metadata reference `612c67b`.
+- Source code reference: branch `minh/cv`; experiment name `efficientnet-b2-30vnfoods-2026-09-30`.
 - Training dataset source recorded by the project: 30VNFoods, <https://github.com/ds4v/30VNFoods>, <https://www.kaggle.com/datasets/quandang/vietnamese-foods>.
 
 ## Distribution permission and attribution

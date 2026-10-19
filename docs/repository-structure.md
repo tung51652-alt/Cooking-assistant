@@ -95,7 +95,7 @@ mọi miền → docs (tham chiếu, không import runtime)
 ## Quy ước commit dữ liệu và artifact
 
 - Không commit ảnh dataset, checkpoints, vector index, `.env`, token hoặc log chứa dữ liệu người dùng.
-- `data/raw` lưu source manifest gồm nguồn, license, version/checksum và ngày lấy dữ liệu.
+- `data/raw` lưu source manifest gồm nguồn, license, version và ngày lấy dữ liệu.
 - Experiment CV/RAG lưu config, seed, chỉ số và link artifact; bảng tổng hợp nằm trong `docs/cv` hoặc `docs/data`.
 - Khi thêm module, tạo test cạnh module hoặc trong `backend/tests`; mô tả cách chạy trong tài liệu liên quan.
 
