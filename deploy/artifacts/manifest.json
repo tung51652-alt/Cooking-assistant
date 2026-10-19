@@ -105,7 +105,7 @@
   "embedding": {
     "embedding_version": "multilingual-e5-small-v1",
     "repository": "intfloat/multilingual-e5-small",
-    "revision": "main",
+    "revision": "embedding-model-v1",
     "license_claim": "MIT",
     "license_evidence_url": "https://huggingface.co/intfloat/multilingual-e5-small/blob/main/README.md",
     "dimension": 384,
@@ -118,7 +118,7 @@
     "passage_template_version": "recipe-plain-v1",
     "weights_file": "model.safetensors",
     "weights_size_bytes": 470641600,
-    "weights_verification": "selected_source_pending_phase2_bundle_validation",
+    "weights_verification": "upstream_verified_in_memory_and_packaged_in_public_versioned_model_artifact",
     "runtime_path": "/opt/cooklens/models/multilingual-e5-small",
     "required_files": [
       "config.json",
@@ -129,7 +129,11 @@
       "sentencepiece.bpe.model"
     ],
     "quality_status": "baseline_selected_pending_phase2_evaluation",
-    "source_policy": "Use a reviewed bundle with a human-readable release version; do not persist upstream object identifiers."
+    "source_policy": "Use a reviewed bundle with a human-readable release version; do not persist upstream object identifiers.",
+    "artifact_release_tag": "embedding-model-v1",
+    "archive_filename": "cooklens-embedding-model-v1.zip",
+    "archive_size_bytes": 492797971,
+    "ci_source_uri": "https://github.com/tung51652-alt/Cooking-assistant/releases/download/embedding-model-v1/cooklens-embedding-model-v1.zip"
   },
   "corpus": {
     "corpus_version": "wikibooks-vi-v1",

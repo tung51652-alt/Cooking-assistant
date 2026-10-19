@@ -1,6 +1,6 @@
 # Contract MVP v1 — Top-3 và công thức
 
-Trạng thái: Phase 0 đã được người dùng merge; contract có hiệu lực. Vision nội bộ được triển khai ở Phase 1, public gateway/recipes theo các phase sau. Public OpenAPI sẽ được sinh từ Spring controllers ở Phase 3; không thêm bản OpenAPI YAML song song.
+Trạng thái: Phase 0/1 đã được người dùng merge; contract có hiệu lực. Vision nội bộ thuộc Phase 1; recipes nội bộ được triển khai trong Phase 2, corpus hiện phủ 18/30 món và chưa đóng cổng nghiệm thu phase. Public OpenAPI sẽ được sinh từ Spring controllers ở Phase 3; không thêm bản OpenAPI YAML song song.
 
 ## Quy ước chung
 

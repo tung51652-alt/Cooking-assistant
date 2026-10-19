@@ -211,7 +211,7 @@ Nguyên tắc phối hợp: CV sở hữu prediction; mapping là artifact dùng
 
 ## 6. Phase 2 — Corpus và service công thức có xếp hạng
 
-Đang triển khai. Corpus đầu tiên có 21 recipe thật, phủ 18/30 món; xem [báo cáo Phase 2](../phases/phase-2.md). Chưa đạt gate coverage hoặc review nghiệm thu độc lập. Không đánh dấu phase hoàn thành chỉ vì service chạy được.
+Đang triển khai. Corpus đầu tiên có 21 recipe thật, phủ 18/30 món; xem [báo cáo Phase 2](../phases/phase-2.md). Chưa đạt gate coverage hoặc review nghiệm thu độc lập. Service/Qdrant/init/image đã chạy thật, Compose riêng Phase 2 đã kiểm tra; bộ 150 query mới là draft, không coi metric của corpus một ứng viên/món là nghiệm thu retrieval. Không đánh dấu phase hoàn thành chỉ vì service chạy được.
 
 Nhánh: tiếp tục `feature/data-recipes` cho dữ liệu, `feature/recipe-retrieval` cho service mới từ `develop`. Dùng notebook `hung/rag` như tài liệu tham khảo; không đưa agent/LLM vào critical path.
 
@@ -219,16 +219,16 @@ Nguyên tắc phối hợp: data pipeline chịu trách nhiệm tính đúng c�
 
 - [x] Data: validator theo schema trong `docs/data/README.md`: ID duy nhất, món chuẩn, language/cuisine, servings/thời gian hợp lệ hoặc `null`, nguyên liệu, thứ tự bước, source/license.
 - [ ] Data: tối thiểu một recipe đã review cho từng món trong 30 lớp; mục tiêu ba recipe/biến thể mỗi món khi có nguồn hợp lệ. Ít hơn ba thì trả số thật, không nhân bản hoặc bịa cho đủ.
-- [ ] Data: chuẩn hóa Unicode/alias, loại trùng và link hỏng; ghi corpus version, số recipe mỗi món, source manifest, version và kết quả review.
-- [ ] Embeddings: chạy model local trong bundle release có version, lưu cùng `embedding_version`, chiều vector và cách dựng text; build vectors ở giai đoạn phát hành, không tính lại toàn corpus mỗi lần boot.
-- [ ] Retrieval: filter cứng `normalized_dish`, `language=vi`, `cuisine=vietnamese` rồi vector search; hỗ trợ query ngắn về biến thể để phân biệt các recipe cùng món. Nếu chỉ tên món thì dùng tên chuẩn làm query.
-- [ ] Retrieval: xếp hạng theo similarity trong tập đã lọc, có tie-break ID; loại bản trùng. Nếu thêm reranker thì benchmark trước khi bật, không tạo thêm dependency LLM mặc định.
-- [ ] Recipes API: search trả tối đa `top_k`, list preview và endpoint lấy chi tiết; món hợp lệ chưa có recipe trả danh sách rỗng, món không nằm taxonomy báo validation error; ID không có trả 404.
-- [ ] Qdrant/init: tạo payload index cho metadata, import vector/payload theo ID cố định; job idempotent, không nhân bản khi restart.
-- [ ] Qdrant/init: collection gắn corpus/embedding version, validate nội bộ/count/dimension trước chuyển alias active; không ghi đè collection đang phục vụ khi import lỗi. Thu dọn version cũ bằng thao tác riêng.
-- [ ] Recipes readiness: đối chiếu alias active/version với bundle; thiếu/sai version trả not ready, không trả kết quả từ index bất tương thích.
+- [x] Data: chuẩn hóa Unicode/alias, loại trùng và link hỏng; ghi corpus version, số recipe mỗi món, source manifest, version và kết quả review.
+- [x] Embeddings: chạy model local trong bundle release có version, lưu cùng `embedding_version`, chiều vector và cách dựng text; build vectors ở giai đoạn phát hành, không tính lại toàn corpus mỗi lần boot.
+- [x] Retrieval: filter cứng `normalized_dish`, `language=vi`, `cuisine=vietnamese` rồi vector search; hỗ trợ query ngắn về biến thể để phân biệt các recipe cùng món. Nếu chỉ tên món thì dùng tên chuẩn làm query.
+- [x] Retrieval: xếp hạng theo similarity trong tập đã lọc, có tie-break ID; loại bản trùng. Nếu thêm reranker thì benchmark trước khi bật, không tạo thêm dependency LLM mặc định.
+- [x] Recipes API: search trả tối đa `top_k`, list preview và endpoint lấy chi tiết; món hợp lệ chưa có recipe trả danh sách rỗng, món không nằm taxonomy báo validation error; ID không có trả 404.
+- [x] Qdrant/init: tạo payload index cho metadata, import vector/payload theo ID cố định; job idempotent, không nhân bản khi restart.
+- [x] Qdrant/init: collection gắn corpus/embedding version, validate nội bộ/count/dimension trước chuyển alias active; không ghi đè collection đang phục vụ khi import lỗi. Thu dọn version cũ bằng thao tác riêng.
+- [x] Recipes readiness: đối chiếu alias active/version với bundle; thiếu/sai version trả not ready, không trả kết quả từ index bất tương thích.
 - [ ] Evaluation: query và relevant recipe IDs được review độc lập, tách khỏi bước chọn cấu hình. Đo Hit@1, Hit@3, MRR và tỷ lệ lẫn món; có query tên có dấu/không dấu, alias và biến thể.
-- [ ] Dockerfile recipes chứa model embedding, tokenizer/config, corpus đã validate và vectors; job seed dùng cùng image, không yêu cầu model/recipe tải từ web khi chạy.
+- [x] Dockerfile recipes chứa model embedding, tokenizer/config, corpus đã validate và vectors; job seed dùng cùng image, không yêu cầu model/recipe tải từ web khi chạy.
 
 ### Kết thúc Phase 2
 
