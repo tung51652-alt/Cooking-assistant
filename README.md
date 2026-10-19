@@ -2,7 +2,7 @@
 
 Đưa ảnh một món ăn Việt vào, xem **Top-3 dự đoán**, chọn hoặc sửa món rồi tìm công thức và xem nguyên liệu/bước nấu/nguồn. Phiên bản Phase 4 có frontend responsive theo nguồn Stitch, Spring Boot gateway, CV EfficientNet-B2 và recipe retrieval E5/Qdrant thật.
 
-Hiện hỗ trợ 30 món, corpus 33 công thức; mỗi món trả tối đa ba công thức có sẵn, không tự tạo thêm kết quả để đủ ba. Một số công thức được AI biên soạn và có nhãn nguồn rõ ràng. Ảnh dùng để nhận diện món, không suy ra nguyên liệu trực tiếp từ pixel. Chưa có chatbot, tài khoản/lịch sử hoặc cooking assistant. Mobile hiện là web responsive; app Expo ở mốc sau, không APK.
+Hiện hỗ trợ 30 món, corpus 33 công thức; mỗi món trả tối đa ba công thức có sẵn, không tự tạo thêm kết quả để đủ ba. Một số công thức được AI biên soạn và có nhãn nguồn rõ ràng. Ảnh dùng để nhận diện món, không suy ra nguyên liệu trực tiếp từ pixel. Chưa có chatbot, tài khoản/lịch sử hoặc cooking assistant. Ngoài web responsive, [app Expo Go](mobile/README.md) được triển khai trên feature/mobile-expo theo yêu cầu cùng Phase 5, dùng chung gateway; chưa nghiệm thu thiết bị thật, không build APK.
 
 ## Trạng thái phiên bản
 

@@ -8,6 +8,8 @@
 **/venv
 **/.venv
 **/.venv-build
+**/.expo
+mobile
 **/node_modules
 **/__pycache__
 **/*.py[cod]
