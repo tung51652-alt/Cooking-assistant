@@ -2,6 +2,8 @@
 
 Khung React/TypeScript/Vite dựa trên HTML người dùng cung cấp tại `/home/trantung/ict/FrontEndCookLens`. Làm sớm theo yêu cầu người dùng để review khung/style, chưa là nghiệm thu Phase 4 tích hợp. Nhánh `dangvinh23012006-art-patch-1` đã được kiểm tra: chỉ có `.gitkeep` và `modules.xml`, không có CSS/JS/source UI để tận dụng thêm.
 
+Phạm vi hiện tại là web responsive, dùng trên trình duyệt máy tính và điện thoại. Không tạo APK hoặc project native trong lần này. App điện thoại ở giai đoạn sau sẽ dùng Expo theo quyết định của người dùng; dùng lại public API và những TypeScript types/logic phù hợp, còn giao diện DOM/CSS web cần được chuyển sang component tương thích Expo.
+
 ## Nguồn và lựa chọn giao diện
 
 | HTML tham chiếu | Phần dùng lại | Component |

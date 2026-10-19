@@ -16,6 +16,7 @@ Luồng mục tiêu:
 ```
 
 - Frontend cơ bản dựa trên khung HTML tại `/home/trantung/ict/FrontEndCookLens`, tận dụng tối đa bố cục, tên lớp, thành phần, tài nguyên và style của bản gốc. Dùng được trên desktop và điện thoại; có preview ảnh, trạng thái tải, lỗi và kết quả rỗng. Chi tiết tái sử dụng và phần tài nguyên đang thiếu nằm ở Phase 4.
+- Trong MVP, điện thoại dùng web responsive trên trình duyệt; không tạo APK hoặc project native. App điện thoại giai đoạn sau dùng Expo, dùng chung public API và tái sử dụng TypeScript types/logic phù hợp. DOM/CSS web cần chuyển sang component tương thích Expo khi thực hiện giai đoạn đó.
 - Hỗ trợ 30 lớp của checkpoint hiện tại. Ảnh nhiều món và món ngoài bộ nhãn phải được giải thích là giới hạn của model; người dùng luôn sửa được lựa chọn.
 - Runtime chuẩn dùng CPU, không cần CUDA, Python/Java/Node cài trên máy người dùng hay khóa API LLM.
 - Sau khi lấy bộ phát hành gồm Compose và cấu hình mặc định, người dùng chạy một lệnh Docker để kéo image và khởi động toàn bộ stack. Không phải lấy checkpoint, model embedding hay seed database thủ công.
@@ -278,7 +279,7 @@ Nguyên tắc phối hợp: frontend chỉ biết public API, `confidence` và `
 - [ ] Recipe cards có title, preview, nguồn và thời gian/khẩu phần nếu có; chi tiết nguyên liệu và bước nấu theo thứ tự. Escape dữ liệu nguồn, không render HTML thô không tin cậy.
 - [ ] Empty/error states cho ảnh lỗi, món không có recipe, API chưa ready, timeout; có retry rõ ràng. Không giữ recipe cũ dưới tên món mới.
 - [ ] Hủy/bỏ qua response cũ khi request mới bắt đầu; đổi ảnh reset selection và recipe, giải phóng preview URL.
-- [ ] Responsive, keyboard labels/focus và trạng thái cho screen reader; kiểm thử desktop/mobile.
+- [ ] Responsive, keyboard labels/focus và trạng thái cho screen reader; kiểm thử trình duyệt desktop/mobile. Đây là kiểm thử web responsive, không phải build APK; app Expo thuộc giai đoạn sau.
 - [ ] So sánh screenshot bản triển khai với baseline nguồn ở cùng viewport desktop/mobile cho upload, recognition và recipe; ghi phần giữ nguyên, phần cần sửa và khác biệt do chức năng mới vào PR. Chỉ giữ ảnh baseline/bằng chứng được chọn, dọn ảnh test sinh tự động.
 - [ ] API base URL release là `/api`; Nginx reverse proxy đến backend bằng tên service, cấu hình upload limit/timeout thống nhất. Frontend production không dùng Vite dev server.
 - [ ] UI integration/E2E tests cho luồng chính và lỗi; Dockerfile build static + Nginx runtime, không bake địa chỉ máy thành viên.
