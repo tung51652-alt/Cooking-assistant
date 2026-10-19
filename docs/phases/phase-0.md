@@ -50,3 +50,7 @@ Các việc trên không bị đánh dấu đã hoàn thành trong Phase 0. Quy�
 Đã loại giá trị mã kiểm tra/commit khỏi code, manifests, ví dụ docs, workflow, lockfile và nội dung release do nhóm quản lý. Workflow dùng action version tag, nguồn embedding không lưu object revision. Thêm scanner chạy CI và checklist bắt buộc ở mọi phase; không in lại giá trị khi phát hiện. Kiểm tra toàn vẹn transfer vẫn chạy trong bộ nhớ bằng metadata GitHub cung cấp. Đây không phải thao tác viết lại lịch sử Git hoặc thay đổi metadata GitHub tự quản lý.
 
 9 regression tests gồm transfer, metadata upstream và policy scanner; frontend được kiểm tra lại cài dependency/build vì lockfile đã thay đổi. Theo dõi checks PR cho bằng chứng commit cuối.
+
+## Phiên bản sản phẩm đích
+
+Người dùng chốt bản hoàn thành toàn bộ kế hoạch là CookLens phiên bản 2: application release `v2.0.0`, bốn image ứng dụng tag `2.0.0`. Phase 0 là nền tảng contract/đầu vào, chưa là release sản phẩm. Artifact `vision-model-v1` và API v1 có vòng đời version riêng; không phải đổi tên chúng chỉ để khớp version ứng dụng.

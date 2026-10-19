@@ -6,6 +6,8 @@ Ngày lập và cập nhật: 2026-10-19. Nhánh đích của PR tài liệu và
 
 Đang làm Phase 0 trên `feature/mvp-contracts`; [báo cáo Phase 0](../phases/phase-0.md) ghi kết quả kiểm tra thực và đầu vào chưa đủ. Những ô đánh dấu dưới đây là bằng chứng hoàn thành phần việc trên nhánh PR, không đồng nghĩa PR đã được merge hoặc cả phase đã nghiệm thu.
 
+Bản hoàn thành toàn bộ Phase 0–7 của kế hoạch này là **CookLens phiên bản 2**, tag phát hành ứng dụng `v2.0.0`. Chỉ công bố khi luồng ảnh → Top-3 → xác nhận món → công thức chạy với service thật, đủ Docker images/Compose và đạt nghiệm thu Phase 7. Các phase và PR trung gian không được gọi là release v2 hoàn chỉnh. Version public API, taxonomy và artifact model được quản lý riêng; release trọng số `vision-model-v1` hiện có không phải phiên bản ứng dụng v1 hoặc v2.
+
 ## 1. Kết quả cần giao
 
 Người dùng tải ảnh một món ăn lên giao diện web, nhận ba món có khả năng cao nhất kèm độ tin cậy, chọn hoặc sửa món, xem tối đa ba công thức liên quan nhất và mở chi tiết nguyên liệu, định lượng, bước nấu, nguồn.
@@ -373,17 +375,18 @@ Docker Hub được chọn làm registry cho lần phát hành này. Docker khô
 
 | Image dự kiến | Nội dung |
 | --- | --- |
-| `<namespace>/cooklens-vision:<release>` | CV code + CPU runtime + checkpoint + taxonomy |
-| `<namespace>/cooklens-recipes:<release>` | API retrieval + embedding model + corpus/vector bundle; cũng dùng cho init |
-| `<namespace>/cooklens-backend:<release>` | Spring Boot API đã build |
-| `<namespace>/cooklens-frontend:<release>` | React build + Nginx/reverse proxy |
+| `trantung2006/cooklens-vision:2.0.0` | CV code + CPU runtime + checkpoint + taxonomy |
+| `trantung2006/cooklens-recipes:2.0.0` | API retrieval + embedding model + corpus/vector bundle; cũng dùng cho init |
+| `trantung2006/cooklens-backend:2.0.0` | Spring Boot API đã build |
+| `trantung2006/cooklens-frontend:2.0.0` | React build + Nginx/reverse proxy |
 
-`<namespace>` và `<release>` là placeholder trong kế hoạch; file release giao người dùng phải chứa version/tag đã nghiệm thu, không cần họ tự sửa. Qdrant tham chiếu repository chính thức và version/tag đã test, không push bản sao vào namespace nhóm.
+Bốn image ứng dụng dùng tag `2.0.0` đồng bộ với release ứng dụng `v2.0.0`; file Compose và runbook phải chứa version đã nghiệm thu, không yêu cầu người dùng tự sửa. Qdrant tham chiếu repository chính thức và version/tag đã test, không push bản sao vào namespace nhóm.
 
 - [ ] CI chạy kiểm thử/contract trước build; tải artifact qua kiểm tra toàn vẹn nội bộ, build cả bốn image và lưu manifest API/model/taxonomy/corpus/embedding versions.
 - [ ] Image gắn release tag dễ đọc; Compose dùng version/tag đã nghiệm thu, không dùng commit/hash làm tag và không ghi đè nội dung release đã phát hành.
 - [ ] Cấu hình quyền push bằng CI secret; public pull không cần token nếu đã đáp ứng quyền phân phối. Private release ghi rõ cần `docker login` một lần, không hứa chạy ẩn danh.
 - [ ] Push vào Docker Hub và xác minh pull lại theo release tag trên máy/CI sạch. Publish là bước phát hành sau khi có namespace/quyền và artifact hợp lệ; viết kế hoạch này chưa thực hiện push.
+- [ ] Kiểm tra version phát hành thống nhất: GitHub application release `v2.0.0`, bốn image ứng dụng `2.0.0`, Compose và runbook; giữ version API/model/taxonomy/corpus riêng, không đổi theo số phiên bản app một cách máy móc.
 - [ ] Giao bộ release: `compose.release.yaml`, config mặc định không nhạy cảm, release notes, attribution/licenses và runbook tiếng Việt.
 - [ ] Runbook nêu URL `http://localhost:8080`, readiness/cold-start, cách xem logs, restart, upgrade, rollback và xử lý model/index không tương thích.
 - [ ] Giải thích `docker compose down` giữ named volume; `down -v` xóa dữ liệu index, lần sau phải seed lại. Không đưa lệnh xóa volume vào bước chạy thường ngày.
