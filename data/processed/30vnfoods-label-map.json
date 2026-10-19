@@ -1,0 +1,309 @@
+{
+  "mapping_id": "30vnfoods-to-normalized-dish",
+  "dataset": "30VNFoods",
+  "dataset_version": "2026-09-30-clean-split",
+  "source_class_list": "deploy/artifacts/manifest.json#/vision/class_labels",
+  "normalization": "lowercase ASCII snake_case; preserve the dataset class meaning",
+  "labels": [
+    {
+      "original_label": "Banh beo",
+      "normalized_dish": "banh_beo",
+      "class_id": 0,
+      "display_name": "Bánh bèo",
+      "aliases": [
+        "bánh bèo",
+        "banh beo"
+      ]
+    },
+    {
+      "original_label": "Banh bot loc",
+      "normalized_dish": "banh_bot_loc",
+      "class_id": 1,
+      "display_name": "Bánh bột lọc",
+      "aliases": [
+        "bánh bột lọc",
+        "banh bot loc"
+      ]
+    },
+    {
+      "original_label": "Banh can",
+      "normalized_dish": "banh_can",
+      "class_id": 2,
+      "display_name": "Bánh căn",
+      "aliases": [
+        "bánh căn",
+        "banh can"
+      ]
+    },
+    {
+      "original_label": "Banh canh",
+      "normalized_dish": "banh_canh",
+      "class_id": 3,
+      "display_name": "Bánh canh",
+      "aliases": [
+        "bánh canh",
+        "banh canh"
+      ]
+    },
+    {
+      "original_label": "Banh chung",
+      "normalized_dish": "banh_chung",
+      "class_id": 4,
+      "display_name": "Bánh chưng",
+      "aliases": [
+        "bánh chưng",
+        "banh chung"
+      ]
+    },
+    {
+      "original_label": "Banh cuon",
+      "normalized_dish": "banh_cuon",
+      "class_id": 5,
+      "display_name": "Bánh cuốn",
+      "aliases": [
+        "bánh cuốn",
+        "banh cuon"
+      ]
+    },
+    {
+      "original_label": "Banh duc",
+      "normalized_dish": "banh_duc",
+      "class_id": 6,
+      "display_name": "Bánh đúc",
+      "aliases": [
+        "bánh đúc",
+        "banh duc"
+      ]
+    },
+    {
+      "original_label": "Banh gio",
+      "normalized_dish": "banh_gio",
+      "class_id": 7,
+      "display_name": "Bánh giò",
+      "aliases": [
+        "bánh giò",
+        "banh gio"
+      ]
+    },
+    {
+      "original_label": "Banh khot",
+      "normalized_dish": "banh_khot",
+      "class_id": 8,
+      "display_name": "Bánh khọt",
+      "aliases": [
+        "bánh khọt",
+        "banh khot"
+      ]
+    },
+    {
+      "original_label": "Banh mi",
+      "normalized_dish": "banh_mi",
+      "class_id": 9,
+      "display_name": "Bánh mì",
+      "aliases": [
+        "bánh mì",
+        "banh mi"
+      ]
+    },
+    {
+      "original_label": "Banh pia",
+      "normalized_dish": "banh_pia",
+      "class_id": 10,
+      "display_name": "Bánh pía",
+      "aliases": [
+        "bánh pía",
+        "banh pia"
+      ]
+    },
+    {
+      "original_label": "Banh tet",
+      "normalized_dish": "banh_tet",
+      "class_id": 11,
+      "display_name": "Bánh tét",
+      "aliases": [
+        "bánh tét",
+        "banh tet"
+      ]
+    },
+    {
+      "original_label": "Banh trang nuong",
+      "normalized_dish": "banh_trang_nuong",
+      "class_id": 12,
+      "display_name": "Bánh tráng nướng",
+      "aliases": [
+        "bánh tráng nướng",
+        "banh trang nuong"
+      ]
+    },
+    {
+      "original_label": "Banh xeo",
+      "normalized_dish": "banh_xeo",
+      "class_id": 13,
+      "display_name": "Bánh xèo",
+      "aliases": [
+        "bánh xèo",
+        "banh xeo"
+      ]
+    },
+    {
+      "original_label": "Bun bo Hue",
+      "normalized_dish": "bun_bo_hue",
+      "class_id": 14,
+      "display_name": "Bún bò Huế",
+      "aliases": [
+        "bún bò huế",
+        "bun bo hue"
+      ]
+    },
+    {
+      "original_label": "Bun dau mam tom",
+      "normalized_dish": "bun_dau_mam_tom",
+      "class_id": 15,
+      "display_name": "Bún đậu mắm tôm",
+      "aliases": [
+        "bún đậu mắm tôm",
+        "bun dau mam tom"
+      ]
+    },
+    {
+      "original_label": "Bun mam",
+      "normalized_dish": "bun_mam",
+      "class_id": 16,
+      "display_name": "Bún mắm",
+      "aliases": [
+        "bún mắm",
+        "bun mam"
+      ]
+    },
+    {
+      "original_label": "Bun rieu",
+      "normalized_dish": "bun_rieu",
+      "class_id": 17,
+      "display_name": "Bún riêu",
+      "aliases": [
+        "bún riêu",
+        "bun rieu"
+      ]
+    },
+    {
+      "original_label": "Bun thit nuong",
+      "normalized_dish": "bun_thit_nuong",
+      "class_id": 18,
+      "display_name": "Bún thịt nướng",
+      "aliases": [
+        "bún thịt nướng",
+        "bun thit nuong"
+      ]
+    },
+    {
+      "original_label": "Ca kho to",
+      "normalized_dish": "ca_kho_to",
+      "class_id": 19,
+      "display_name": "Cá kho tộ",
+      "aliases": [
+        "cá kho tộ",
+        "ca kho to"
+      ]
+    },
+    {
+      "original_label": "Canh chua",
+      "normalized_dish": "canh_chua",
+      "class_id": 20,
+      "display_name": "Canh chua",
+      "aliases": [
+        "canh chua"
+      ]
+    },
+    {
+      "original_label": "Cao lau",
+      "normalized_dish": "cao_lau",
+      "class_id": 21,
+      "display_name": "Cao lầu",
+      "aliases": [
+        "cao lầu",
+        "cao lau"
+      ]
+    },
+    {
+      "original_label": "Chao long",
+      "normalized_dish": "chao_long",
+      "class_id": 22,
+      "display_name": "Cháo lòng",
+      "aliases": [
+        "cháo lòng",
+        "chao long"
+      ]
+    },
+    {
+      "original_label": "Com tam",
+      "normalized_dish": "com_tam",
+      "class_id": 23,
+      "display_name": "Cơm tấm",
+      "aliases": [
+        "cơm tấm",
+        "com tam"
+      ]
+    },
+    {
+      "original_label": "Goi cuon",
+      "normalized_dish": "goi_cuon",
+      "class_id": 24,
+      "display_name": "Gỏi cuốn",
+      "aliases": [
+        "gỏi cuốn",
+        "goi cuon"
+      ]
+    },
+    {
+      "original_label": "Hu tieu",
+      "normalized_dish": "hu_tieu",
+      "class_id": 25,
+      "display_name": "Hủ tiếu",
+      "aliases": [
+        "hủ tiếu",
+        "hu tieu"
+      ]
+    },
+    {
+      "original_label": "Mi quang",
+      "normalized_dish": "mi_quang",
+      "class_id": 26,
+      "display_name": "Mì Quảng",
+      "aliases": [
+        "mì quảng",
+        "mi quang"
+      ]
+    },
+    {
+      "original_label": "Nem chua",
+      "normalized_dish": "nem_chua",
+      "class_id": 27,
+      "display_name": "Nem chua",
+      "aliases": [
+        "nem chua"
+      ]
+    },
+    {
+      "original_label": "Pho",
+      "normalized_dish": "pho",
+      "class_id": 28,
+      "display_name": "Phở",
+      "aliases": [
+        "phở",
+        "pho"
+      ]
+    },
+    {
+      "original_label": "Xoi xeo",
+      "normalized_dish": "xoi_xeo",
+      "class_id": 29,
+      "display_name": "Xôi xéo",
+      "aliases": [
+        "xôi xéo",
+        "xoi xeo"
+      ]
+    }
+  ],
+  "taxonomy_version": "1.0.0",
+  "provenance": "Adapted from project branch sida/data-30vnfoods-manifest; training labels confirmed against the supplied checkpoint."
+}
