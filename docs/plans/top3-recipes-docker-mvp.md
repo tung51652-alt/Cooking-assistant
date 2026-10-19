@@ -4,7 +4,7 @@ Ngày lập và cập nhật: 2026-10-19. Nhánh đích của PR tài liệu và
 
 Đây là kế hoạch triển khai, chưa phải danh sách tính năng đã hoàn thành. Các ô checklist chỉ được đánh dấu khi có mã, kiểm thử và bằng chứng tương ứng. Hiện trạng nhánh được xác định sau `git fetch origin` cùng ngày.
 
-Đang làm Phase 0 trên `feature/mvp-contracts`; [báo cáo Phase 0](../phases/phase-0.md) ghi kết quả kiểm tra thực và đầu vào chưa đủ. Những ô đánh dấu dưới đây là bằng chứng hoàn thành phần việc trên nhánh PR, không đồng nghĩa PR đã được merge hoặc cả phase đã nghiệm thu.
+Trạng thái đã đối chiếu mã, báo cáo CI và GitHub PR: Phase 0–4 đã tích hợp vào `develop`; phần triển khai/CI Phase 5 nằm ở [PR #16](https://github.com/tung51652-alt/Cooking-assistant/pull/16), Expo ở [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17). Hai PR đang mở, sẵn sàng review và CI đã pass; chưa merge. Checklist này được đồng bộ trên cả hai nhánh PR để phân biệt công việc đã làm với phần còn chờ thiết bị, người review và phát hành. Ô đã tick không đồng nghĩa toàn bộ mã đã nằm trong `develop` hoặc đã phát hành.
 
 Bản hoàn thành toàn bộ Phase 0–7 của kế hoạch này là **CookLens phiên bản 2**, tag phát hành ứng dụng `v2.0.0`. Chỉ công bố khi luồng ảnh → Top-3 → xác nhận món → công thức chạy với service thật, đủ Docker images/Compose và đạt nghiệm thu Phase 7. Các phase và PR trung gian không được gọi là release v2 hoàn chỉnh. Version public API, taxonomy và artifact model được quản lý riêng; release trọng số `vision-model-v1` hiện có không phải phiên bản ứng dụng v1 hoặc v2.
 
@@ -284,7 +284,7 @@ Nguyên tắc phối hợp: frontend chỉ gọi public /api cùng origin, dùng
 - [x] Recipe list/detail có title/preview/nguồn/license/attribution/nguyên liệu/bước nấu và dữ liệu thời gian/khẩu phần trung thực; query tùy chọn chỉ xếp hạng trong món xác nhận.
 - [x] Escape text, chỉ link HTTP(S) không credential; không render HTML nguồn. Hiển thị AI-authored provenance và null/empty đúng dữ liệu thật.
 - [x] Hủy/bỏ qua response cũ khi đổi ảnh/món hoặc điều hướng, giải phóng object URL; không giữ recipe cũ dưới tên món mới, không lưu ảnh vào storage.
-- [x] Responsive desktop/mobile, focus/keyboard/radio labels/screen reader, reduced motion và không overflow; đây là web, Expo vẫn ở mốc sau, không APK.
+- [x] Responsive desktop/mobile, focus/keyboard/radio labels/screen reader, reduced motion và không overflow; đây là kiểm thử web; Expo được triển khai/nghiệm thu riêng ở phần mobile bên dưới, không APK.
 - [x] Chụp/upload so sánh cùng viewport, giữ ảnh nguồn và baseline triển khai được chọn; ghi rõ phần giữ và phần thay vì bỏ chatbot/khác chức năng. Không coi source có sẵn các màn recognition/detail khi chỉ cung cấp một trang.
 - [x] Nginx static + reverse proxy backend theo service name; /api cùng origin, upload/deadline/error JSON/request ID thống nhất. Không dùng Vite cho production, không cache asset cũ hoặc phụ thuộc CDN lúc runtime.
 - [x] Dockerfile frontend nhiều stage và overlay Compose Phase 4 chạy cùng AI thật, chỉ publish frontend; không bake địa chỉ máy thành viên.
@@ -294,13 +294,13 @@ Nguyên tắc phối hợp: frontend chỉ gọi public /api cùng origin, dùng
 
 - [x] Rà HTML/CSS/JS/file/IDE/build output/test/screenshots thừa, giữ tests/baseline có mục đích; không COPY docs/reference/tests vào image.
 - [x] Rà secrets và mọi literal mã/hash/SHA/checksum/digest trong source, lockfile, fixtures, env, tài liệu, PR và static bundle. Không đưa source maps hoặc giá trị xác thực vào image; asset filenames dùng tên ổn định, không gắn mã hash.
-- [ ] Tạo PR/báo cáo kèm bằng chứng đối chiếu thiết kế và test; chờ người dùng review/merge rồi fetch xác nhận trước Phase 5.
+- [x] Tạo PR/báo cáo kèm bằng chứng đối chiếu thiết kế và test; chờ người dùng review/merge rồi fetch xác nhận trước Phase 5.
 
 Điều kiện ra phase: người dùng mới hoàn thành ảnh → Top-3 → chọn/sửa món → recipe list/detail trên giao diện Docker với AI thật, không cần Swagger/console. Giao diện theo nguồn Stitch đúng, không chatbot; người dùng review/merge PR.
 
 ### Mobile bằng Expo — cùng domain, triển khai cùng Phase 5 theo yêu cầu cập nhật
 
-Mobile là một client khác của CookLens, giữ nguyên luồng **chụp/chọn ảnh → Top-3 → xác nhận/sửa món → tối đa ba công thức → chi tiết nguyên liệu/bước nấu/nguồn**, taxonomy 30 món và giới hạn model. Không thêm chatbot, đăng nhập, lịch sử hoặc service AI riêng để làm mobile. Người dùng yêu cầu triển khai Expo ngay cùng Phase 5; mã trên `feature/mobile-expo`, báo cáo và kiểm chứng thiết bị tách khỏi nghiệm thu web/Docker. Xem [báo cáo Expo](../phases/mobile-expo.md) và [hướng dẫn chạy](../../mobile/README.md).
+Mobile là một client khác của CookLens, giữ nguyên luồng **chụp/chọn ảnh → Top-3 → xác nhận/sửa món → tối đa ba công thức → chi tiết nguyên liệu/bước nấu/nguồn**, taxonomy 30 món và giới hạn model. Không thêm chatbot, đăng nhập, lịch sử hoặc service AI riêng để làm mobile. Người dùng yêu cầu triển khai Expo ngay cùng Phase 5; mã trên `feature/mobile-expo`, báo cáo và kiểm chứng thiết bị tách khỏi nghiệm thu web/Docker. Xem [PR Expo #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17), [báo cáo Expo trên nhánh triển khai](https://github.com/tung51652-alt/Cooking-assistant/blob/feature/mobile-expo/docs/phases/mobile-expo.md) và [hướng dẫn chạy Expo Go](https://github.com/tung51652-alt/Cooking-assistant/blob/feature/mobile-expo/mobile/README.md).
 
 Nguyên tắc chung:
 
@@ -314,12 +314,14 @@ Nguyên tắc chung:
 Checklist khi bắt đầu và nghiệm thu mốc Expo:
 
 - [x] Chốt SDK/dependencies hỗ trợ Expo Go, vị trí mã và adapter dùng chung; bổ sung hướng dẫn cài dependency/start/scan QR, không yêu cầu người dùng build APK.
-- [ ] Kiểm tra từ điện thoại tới gateway và cùng API contract, taxonomy/model/corpus version; không nhân bản backend hoặc pipeline dữ liệu cho mobile.
+- [x] Dùng chung API contract/types/validation, taxonomy/model/corpus metadata và backend với web; sáu client contract tests và CI web/server thật đã pass, không nhân bản backend hoặc dữ liệu cho mobile.
+- [ ] Kiểm tra từ điện thoại thật tới gateway LAN/HTTPS, native multipart và metadata versions; chưa có thiết bị kết nối để nghiệm thu.
 - [x] Triển khai camera/thư viện, permission denied/cancel, preview/đổi ảnh, validation/chuyển định dạng và upload; không lưu lịch sử ảnh. Typecheck/bundle đã pass; hành vi camera/HEIC trên thiết bị còn chờ kiểm chứng ở mục dưới.
 - [x] Triển khai Top-3, xác nhận/sửa món, danh sách/chi tiết và nguồn; loading/empty/error/retry, hủy request và chặn kết quả cũ. Client contract dùng chung được kiểm thử; chưa coi là nghiệm thu native trên thiết bị thật.
 - [ ] Kiểm thử trên thiết bị thật Android và iOS theo phạm vi bàn giao đã chốt; kiểm tra safe area, chữ lớn, screen reader, nút Back và chuyển nền/quay lại app. Báo rõ nền tảng chưa được kiểm chứng; không dùng test viewport web thay bằng chứng Expo.
 - [x] Web build, 20 Playwright desktop/mobile và sáu client contract tests pass sau tách client. Tám checks PR #17, gồm gateway/browser/Docker/CV/recipes thật và Expo bundle, đã pass; không dùng kết quả này thay bằng chứng Expo trên thiết bị.
-- [ ] Áp dụng [cổng kết thúc phase](#phase-closeout): dọn file/test tạm, cache Metro, generated native/build outputs, QR/logs và ảnh chụp có thông tin cá nhân; giữ test hồi quy cần thiết. Rà secrets và mọi giá trị mã/hash trong commit, config và bundle; gửi PR vào `develop` để người dùng review/merge, ghi bằng chứng và phần chưa kiểm chứng.
+- [x] Rà file/test tạm, cache Metro, generated outputs, source/config/lockfile và nội dung commit; scanner metadata cùng web bundle đã pass. Native export chỉ dùng kiểm tra bundling, không commit/publish output. PR #17 đã sẵn sàng review, mô tả nêu rõ phần chưa kiểm chứng trên điện thoại; không coi đây là nghiệm thu native release.
+- [ ] Người dùng review/merge PR Expo; nghiệm thu thiết bị thật trước khi xác nhận hoàn tất mốc mobile. Không tự merge hoặc bật auto-merge.
 
 ## 9. Phase 5 — Docker Compose và artifact đầy đủ
 
@@ -345,24 +347,27 @@ recipes ready ──────────────────────
 
 Compose phải dùng `healthcheck` cùng `depends_on` condition phù hợp. Container đang chạy chưa có nghĩa là model/index đã sẵn sàng; `recipe-init` kết thúc 0 là hành vi thành công, không đặt restart vô hạn cho job này. Restart của dependency sau startup vẫn cần timeout/reconnect trong service, không dựa riêng vào thứ tự boot.
 
-- [ ] Tạo release/dev Compose tách biệt, cùng cấu hình service names, version và ports. Chỉ frontend bind `127.0.0.1:8080` mặc định; chỉ mở cổng debug AI/Qdrant trong dev profile.
-- [ ] Healthchecks dùng công cụ có thật trong image, có `start_period` đủ thời gian load model/seed; timeout/retries hữu hạn. `recipe-init` phải thất bại rõ ràng khi bundle không vượt kiểm tra toàn vẹn nội bộ/version.
-- [ ] Image chạy user không phải root khi khả thi, dependency/runtime khóa version, build nhiều stage, `.dockerignore` không gửi secrets/venv lên build context.
-- [ ] Pin Qdrant, runtime base và image ứng dụng bằng version/tag dễ đọc; release manifest không ghi giá trị mã/hash. Không dùng `latest` làm định danh tái lập.
-- [ ] Volume Qdrant tồn tại qua restart; `up` lần hai không seed trùng; volume mới tự seed đúng, volume cũ upgrade theo collection version/alias.
-- [ ] Default CPU đủ chạy model, giới hạn worker/concurrency và memory theo số đo. Không tự tạo nhiều bản model vì worker count mặc định cao; GPU chỉ là profile sau này.
-- [ ] Build context cung cấp checkpoint qua quy trình artifact có version và kiểm tra toàn vẹn nội bộ; secret lấy artifact dùng build secret/CI secret, không `ARG`/`ENV` chứa token trong layer.
-- [ ] Chạy stack từ bộ Compose tải riêng, ngoài thư mục source, với cache/volume trống; xác minh mọi artifact được lấy từ image và không cần Python/Java/Node trên host.
-- [ ] Chặn outbound Internet của runtime sau khi pull image và kiểm thử luồng chính; host vẫn cần Internet ở bước pull và mở link nguồn.
-- [ ] Ghi measured cold-start, seed time, disk/image size, peak RAM và latency; runbook nêu cấu hình máy tối thiểu đã kiểm chứng.
+- [x] Tạo release/dev Compose tách biệt, cùng cấu hình service names, version và ports. Chỉ frontend bind `127.0.0.1:8080` mặc định; chỉ mở cổng debug AI/Qdrant trong dev profile.
+- [x] Healthchecks dùng công cụ có thật trong image, có `start_period` đủ thời gian load model/seed; timeout/retries hữu hạn. `recipe-init` phải thất bại rõ ràng khi bundle không vượt kiểm tra toàn vẹn nội bộ/version.
+- [x] Image chạy user không phải root khi khả thi, dependency/runtime khóa version, build nhiều stage, `.dockerignore` không gửi secrets/venv lên build context.
+- [x] Pin Qdrant, runtime base và image ứng dụng bằng version/tag dễ đọc; release manifest không ghi giá trị mã/hash. Không dùng `latest` làm định danh tái lập.
+- [x] Volume Qdrant tồn tại qua restart; `up` lần hai không seed trùng; volume mới tự seed đúng, volume cũ upgrade theo collection version/alias.
+- [x] Default CPU đủ chạy model, giới hạn worker/concurrency và memory theo số đo. Không tự tạo nhiều bản model vì worker count mặc định cao; GPU chỉ là profile sau này.
+- [x] Build context cung cấp checkpoint qua quy trình artifact có version và kiểm tra toàn vẹn nội bộ; secret lấy artifact dùng build secret/CI secret, không `ARG`/`ENV` chứa token trong layer.
+- [x] Chạy stack từ Compose chép riêng ngoài thư mục source, volume mới và không mount cache/model/source; mọi artifact nằm trong image, runtime không cần Python/Java/Node trên host. Image candidate build trên CI; cold pull registry trên máy sạch vẫn thuộc Phase 6.
+- [x] Chặn outbound Internet của runtime sau khi có image và kiểm thử luồng chính; host vẫn cần Internet ở bước pull và mở link nguồn.
+- [x] Ghi measured cold-start, seed time, image size, peak RAM và latency; runbook nêu cấu hình 4 logical CPU/khoảng 16 GiB đã kiểm chứng, chưa suy ra cấu hình thấp nhất hoặc P95 nghiệm thu.
 
 ### Kết thúc Phase 5
 
-- [ ] Rà file thừa, test scripts, bundle thử, logs và build contexts theo [cổng chung](#phase-closeout); test data không cần thiết nằm ngoài các image production.
-- [ ] Rà secrets và mọi giá trị mã/hash trong Compose/env, scripts, CI logs, image config/history/layers; không ghi giá trị mã/hash vào nội dung do nhóm quản lý.
-- [ ] Tạo PR kèm bằng chứng chạy máy sạch; chờ người dùng merge rồi fetch xác nhận trước publish phiên bản phụ thuộc.
+- [x] Rà file thừa, test scripts, bundle thử, logs và build contexts theo [cổng chung](#phase-closeout); test data không cần thiết nằm ngoài các image production.
+- [x] Rà secrets/mã/hash trong nội dung dự án, Compose/env, scripts, report CI và history layer do dự án tạo; scanner không nới policy. Metadata upstream do Docker quản lý không sao chép vào nội dung dự án; không tuyên bố audit toàn bộ binary/layer bên thứ ba.
+- [x] Tạo PR #16 kèm bằng chứng CI volume mới/Compose ngoài source; cold pull registry còn ở Phase 6.
+- [ ] Người dùng review/merge PR Phase 5; fetch xác nhận trước publish phiên bản phụ thuộc. Không tự merge hoặc bật auto-merge.
 
 Điều kiện ra phase: chạy được trên máy sạch chỉ có Docker Engine/Desktop với Compose, cấu hình mặc định và Internet để pull; không còn bước lấy model/seed bằng tay; PR được người dùng merge vào `develop`.
+
+Đối chiếu phần còn lại: cơ chế runbook, restart và rollback đã có bằng chứng ở candidate Phase 5; các checklist Phase 6–7 vẫn chưa tick vì chưa phát hành/pull bộ image từ registry hoặc nghiệm thu trên chính bộ release. Không dùng smoke candidate thay nghiệm thu release.
 
 ## 10. Phase 6 — Phát hành Docker Hub và runbook
 
