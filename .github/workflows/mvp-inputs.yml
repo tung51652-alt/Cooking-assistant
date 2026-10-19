@@ -24,4 +24,6 @@ jobs:
       - name: Reject corrupt or incomplete artifact transfers
         run: python3 -m unittest discover -s deploy/tests -v
       - name: Download and verify public checkpoint
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: python3 deploy/scripts/fetch_vision_checkpoint.py

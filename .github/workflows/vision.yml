@@ -41,6 +41,8 @@ jobs:
       - name: Check public metadata policy
         run: python3 deploy/scripts/check_public_metadata.py
       - name: Stage verified public model
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: python3 deploy/scripts/fetch_vision_checkpoint.py
       - name: Install CPU runtime and test transport
         run: |

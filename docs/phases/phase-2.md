@@ -1,6 +1,6 @@
 # Phase 2 — Corpus và retrieval
 
-Trạng thái: **triển khai và kiểm thử kỹ thuật đã hoàn tất, chờ người dùng review/merge PR dữ liệu rồi PR service**. Corpus đã phủ 30/30 món; chưa chuyển Phase 3. Review bên ngoài và nấu kiểm chứng công thức tiếp tục được ghi là chưa thực hiện, thuộc nghiệm thu Phase 7.
+Trạng thái: **triển khai và kiểm thử kỹ thuật đã hoàn tất, người dùng đã merge PR dữ liệu #10 rồi PR service #11; agent đã fetch xác nhận local develop đồng bộ origin/develop**. Corpus đã phủ 30/30 món; chưa chuyển Phase 3. Review bên ngoài và nấu kiểm chứng công thức tiếp tục được ghi là chưa thực hiện, thuộc nghiệm thu Phase 7.
 
 ## Dữ liệu và quyền biên soạn
 
@@ -39,6 +39,14 @@ Query/relevance được rà ngữ nghĩa trong lượt riêng, giữ nguyên mo
 - [x] Precompute/index/runtime/Compose offline và các test kỹ thuật.
 - [x] Cổng retrieval kỹ thuật, phân biệt với review bên ngoài.
 - [x] Rà file thừa, tests tạm, secrets và mọi literal hash bị cấm.
-- [ ] Người dùng review dữ liệu/query và merge #10 trước #11; agent fetch xác nhận develop trước Phase 3.
+- [x] Người dùng đã merge #10 trước #11; agent fetch xác nhận local develop đồng bộ origin/develop. Review độc lập và nấu kiểm chứng vẫn chưa thực hiện.
 
 Không tự merge PR hoặc coi các công thức đã được nấu kiểm chứng.
+
+## Kiểm tra develop sau merge
+
+Ngày 2026-10-19, local develop được fast-forward tới origin/develop, không có commit riêng hoặc xung đột; giữ nguyên CHANGELOG.md chưa được track của người dùng. CI push cho corpus, artifacts và recipes đã qua. Workflow Vision thất bại ở bước metadata release vì GitHub trả HTTP 403 rate limit cho request ẩn danh. Bản sửa dùng token tự cấp của Actions với quyền contents: read chỉ cho metadata API; không ghi token vào source, không chuyển token sang tải asset hoặc image. Máy local không có token vẫn dùng release public.
+
+Tài liệu và checklist merge được cập nhật theo trạng thái thực tế. Môi trường Python hệ thống thiếu thư viện CV; venv local thiếu test transport tương thích. Đây là hạn chế môi trường test local, không phải kết quả test runtime thất bại; kiểm tra CV cần bộ dependency đã pin riêng. Không thay đổi venv của người dùng.
+
+Kiểm tra lại sau merge: 7 tests data/taxonomy, 13 tests transfer/policy (gồm hồi quy xác thực metadata tùy chọn và không gửi token sang asset), 16 tests CV với checkpoint thật và 204 query retrieval đều qua. CV dùng FOOD_MODEL_PATH trỏ checkpoint có sẵn ở root vì staging mặc định chưa có file, cùng dependency test đã pin cài trong thư mục tạm riêng. Metadata cả hai artifact đã được kiểm tra bằng request xác thực, chỉ giữ giá trị kiểm chứng trong RAM. Scanner và diff whitespace qua.

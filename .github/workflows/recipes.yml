@@ -25,6 +25,8 @@ jobs:
       - run: python deploy/scripts/check_public_metadata.py
       - run: python -m unittest discover -s deploy/tests -v
       - run: python deploy/scripts/fetch_embedding_model.py
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       - run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
       - run: python -m pip install -r ai/rag/requirements.txt
       - run: python -m ai.rag.ingestion.bundle --model "$EMBEDDING_MODEL_DIR" --output "$RECIPES_BUNDLE_DIR"
