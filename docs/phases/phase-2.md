@@ -1,6 +1,6 @@
 # Phase 2 — Corpus và retrieval
 
-Phần dữ liệu đã đủ 30/30 món: 33 recipe gồm 21 bản Wikibooks có attribution và 12 bản AI biên soạn theo quyền chủ dự án cấp ngày 2026-10-19. Cổng `--require-full-coverage` được bật bắt buộc trong CI data. Corpus version mới `cooklens-recipes-v1` cần được service PR dựng lại vectors/index trước nghiệm thu runtime.
+Phần dữ liệu đã đủ 30/30 món: 33 recipe gồm 21 bản Wikibooks có attribution và 12 bản AI biên soạn theo quyền chủ dự án cấp ngày 2026-10-19. Cổng `--require-full-coverage` được bật bắt buộc trong CI data. Corpus version mới `cooklens-recipes-v1` được PR service dựng lại vectors/index và kiểm tra riêng; record benchmark/evaluation nằm trong PR service.
 
 Xem [README corpus](../../data/recipes/README.md), [record biên soạn và quyền sử dụng](../../data/recipes/AUTHORSHIP.md), [manifest](../../data/recipes/manifest.json). Source của văn bản mới ghi rõ AI, không gán nhầm Wikibooks hoặc người nấu. Công thức chưa nấu kiểm chứng, tổng thời gian chưa đo để null; nem chua dùng biến thể rán từ nem thành phẩm có nguồn gốc rõ.
 

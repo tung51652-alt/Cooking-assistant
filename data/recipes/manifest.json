@@ -39,7 +39,7 @@
   "review": {
     "source_and_structure": "agent_reviewed_imports_and_explicitly_labeled_ai_authored_additions",
     "human_cooking_review": "not_performed",
-    "retrieval_acceptance_review": "pending_service_rebuild",
+    "retrieval_acceptance_review": "technical_evaluation_in_service_PR_external_review_pending_phase7",
     "full_coverage_gate": "met"
   },
   "license": "CC-BY-SA-4.0",
