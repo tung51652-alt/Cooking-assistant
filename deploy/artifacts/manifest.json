@@ -71,7 +71,7 @@
     "build_staging_path": "deploy/artifacts/staging/vision/efficientnet_b2_best.pt",
     "runtime_path": "/opt/cooklens/models/efficientnet_b2_best.pt",
     "ci_source_uri": "https://github.com/tung51652-alt/Cooking-assistant/releases/download/vision-model-v1/efficientnet_b2_best.pt",
-    "acquisition_status": "github_release_selected_pending_roundtrip_verification",
+    "acquisition_status": "public_github_release_bytes_roundtrip_verified",
     "redistribution_status": "public_distribution_authorized_by_project_owner",
     "provenance": {
       "provided_by": "project_user",
@@ -92,7 +92,8 @@
       "format_load": "torch.load(weights_only=True,map_location=cpu)",
       "class_list_matches_cv_branch": true,
       "classifier_shape_matches": true,
-      "accuracy_retested": false
+      "accuracy_retested": false,
+      "public_release_download_sha256_matches": true
     },
     "reported_test_metrics": {
       "loss": 1.0604057976191374,

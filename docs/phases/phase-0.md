@@ -21,8 +21,8 @@ Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, đã đồng bộ `origin/de
 
 - Local checkpoint và ba HTML fingerprints đạt verifier; giữ nguyên bytes của file nguồn, không commit checkpoint.
 - Transfer regression: 4 tests đạt, gồm tải đúng/dùng lại cache, cùng size sai hash, tải thiếu/dư, mất kết nối sau một phần bytes và bảo toàn file đích đang có sai nội dung. Test dùng bytes nhỏ có chủ đích, tempfile tự dọn; không cần torch hoặc model tải mạng trong unit tests.
-- Public download round-trip: đang ghi kết quả sau khi publish release; không dùng local copy thay bằng chứng mạng.
-- GitHub Actions workflow được thêm để chạy cùng regression và tải thật ở môi trường CI. Kết quả run từ xa phải được xem riêng, không suy từ kết quả local.
+- Public download round-trip đạt: tải không token từ URL release thật vào staging sạch; 31.434.209 bytes, SHA-256 khớp manifest và file local. Script chạy lại dùng cache hợp lệ, không cần tải mạng lần nữa.
+- GitHub Actions workflow được thêm để chạy cùng regression và tải thật ở môi trường CI. Theo dõi kết quả run từ xa ở checks của PR #6; không suy từ kết quả local.
 - Không chạy lại E2E frontend vì mã UI không đổi so với PR #7; runtime CV/recipes/backend, Docker/offline full stack và các benchmark chưa thuộc Phase 0.
 
 ## Việc tiếp theo đã phân phase
@@ -40,7 +40,7 @@ Các việc trên không bị đánh dấu đã hoàn thành trong Phase 0. Quy�
 
 - [x] Contract, taxonomy metadata, nguồn artifact/model/corpus policy và tiêu chí nghiệm thu đã có quyết định/bằng chứng trong phạm vi Phase 0.
 - [x] Rà files/test fixtures: chỉ source/config/docs/notice/verifier và regression transfer cần giữ. File tạm/tải dở tự dọn; staging, cache và checkpoint không commit. Môi trường/file local của người dùng ở working tree chính được bảo toàn.
-- [x] Rà secrets/hash nhạy cảm trong diff/commit thuộc PR; SHA/revision/checksum và lockfile integrity có mục đích được giữ. Phạm vi không bao gồm audit toàn lịch sử/nhánh upstream.
+- [x] Rà secrets/hash nhạy cảm bằng 8 nhóm pattern trong diff/commit thuộc PR; kiểm tra 52 link docs local, fenced blocks, JSON/Python/YAML và workflow read-only; SHA/revision/checksum và lockfile integrity có mục đích được giữ. Phạm vi không bao gồm audit toàn lịch sử/nhánh upstream.
 - [x] Static review Git/Docker ignore, staging và workflow permissions; chưa có image/layer để scan, sẽ làm ở phase đóng gói. Không đưa dataset, token hoặc test suite vào runtime image.
 - [x] PR #6 có bảng kết quả/giới hạn để review; không auto-merge.
 - [ ] Người dùng merge PR #6; agent fetch xác nhận trên `origin/develop` trước Phase 1/2 phụ thuộc.
