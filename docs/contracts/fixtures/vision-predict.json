@@ -1,0 +1,27 @@
+{
+  "model_version": "efficientnet-b2-30vnfoods-2026-09-30",
+  "taxonomy_version": "1.0.0",
+  "predictions": [
+    {
+      "rank": 1,
+      "class_id": 15,
+      "normalized_dish": "bun_dau_mam_tom",
+      "display_name": "Bún đậu mắm tôm",
+      "confidence": 0.9425846934318542
+    },
+    {
+      "rank": 2,
+      "class_id": 23,
+      "normalized_dish": "com_tam",
+      "display_name": "Cơm tấm",
+      "confidence": 0.009021472185850143
+    },
+    {
+      "rank": 3,
+      "class_id": 29,
+      "normalized_dish": "xoi_xeo",
+      "display_name": "Xôi xéo",
+      "confidence": 0.004602132830768824
+    }
+  ]
+}

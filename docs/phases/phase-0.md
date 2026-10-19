@@ -1,6 +1,6 @@
 # Phase 0 — Contract và đầu vào có thể tái lập
 
-Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, đã đồng bộ `origin/develop` sau khi PR #5 và #7 được người dùng merge. Trạng thái: **phần triển khai Phase 0 sẵn sàng review, chờ người dùng merge PR #6**. Chưa bắt đầu Phase 1/2 phụ thuộc; chưa phát hành ứng dụng/Docker image.
+Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, đã đồng bộ `origin/develop` sau khi PR #5 và #7 được người dùng merge. Trạng thái: **Phase 0 đã được người dùng merge qua PR #6, agent đã fetch xác nhận trên origin/develop**. Phase 1 bắt đầu sau khi xác nhận merge; chưa phát hành ứng dụng/Docker image.
 
 ## Kết quả có thể review
 
@@ -43,7 +43,7 @@ Các việc trên không bị đánh dấu đã hoàn thành trong Phase 0. Quy�
 - [x] Rà giá trị mã/hash và secrets trong tracked files, kiểm tra links local, fenced blocks, JSON/Python/YAML và workflow read-only; không giữ ngoại lệ cho metadata kỹ thuật hoặc lockfile. Phạm vi không bao gồm audit toàn lịch sử/nhánh upstream.
 - [x] Static review Git/Docker ignore, staging và workflow permissions; chưa có image/layer để scan, sẽ làm ở phase đóng gói. Không đưa dataset, token hoặc test suite vào runtime image.
 - [x] PR #6 có bảng kết quả/giới hạn để review; không auto-merge.
-- [ ] Người dùng merge PR #6; agent fetch xác nhận trên `origin/develop` trước Phase 1/2 phụ thuộc.
+- [x] Người dùng merge PR #6; agent đã fetch xác nhận trên `origin/develop` trước Phase 1/2 phụ thuộc.
 
 ## Điều chỉnh theo yêu cầu không ghi mã/hash
 

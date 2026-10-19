@@ -1,0 +1,29 @@
+FROM python:3.12-slim-bookworm
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    FOOD_MODEL_PATH=/opt/cooklens/models/efficientnet_b2_best.pt \
+    TORCH_NUM_THREADS=4 \
+    OMP_NUM_THREADS=4 \
+    MKL_NUM_THREADS=4
+
+WORKDIR /app
+COPY ai/cv/inference/requirements.txt /tmp/vision-requirements.txt
+RUN python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 torchvision==0.29.1 \
+    && python -m pip install --no-cache-dir -r /tmp/vision-requirements.txt \
+    && rm /tmp/vision-requirements.txt
+
+COPY ai/cv/inference/*.py /app/ai/cv/inference/
+COPY data/processed/30vnfoods-label-map.json /app/data/processed/30vnfoods-label-map.json
+COPY deploy/artifacts/manifest.json /app/deploy/artifacts/manifest.json
+RUN mkdir -p /opt/cooklens/models /opt/cooklens/notices \
+    && chmod 0755 /opt/cooklens /opt/cooklens/models /opt/cooklens/notices
+COPY --chmod=0444 deploy/artifacts/staging/vision/efficientnet_b2_best.pt /opt/cooklens/models/efficientnet_b2_best.pt
+COPY deploy/artifacts/vision-model-v1.md /opt/cooklens/notices/vision-model-v1.md
+COPY deploy/artifacts/notices/torchvision-LICENSE.txt /opt/cooklens/notices/torchvision-LICENSE.txt
+
+USER 10001:10001
+EXPOSE 8000
+HEALTHCHECK --interval=15s --timeout=3s --start-period=30s --retries=3 \
+  CMD python -c "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/health/ready', timeout=2)"
+CMD ["python", "-m", "uvicorn", "ai.cv.inference.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--no-access-log"]

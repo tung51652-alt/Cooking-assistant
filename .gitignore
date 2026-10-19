@@ -45,3 +45,5 @@ pytorch_model.bin
 /ai/cv/runs/
 /data/raw/30vnfoods/
 /.api-validation/
+/ai/cv/**/*.zip
+/ai/cv/**/.kaggle/
