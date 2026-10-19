@@ -156,13 +156,13 @@ Nguyên tắc phối hợp: CV và recipe thống nhất mapping trước khi vi
 
 - [x] Chốt các API và error/status semantics, đường dẫn public/nội bộ trong [contract v1](../contracts/mvp-v1.md).
 - [x] Chốt UI: upload → ba lựa chọn → xác nhận → danh sách/chi tiết; luôn sửa món được, kể cả confidence cao; chưa có chatbot.
-- [ ] Hoàn tất audit style: đã lưu ba HTML và fingerprint, ghi các CSS/JS thiếu trong [audit](../frontend-reference/README.md); chưa có baseline styled desktop/mobile khi chưa nhận được assets hoặc quyết định style bổ sung.
+- [x] Audit nguồn và chốt hướng xử lý style: đã lưu ba HTML/fingerprint, ghi CSS/JS thiếu; người dùng cho phép dựng CSS/JS từ khung HTML. Làm khung độc lập sớm trên nhánh frontend và PR riêng để duyệt baseline desktop/mobile, chưa thay nghiệm thu Phase 4.
 - [x] Chốt gate/thiết bị mục tiêu, concurrency và policy luôn chọn/sửa món trong [runtime decisions](../decisions/mvp-runtime.md); không tự xác nhận bằng threshold 0.30. Chưa tuyên bố benchmark đã đạt.
 - [ ] Hoàn tất checkpoint supply: đã load/đối chiếu/hash metadata thật trong [artifact manifest](../../deploy/artifacts/manifest.json); CI artifact URI/quyền truy cập vẫn chưa có.
 - [x] Chọn baseline multilingual-e5-small với revision, chiều vector, license claim và cách đóng gói offline trong manifest; kiểm tra chất lượng trên bộ query nghiệm thu thuộc Phase 2, chưa đánh dấu đạt retrieval gate.
 - [x] Chọn policy Wikibooks text có attribution/license theo từng revision và corpus tối thiểu 1 recipe/món; ghi rõ chưa nhập/review, coverage 0/30 và nghĩa vụ bổ sung lớp thiếu ở Phase 2.
 - [ ] Xác minh quyền phân phối checkpoint: manifest hiện có ghi license dataset chưa được làm rõ. Ghi kết luận và attribution trước bước phát hành public; image private cũng cần phù hợp quyền sử dụng.
-- [ ] Chốt Docker Hub namespace và quyền push của nhóm, visibility, kiến trúc CPU `linux/amd64` ban đầu. `arm64` chỉ công bố sau khi build và kiểm thử thật.
+- [ ] Hoàn tất quyền phát hành: namespace `trantung2006` và visibility `public` đã được người dùng xác nhận; quyền push/repositories chưa kiểm tra. Kiến trúc ban đầu `linux/amd64`, chưa công bố `arm64`.
 - [x] Chuẩn hóa `.gitignore`/`.dockerignore`: `venv/`, checkpoint local, outputs, secrets, notebook caches; chỉ staging đã xác minh được cấp artifact build, không whitelist toàn bộ máy chủ. Kho chuyển giao artifact CI còn pending riêng.
 - [x] Cập nhật docs tổng thể: phân biệt milestone này với chat/LangGraph/PostgreSQL sau này.
 

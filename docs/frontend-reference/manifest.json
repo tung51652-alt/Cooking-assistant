@@ -3,7 +3,7 @@
   "source_provided_by": "project_user",
   "source_directory": "/home/trantung/ict/FrontEndCookLens",
   "usage": "non_runtime_reference_only",
-  "style_baseline_status": "blocked_missing_css_js",
+  "style_baseline_status": "user_authorized_css_reconstruction_pending_visual_review",
   "files": [
     {
       "path": "index.html",

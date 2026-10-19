@@ -21,7 +21,9 @@ Các trang nguồn khác: `chat.html` và `cooking.html` đã được nhận di
 - `recipe.html` tham chiếu `../css/style.css`, `../css/recipe.css`.
 - Không tìm thấy các file trên dưới source root hoặc các thư mục `css/`, `js/` ở thư mục cha. Header/logo cũng đang có hai biến thể emoji khác nhau giữa trang home và trang con; Phase 4 cần thống nhất dựa trên bản thiết kế được review.
 
-Do thiếu CSS/JS, chưa có screenshot baseline styled có thể đối chiếu; không chụp bản browser-default rồi gọi đó là thiết kế đã được xác nhận. Khi nhận được tài nguyên bổ sung, lưu inventory/fingerprint và chụp baseline cùng viewport 1440×900 và 390×844. Nếu chủ sản phẩm chọn dựng CSS bổ sung từ khung hiện có, ghi rõ quyết định và review riêng style trước nghiệm thu UI; chưa tự coi đây là quyền thay template.
+Người dùng đã xác nhận dựng frontend từ HTML đã gửi và cho phép bổ sung CSS/JS còn thiếu, tận dụng bố cục CookLens, chưa có chatbot. Đây là quyết định xử lý thiếu assets ở Phase 0; không còn chờ CSS gốc để bắt đầu khung UI. Khung độc lập làm trên `feature/frontend-top3-recipes`, PR vào `develop` để người dùng review style, chưa coi là Phase 4 tích hợp hoàn chỉnh.
+
+Do bản nguồn không có CSS/JS, không thể tuyên bố màu/font/spacing dựng mới giống CSS gốc chưa được cung cấp. Giữ cấu trúc/nội dung/tên lớp, bổ sung CSS nhẹ và chụp baseline mới ở 1440×900 và 390×844 để người dùng duyệt; nếu sau này có assets gốc, đối chiếu và cập nhật theo chúng. Snapshot HTML phía trên vẫn bất biến, không sửa để khớp bản triển khai mới.
 
 Lộ trình UI đã chốt: chọn ảnh → nhận diện → chọn một trong Top-3 hoặc sửa từ danh mục → tự tìm recipe → list/detail. Không tự xác nhận Top-1. Bỏ Chat/Hỏi CookLens và cooking navigation chưa triển khai trong runtime. State ảnh chỉ ở RAM trình duyệt, không localStorage/base64 persistence; reload có thể bắt đầu lại, không tạo session backend ở bản này.
 

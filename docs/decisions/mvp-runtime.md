@@ -40,6 +40,8 @@ Checkpoint: [repo 30VNFoods](https://github.com/ds4v/30VNFoods) ghi MIT cho ph�
 
 ## Registry và giới hạn phát hành
 
-Chọn Docker Hub làm registry, bốn image ứng dụng và image Qdrant chính thức. Namespace, visibility và quyền push chưa được cung cấp; không suy ra Docker Hub account từ GitHub username hoặc đọc credential ngoài phạm vi công việc. Manifest để null những trường này và chưa có digest release.
+Chọn Docker Hub làm registry, bốn image ứng dụng và image Qdrant chính thức. Người dùng đã xác nhận namespace `trantung2006`, visibility `public`; manifest ghi tên repository dự kiến. Quyền push và việc tồn tại đủ bốn repository chưa được kiểm tra, chưa có digest release; chúng được kiểm tra khi chuẩn bị phát hành, không yêu cầu gửi mật khẩu/token qua chat.
+
+Người dùng cũng đã cho phép dựng CSS/JS từ khung HTML khi thiếu tài nguyên gốc. Được làm sớm khung frontend độc lập để review bằng PR riêng; không tự coi là nghiệm thu Phase 4 hoặc đã nối backend/CV/recipe thật. Đây là điều chỉnh phạm vi công việc theo yêu cầu mới, không tự vượt cổng merge cho các phase tích hợp phụ thuộc.
 
 Phase 0 cho phép review/merge phần contract/audit độc lập, nhưng **chưa đạt đầy đủ điều kiện ra phase** khi các mục ở [báo cáo Phase 0](../phases/phase-0.md) còn mở. Không khởi động Phase 1 phụ thuộc như thể toàn bộ prerequisite đã hoàn tất; merge PR tài liệu không thay thế xác nhận artifact/license/registry còn thiếu.

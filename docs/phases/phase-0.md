@@ -19,13 +19,13 @@ Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, base `origin/develop` sau kh
 
 | Mục | Thông tin đã có | Cần bổ sung để đóng | Chặn phần nào |
 | --- | --- | --- | --- |
-| Style baseline | Có HTML, thiếu CSS/JS được tham chiếu | Đường dẫn bộ CSS/JS/assets gốc, hoặc quyết định có ghi nhận để dựng bổ sung và review style | Hoàn tất audit style Phase 0 và nghiệm thu UI Phase 4 |
+| Style baseline | Người dùng đã cho phép dựng CSS/JS bổ sung từ HTML, giữ tối đa khung CookLens; chưa chatbot | Dựng khung frontend độc lập và PR để review style; screenshot baseline mới, không giả là CSS gốc | Thiếu CSS gốc đã có hướng xử lý; review giao diện vẫn cần trước nghiệm thu UI Phase 4 |
 | Artifact CI | Checkpoint local có checksum xác định | Kho artifact có quyền truy cập, URI/version cố định và cơ chế CI lấy bằng secret ngoài image; không ghi token/signed URL vào Git | Build CV tái lập từ CI/máy khác |
 | Checkpoint redistribution | Repo upstream có MIT cho software; chưa có bằng chứng rõ cho ảnh/checkpoint nhóm cung cấp | Bằng chứng provenance và quyền sử dụng/phân phối liên quan checkpoint | Phát hành image chứa checkpoint; không tự public hoặc private thay cho việc xác minh |
-| Docker Hub | Chọn registry/provider, platform `linux/amd64` | Namespace, public/private và quyền push | Image naming/login/publish Phase 6; không đoán từ tên GitHub |
+| Docker Hub | Người dùng xác nhận `trantung2006`, Public; platform `linux/amd64` | Kiểm tra repository/quyền push bằng cơ chế an toàn ở bước phát hành | Namespace/visibility đã chốt; quyền publish thực tế chưa xác minh |
 | Corpus coverage | Policy nguồn chọn được; chưa nhập/review recipe | Phase 2 kiểm kê từng lớp, thêm nguồn có phép hoặc tác giả nhóm cho món thiếu; tối thiểu một recipe/món | Nghiệm thu 30 món và release, không chặn review contract |
 
-Các giá trị còn thiếu để `null`/pending có nghĩa rõ trong manifest; verifier không chuyển chúng thành “đạt release”. Merge PR này có thể lưu kết quả hợp lệ đang có, nhưng không đánh dấu Phase 0 đã xong hoặc tự nhảy sang phase phụ thuộc khi prerequisite còn mở. Người dùng merge và cung cấp/quyết định phần thiếu, agent cập nhật báo cáo rồi xác nhận `origin/develop` trước tiếp tục.
+Các giá trị còn thiếu để `null`/pending có nghĩa rõ trong manifest; verifier không chuyển chúng thành “đạt release”. Merge PR này có thể lưu kết quả hợp lệ đang có, nhưng không đánh dấu Phase 0 đã xong khi artifact supply/quyền phân phối còn mở. Theo yêu cầu mới, agent được làm khung frontend độc lập sớm trên nhánh riêng để duyệt giao diện; chưa nghiệm thu Phase 4, không tự merge PR hoặc coi frontend đã nối service thật.
 
 ## Rà soát cuối phase / PR
 

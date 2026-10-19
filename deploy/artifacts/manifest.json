@@ -135,11 +135,17 @@
   },
   "registry": {
     "provider": "docker_hub",
-    "namespace": null,
-    "visibility": null,
+    "namespace": "trantung2006",
+    "visibility": "public",
     "platforms": [
       "linux/amd64"
     ],
-    "status": "pending_user_namespace_and_push_access"
+    "status": "namespace_and_visibility_confirmed_push_access_not_verified",
+    "planned_repositories": [
+      "trantung2006/cooklens-vision",
+      "trantung2006/cooklens-recipes",
+      "trantung2006/cooklens-backend",
+      "trantung2006/cooklens-frontend"
+    ]
   }
 }
