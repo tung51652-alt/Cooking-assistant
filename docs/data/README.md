@@ -61,3 +61,7 @@ Contract v1 yêu cầu thêm `source.attribution`, `revision_url` (nullable vớ
 - [ ] Viết schema validator và từ điển đồng nghĩa nguyên liệu/đơn vị.
 - [ ] Chuẩn hóa tên món/biến thể, loại trùng, review corpus MVP.
 - [ ] Chọn embedding/chunking/filter, nạp thử Qdrant và đo Hit@K/MRR.
+
+## Taxonomy Phase 1
+
+Danh mục dùng chung là [30vnfoods-label-map.json](../../data/processed/30vnfoods-label-map.json), xem [quy ước trường và alias](../../data/processed/README.md). Giữ đúng thứ tự 30 nhãn checkpoint; không suy canonical key từ tên hiển thị. Unit test đối chiếu manifest Phase 0 và kiểm tra alias không nhập nhằng được chạy trong CI.
