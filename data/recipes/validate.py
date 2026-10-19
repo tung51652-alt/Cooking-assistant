@@ -79,6 +79,11 @@ def validate(recipes, taxonomy):
         for key in ("name", "license", "attribution", "modifications"):
             text(source[key])
         require(source["license"] in {"CC-BY-SA-4.0", "CC-BY-4.0", "MIT", "CC0-1.0"}, "license requires review")
+        if recipe["id"].startswith("cooklens_") or "ai_authored" in recipe["tags"]:
+            require("ai_authored" in recipe["tags"] and source["name"] == "CookLens — công thức do AI biên soạn",
+                    "AI-authored recipe must disclose its origin")
+            require(source["license"] == "CC-BY-4.0" and source["revision_url"] is None,
+                    "Original recipe rights/provenance mismatch")
         url(source["url"])
         if source["revision_url"] is not None:
             url(source["revision_url"])
@@ -101,6 +106,10 @@ def load(root=ROOT):
     require(manifest["recipe_count"] == len(recipes), "stale recipe count")
     require(manifest["covered_dishes"] == sum(bool(n) for n in coverage.values()), "stale dish count")
     require(manifest["taxonomy_version"] == "1.0.0", "incompatible taxonomy")
+    if "source_counts" in manifest:
+        generated = sum("ai_authored" in r["tags"] for r in recipes)
+        require(manifest["source_counts"] == {"wikibooks": len(recipes) - generated, "cooklens_ai_authored": generated},
+                "stale source counts")
     return recipes, taxonomy, manifest
 
 

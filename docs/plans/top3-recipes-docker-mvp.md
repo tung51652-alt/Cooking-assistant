@@ -211,14 +211,14 @@ Nguyên tắc phối hợp: CV sở hữu prediction; mapping là artifact dùng
 
 ## 6. Phase 2 — Corpus và service công thức có xếp hạng
 
-Đang triển khai. Corpus đầu tiên có 21 recipe thật, phủ 18/30 món; xem [báo cáo Phase 2](../phases/phase-2.md). Chưa đạt gate coverage hoặc review nghiệm thu độc lập. Không đánh dấu phase hoàn thành chỉ vì service chạy được.
+Corpus hiện có 33 recipe, phủ 30/30 món; gồm 21 bản Wikibooks và 12 bản AI biên soạn theo quyền chủ dự án cấp, xem [báo cáo Phase 2](../phases/phase-2.md). Đã đạt coverage dữ liệu, service cần dựng lại bundle/index cho version mới. Không đánh dấu phase hoàn thành chỉ vì service chạy được.
 
 Nhánh: tiếp tục `feature/data-recipes` cho dữ liệu, `feature/recipe-retrieval` cho service mới từ `develop`. Dùng notebook `hung/rag` như tài liệu tham khảo; không đưa agent/LLM vào critical path.
 
 Nguyên tắc phối hợp: data pipeline chịu trách nhiệm tính đúng của corpus; recipes chỉ phục vụ corpus/index cùng version. Một recipe document tương ứng một vector/payload để giảm phức tạp khi corpus còn nhỏ.
 
 - [x] Data: validator theo schema trong `docs/data/README.md`: ID duy nhất, món chuẩn, language/cuisine, servings/thời gian hợp lệ hoặc `null`, nguyên liệu, thứ tự bước, source/license.
-- [ ] Data: tối thiểu một recipe đã review cho từng món trong 30 lớp; mục tiêu ba recipe/biến thể mỗi món khi có nguồn hợp lệ. Ít hơn ba thì trả số thật, không nhân bản hoặc bịa cho đủ.
+- [x] Data: tối thiểu một recipe đã review cho từng món trong 30 lớp; mục tiêu ba recipe/biến thể mỗi món khi có nguồn hợp lệ. Ít hơn ba thì trả số thật, không nhân bản cho đủ. Chủ dự án đã cho phép AI biên soạn công thức còn thiếu: ghi rõ tác giả AI, license, định lượng gợi ý và trạng thái chưa nấu kiểm chứng; không giả nguồn/tác giả bên ngoài.
 - [ ] Data: chuẩn hóa Unicode/alias, loại trùng và link hỏng; ghi corpus version, số recipe mỗi món, source manifest, version và kết quả review.
 - [ ] Embeddings: chạy model local trong bundle release có version, lưu cùng `embedding_version`, chiều vector và cách dựng text; build vectors ở giai đoạn phát hành, không tính lại toàn corpus mỗi lần boot.
 - [ ] Retrieval: filter cứng `normalized_dish`, `language=vi`, `cuisine=vietnamese` rồi vector search; hỗ trợ query ngắn về biến thể để phân biệt các recipe cùng món. Nếu chỉ tên món thì dùng tên chuẩn làm query.
