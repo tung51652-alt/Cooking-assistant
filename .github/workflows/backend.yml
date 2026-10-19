@@ -1,0 +1,50 @@
+name: Backend public API
+on:
+  pull_request:
+    paths: ['backend/**', 'frontend/src/generated/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', 'docs/contracts/**', '.dockerignore', '.github/workflows/backend.yml']
+  push:
+    branches: [develop, main]
+    paths: ['backend/**', 'frontend/src/generated/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', 'docs/contracts/**', '.dockerignore', '.github/workflows/backend.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gateway-and-real-stack:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python deploy/scripts/check_public_metadata.py
+      - run: mvn -B -q -f backend/pom.xml test
+      - name: Stage both verified public model artifacts
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python deploy/scripts/fetch_vision_checkpoint.py
+          python deploy/scripts/fetch_embedding_model.py
+      - run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
+      - run: python -m pip install -r ai/rag/requirements.txt
+      - run: python -m ai.rag.ingestion.bundle --model deploy/artifacts/staging/embedding --output deploy/artifacts/staging/recipes
+      - run: docker build -f deploy/docker/Dockerfile.vision -t cooklens-vision:phase1 .
+      - run: docker build -f deploy/docker/Dockerfile.recipes -t cooklens-recipes:phase2 .
+      - run: docker build -f deploy/docker/Dockerfile.backend -t cooklens-backend:phase3 .
+      - name: Public API with real dependencies and failure recovery
+        run: python deploy/scripts/smoke_backend_stack.py --project cooklens-gateway-ci --port 8080 --keep-running
+      - run: sh deploy/scripts/generate_frontend_contract.sh
+      - run: git diff --quiet -- frontend/src/generated/api.d.ts
+      - if: always()
+        run: docker compose -p cooklens-gateway-ci -f deploy/compose/recipes.phase2.yml -f deploy/compose/backend.phase3.yml down --volumes > /dev/null 2>&1 || true

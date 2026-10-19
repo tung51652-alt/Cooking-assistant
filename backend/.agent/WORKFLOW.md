@@ -1,11 +1,11 @@
 # Quy ước agent cho CookLens backend
 
 `backend/` là Spring Boot service của CookLens.
-Nó phơi REST API cho frontend, lưu dữ liệu ứng dụng và điều phối các dịch vụ AI; nó không chứa code train CV, RAG ingestion hoặc LangGraph node implementation.
+Nó phơi REST API cho frontend và điều phối các dịch vụ AI; nó không chứa code train CV, RAG ingestion hoặc LangGraph node implementation. Milestone v2 hiện tại theo docs/plans/top3-recipes-docker-mvp.md và docs/contracts/mvp-v1.md: không lưu ảnh/state, không chatbot hoặc database. Persistence/chat bên dưới chỉ là định hướng sau milestone, không tự khởi tạo trong Phase 3.
 
 ## Công nghệ và cấu trúc
 
-- Java 21, Spring Boot 3.x, Maven, Spring Web MVC, Spring Data JPA và PostgreSQL.
+- Java 21, Spring Boot 3.x, Maven, Spring Web MVC; JPA/PostgreSQL chỉ thêm khi có use case persistence được phê duyệt sau milestone hiện tại.
 - Base package: `com.cooklens`.
 - Mã nằm trong `backend/src/main/java/com/cooklens/`: `controller/`, `service/`, `client/`, `dto/`, `domain/`, `repository/`, `config/`, `exception/`.
 - Test nằm trong `backend/src/test/java/com/cooklens/` và dùng JUnit 5/Mockito; dùng Testcontainers khi cần kiểm thử PostgreSQL thật.
@@ -18,7 +18,7 @@ Nó phơi REST API cho frontend, lưu dữ liệu ứng dụng và điều phố
 - Service điều phối use case/transaction; repository chỉ truy cập PostgreSQL.
 - `client/` gọi các dịch vụ Python trong `ai/` qua HTTP với timeout, retry có giới hạn và error mapping rõ ràng.
   Không import trực tiếp code Python, Qdrant client hay LLM provider vào controller.
-- Endpoints MVP: `POST /api/vision/predict`, `POST /api/recipes/search`, `POST /api/chat`.
+- Endpoints MVP hiện tại: `POST /api/vision/predict`, `GET /api/dishes`, `POST /api/recipes/search`, `GET /api/recipes/{id}`, `GET /api/health`. Chat/thread/checkpointer chỉ thuộc định hướng sau milestone.
   Dùng springdoc annotation để OpenAPI sinh từ code; không hand-maintain OpenAPI YAML.
 - `normalized_dish` phải thống nhất giữa CV, recipe metadata và API.
   `thread_id` là bắt buộc cho chat request; backend truyền nó cho agent/checkpointer và trả `current_step`, `selected_recipe_id` cần thiết cho UI.

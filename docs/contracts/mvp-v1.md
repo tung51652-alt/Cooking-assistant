@@ -1,6 +1,6 @@
 # Contract MVP v1 — Top-3 và công thức
 
-Trạng thái: Phase 0/1 đã được người dùng merge; contract có hiệu lực. Vision nội bộ thuộc Phase 1; recipes nội bộ được triển khai trong Phase 2, corpus hiện phủ 30/30 món (21 bản Wikibooks và 12 bản AI biên soạn có nhãn nguồn), đã qua kiểm tra kỹ thuật và chờ người dùng review/merge. Public OpenAPI sẽ được sinh từ Spring controllers ở Phase 3; không thêm bản OpenAPI YAML song song.
+Trạng thái: Phase 0–2 đã được người dùng merge. Phase 3 hiện thực public gateway; OpenAPI được sinh từ Spring controller/DTO tại `/v3/api-docs`, Swagger `/swagger-ui/index.html`, type frontend tại `frontend/src/generated/api.d.ts`. Không duy trì OpenAPI YAML song song. Corpus phủ 30/30 món; review công thức độc lập và thử nấu vẫn thuộc Phase 7.
 
 ## Quy ước chung
 
