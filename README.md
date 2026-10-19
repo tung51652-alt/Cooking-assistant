@@ -4,6 +4,12 @@
 
 ## Mục tiêu MVP
 
+Milestone đang triển khai: **ảnh một món Việt → Top-3 món → người dùng xác nhận/sửa → tối đa 3 công thức liên quan → xem chi tiết**. Frontend tận dụng khung HTML CookLens có sẵn; mục tiêu phát hành bằng Docker với trọng số/model embedding/corpus đi kèm image.
+
+Xem [kế hoạch từng phase](docs/plans/top3-recipes-docker-mvp.md), [contract v1](docs/contracts/mvp-v1.md) và [trạng thái Phase 0](docs/phases/phase-0.md). Chưa có stack Docker hoặc các endpoint public chạy được trên `develop`; phase hiện tại chốt đầu vào/contract. Các phần CV đang có trên nhánh riêng, chưa được coi là tính năng đã tích hợp.
+
+Chat, LangGraph hướng dẫn có state, tài khoản/lịch sử và cooking assistant thuộc roadmap sau milestone này. Mục tiêu dài hạn:
+
 `Ảnh một món Việt → Nhận diện món → Xác nhận món → Tìm recipe → Chat / hướng dẫn từng bước`
 
 Ảnh chỉ trả lời **đây là món gì**. Nguyên liệu và hướng dẫn là nội dung recipe được truy xuất, không phải thành phần phát hiện từ pixel.
@@ -23,7 +29,7 @@
 ai/                    Computer Vision, RAG, LangGraph và evaluation AI
 data/                  Dữ liệu gốc, trung gian, đã xử lý và recipes
 backend/               Spring Boot API, orchestration, persistence và backend tests
-frontend/              Next.js / React PWA
+frontend/              React/TypeScript, tái sử dụng khung HTML CookLens
 deploy/                Docker, compose, CI/CD và cấu hình môi trường triển khai
 docs/                  Tài liệu dùng chung và quyết định kỹ thuật
 ```
@@ -35,6 +41,8 @@ Các thư mục chỉ là khung xương. Không commit dataset lớn, weights, A
 ## Theo dõi triển khai
 
 Quy ước: `[x]` đã xong có bằng chứng; `[~]` đang làm; `[ ]` chưa bắt đầu. Khi hoàn thành, thêm link PR/issue/kết quả.
+
+Checklist bên dưới là roadmap ban đầu, không phải số phase hiện hành hoặc xác nhận tính năng trên mọi nhánh. Dùng [kế hoạch Top-3](docs/plans/top3-recipes-docker-mvp.md) và báo cáo từng phase để theo dõi milestone đang giao. Agent tạo PR, người dùng merge; phần phụ thuộc chỉ tiếp tục sau khi xác nhận `origin/develop` đã cập nhật.
 
 ### Phase 0 — Khởi tạo
 
@@ -97,8 +105,8 @@ Xem [tài liệu LangGraph](docs/langgraph/README.md).
 
 | Layer | Lựa chọn |
 | --- | --- |
-| Web/API | Next.js, React, Tailwind, PWA / Java 21, Spring Boot 3.x REST |
+| Web/API | Milestone hiện tại: React/TypeScript/Vite + CSS khung CookLens, Nginx / Java 21, Spring Boot REST; framework version khóa khi dựng service |
 | CV | PyTorch, PyTorch Lightning |
-| Orchestration | LangGraph |
-| RAG | Qdrant, multilingual embedding, reranker |
-| Storage/infra | PostgreSQL, Docker |
+| Orchestration | Backend HTTP cho milestone hiện tại; LangGraph ở roadmap chat sau |
+| Retrieval | Qdrant + multilingual-e5-small local; filter món trước cosine ranking, chưa reranker |
+| Storage/infra | Docker Compose + Qdrant volume; PostgreSQL khi có dữ liệu ứng dụng cần lưu |

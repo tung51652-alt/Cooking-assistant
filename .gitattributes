@@ -1,0 +1,2 @@
+# Immutable user-supplied HTML references keep original CRLF bytes/checksums.
+docs/frontend-reference/*.html -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

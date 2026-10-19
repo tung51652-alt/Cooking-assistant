@@ -1,0 +1,47 @@
+# Local environments, dependencies and generated outputs
+venv/
+.venv/
+node_modules/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.uv-cache/
+target/
+dist/
+build/
+coverage/
+htmlcov/
+playwright-report/
+test-results/
+*.log
+.idea/
+*.iml
+.DS_Store
+
+# Credentials; examples contain placeholders only
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+**/kaggle.json
+
+# Binary ML artifacts remain external to Git
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+pytorch_model.bin
+/deploy/artifacts/staging/
+/ai/cv/artifacts/
+/ai/cv/checkpoints/
+/ai/cv/data/
+/ai/cv/datasets/
+/ai/cv/outputs/
+/ai/cv/runs/
+/data/raw/30vnfoods/
+/.api-validation/

@@ -1,5 +1,7 @@
 # LangGraph Workflow & Architecture
 
+Đây là roadmap sau milestone [Top-3 món và recipe](../plans/top3-recipes-docker-mvp.md). Bản đang triển khai chưa có chatbot/cooking assistant; backend HTTP điều phối vision/recipes, chưa khởi động LangGraph hoặc yêu cầu key LLM. Các node/state bên dưới không phải tính năng đã hoàn thành trên `develop`.
+
 ## Workflow MVP
 
 ```text

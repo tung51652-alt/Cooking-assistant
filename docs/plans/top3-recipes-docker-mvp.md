@@ -4,6 +4,8 @@ Ngày lập và cập nhật: 2026-10-19. Nhánh đích của PR tài liệu và
 
 Đây là kế hoạch triển khai, chưa phải danh sách tính năng đã hoàn thành. Các ô checklist chỉ được đánh dấu khi có mã, kiểm thử và bằng chứng tương ứng. Hiện trạng nhánh được xác định sau `git fetch origin` cùng ngày.
 
+Đang làm Phase 0 trên `feature/mvp-contracts`; [báo cáo Phase 0](../phases/phase-0.md) ghi kết quả kiểm tra thực và đầu vào chưa đủ. Những ô đánh dấu dưới đây là bằng chứng hoàn thành phần việc trên nhánh PR, không đồng nghĩa PR đã được merge hoặc cả phase đã nghiệm thu.
+
 ## 1. Kết quả cần giao
 
 Người dùng tải ảnh một món ăn lên giao diện web, nhận ba món có khả năng cao nhất kèm độ tin cậy, chọn hoặc sửa món, xem tối đa ba công thức liên quan nhất và mở chi tiết nguyên liệu, định lượng, bước nấu, nguồn.
@@ -152,17 +154,17 @@ Nhánh: `feature/mvp-contracts` từ `develop`. Service tham gia: tất cả; ch
 
 Nguyên tắc phối hợp: CV và recipe thống nhất mapping trước khi viết DTO frontend/backend; chọn version corpus/model là một phần của release, không chốt riêng từng service.
 
-- [ ] Chốt các API và error/status semantics ở trên; chỉ rõ đường dẫn API public và nội bộ.
-- [ ] Chốt UI: upload → ba lựa chọn → xác nhận → danh sách/chi tiết; luôn sửa món được, kể cả confidence cao.
-- [ ] Audit khung `/home/trantung/ict/FrontEndCookLens`, lập danh sách HTML/CSS/JS/assets và ảnh chụp baseline desktop/mobile; xác định phần thiếu trước khi cam kết độ giống style. Đồng bộ HTML/CSS cần dùng vào repo có provenance, để CI/máy khác không phụ thuộc đường dẫn local này.
-- [ ] Chốt metric/thiết bị nghiệm thu, giới hạn concurrency và policy khi confidence thấp; không dùng threshold 0.30 trong báo cáo như một quyết định UX chưa được kiểm chứng.
-- [ ] Lấy checkpoint thực đang có local, ghi SHA-256, kiến trúc, transform, classes, metrics và nơi lưu artifact để CI lấy được; không phụ thuộc đường dẫn máy thành viên.
-- [ ] Chốt embedding model, revision, chiều vector, license và cách đóng gói offline; model hỗ trợ tiếng Việt, được so sánh bằng bộ query nghiệm thu.
-- [ ] Chốt nguồn recipe có quyền sử dụng/phân phối và corpus tối thiểu; lưu trạng thái những món chưa đủ dữ liệu.
+- [x] Chốt các API và error/status semantics, đường dẫn public/nội bộ trong [contract v1](../contracts/mvp-v1.md).
+- [x] Chốt UI: upload → ba lựa chọn → xác nhận → danh sách/chi tiết; luôn sửa món được, kể cả confidence cao; chưa có chatbot.
+- [ ] Hoàn tất audit style: đã lưu ba HTML và fingerprint, ghi các CSS/JS thiếu trong [audit](../frontend-reference/README.md); chưa có baseline styled desktop/mobile khi chưa nhận được assets hoặc quyết định style bổ sung.
+- [x] Chốt gate/thiết bị mục tiêu, concurrency và policy luôn chọn/sửa món trong [runtime decisions](../decisions/mvp-runtime.md); không tự xác nhận bằng threshold 0.30. Chưa tuyên bố benchmark đã đạt.
+- [ ] Hoàn tất checkpoint supply: đã load/đối chiếu/hash metadata thật trong [artifact manifest](../../deploy/artifacts/manifest.json); CI artifact URI/quyền truy cập vẫn chưa có.
+- [x] Chọn baseline multilingual-e5-small với revision, chiều vector, license claim và cách đóng gói offline trong manifest; kiểm tra chất lượng trên bộ query nghiệm thu thuộc Phase 2, chưa đánh dấu đạt retrieval gate.
+- [x] Chọn policy Wikibooks text có attribution/license theo từng revision và corpus tối thiểu 1 recipe/món; ghi rõ chưa nhập/review, coverage 0/30 và nghĩa vụ bổ sung lớp thiếu ở Phase 2.
 - [ ] Xác minh quyền phân phối checkpoint: manifest hiện có ghi license dataset chưa được làm rõ. Ghi kết luận và attribution trước bước phát hành public; image private cũng cần phù hợp quyền sử dụng.
 - [ ] Chốt Docker Hub namespace và quyền push của nhóm, visibility, kiến trúc CPU `linux/amd64` ban đầu. `arm64` chỉ công bố sau khi build và kiểm thử thật.
-- [ ] Chuẩn hóa `.gitignore`/`.dockerignore`: `venv/`, checkpoint local, outputs, secrets và notebook caches; có đường lấy artifact build riêng, không whitelist toàn bộ máy chủ.
-- [ ] Cập nhật docs tổng thể: phân biệt milestone này với chat/LangGraph/PostgreSQL sau này.
+- [x] Chuẩn hóa `.gitignore`/`.dockerignore`: `venv/`, checkpoint local, outputs, secrets, notebook caches; chỉ staging đã xác minh được cấp artifact build, không whitelist toàn bộ máy chủ. Kho chuyển giao artifact CI còn pending riêng.
+- [x] Cập nhật docs tổng thể: phân biệt milestone này với chat/LangGraph/PostgreSQL sau này.
 
 ### Kết thúc Phase 0
 

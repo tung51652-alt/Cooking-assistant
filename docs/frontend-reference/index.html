@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CookLens - AI Cooking Assistant</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/upload.css">
+
+</head>
+
+<body>
+<!-- Thanh điều hướng -->
+<nav class="navbar">
+
+    <div class="logo">
+        🍳 CookLens
+    </div>
+
+    <div class="nav-links">
+        <a href="index.html">Trang chủ</a>
+        <a href="recognition.html">Nhận diện</a>
+        <a href="recipe.html">Công thức</a>
+        <a href="chat.html">Chat</a>
+        <a href="cooking.html">Chế độ nấu</a>
+    </div>
+
+</nav>
+<section id="uploadSection" class="section">
+
+    <h2>📷 Tải ảnh món ăn</h2>
+
+    <div class="upload-container">
+
+        <div class="upload-box">
+
+            <div class="upload-icon">
+                📷
+            </div>
+
+            <h3>Chọn ảnh món ăn</h3>
+
+            <p>
+                JPG, PNG hoặc WEBP
+            </p>
+
+            <input
+                    type="file"
+                    id="imageInput"
+                    accept="image/*"
+                    hidden
+            >
+
+            <button
+                    type="button"
+                    class="secondary-btn"
+                    id="chooseImageBtn">
+                🖼️ Chọn ảnh
+            </button>
+
+            <input
+                    type="file"
+                    id="cameraInput"
+                    accept="image/*"
+                    capture="environment"
+                    hidden
+            >
+
+            <button
+                    type="button"
+                    class="camera-btn"
+                    id="cameraBtn">
+                📸 Chụp ảnh
+            </button>
+
+        </div>
+
+        <div class="preview-box">
+
+            <h3>Ảnh đã chọn</h3>
+
+            <div id="previewContainer">
+
+                <span id="previewText">
+                    Chưa có ảnh
+                </span>
+
+                <img
+                        id="previewImage"
+                        alt="Ảnh món ăn"
+                        hidden
+                >
+
+            </div>
+
+            <button
+                    type="button"
+                    id="removeImageBtn"
+                    class="secondary-btn"
+                    hidden>
+                🗑️ Xóa ảnh
+            </button>
+
+            <button
+                    type="button"
+                    id="predictBtn"
+                    class="primary-btn"
+                    disabled>
+                🔍 Nhận diện món
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+<script src="js/upload.js"></script>
+
+</body>
+</html>
