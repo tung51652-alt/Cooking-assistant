@@ -12,7 +12,9 @@ Nhánh `feature/mobile-expo` tách từ `develop` sau PR Phase 4 #14, PR riêng 
 
 ## Bằng chứng và giới hạn
 
-TypeScript mobile, kiểm tra dependency Expo và bundling Android/iOS đã pass local. Sáu contract tests client dùng dữ liệu/schema thật, gồm malformed/duplicate/cross-dish, API version/request ID, cancel response chậm và mất mạng. Build TypeScript/Vite web và 20 Playwright desktop/mobile sau refactor đã pass. Lượt local dùng Chromium Edge sẵn có qua biến executable path của test config vì tải browser Playwright bị timeout; không hardcode đường dẫn máy vào source. Docker/API thật tiếp tục được CI kiểm tra trên PR.
+TypeScript mobile, kiểm tra dependency Expo và bundling Android/iOS đã pass local. Sáu contract tests client dùng dữ liệu/schema thật, gồm malformed/duplicate/cross-dish, API version/request ID, cancel response chậm và mất mạng. Build TypeScript/Vite web và 20 Playwright desktop/mobile sau refactor đã pass. Lượt local dùng Chromium Edge sẵn có qua biến executable path của test config vì tải browser Playwright bị timeout; không hardcode đường dẫn máy vào source.
+
+Tám checks của [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17) đã pass trên commit triển khai, gồm Expo push/PR, backend real stack, frontend browser/Docker với AI thật, CV, recipes, corpus và artifact inputs. Đây là bằng chứng tương thích client dùng chung với web/server; chưa phải camera/native transport trên điện thoại thật.
 
 Chưa có điện thoại/emulator Android hoặc iOS kết nối phiên làm việc này. Chưa xác nhận từ điện thoại tới gateway thật, camera, HEIC/orientation trên từng hệ điều hành, permission denied/cancel, safe area/chữ lớn/screen reader và quay lại foreground trên thiết bị. Không dùng bundle thành công hoặc viewport web thay bằng chứng thiết bị thật. PR/checklist giữ rõ phần chờ kiểm chứng này.
 

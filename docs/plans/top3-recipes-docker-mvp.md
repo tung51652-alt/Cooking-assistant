@@ -318,7 +318,7 @@ Checklist khi bắt đầu và nghiệm thu mốc Expo:
 - [x] Triển khai camera/thư viện, permission denied/cancel, preview/đổi ảnh, validation/chuyển định dạng và upload; không lưu lịch sử ảnh. Typecheck/bundle đã pass; hành vi camera/HEIC trên thiết bị còn chờ kiểm chứng ở mục dưới.
 - [x] Triển khai Top-3, xác nhận/sửa món, danh sách/chi tiết và nguồn; loading/empty/error/retry, hủy request và chặn kết quả cũ. Client contract dùng chung được kiểm thử; chưa coi là nghiệm thu native trên thiết bị thật.
 - [ ] Kiểm thử trên thiết bị thật Android và iOS theo phạm vi bàn giao đã chốt; kiểm tra safe area, chữ lớn, screen reader, nút Back và chuyển nền/quay lại app. Báo rõ nền tảng chưa được kiểm chứng; không dùng test viewport web thay bằng chứng Expo.
-- [x] Web build và 20 Playwright desktop/mobile pass sau tách client; sáu client contract tests pass. Docker/API thật được chạy lại trên CI của PR, không dùng web emulation thay bằng chứng Expo.
+- [x] Web build, 20 Playwright desktop/mobile và sáu client contract tests pass sau tách client. Tám checks PR #17, gồm gateway/browser/Docker/CV/recipes thật và Expo bundle, đã pass; không dùng kết quả này thay bằng chứng Expo trên thiết bị.
 - [ ] Áp dụng [cổng kết thúc phase](#phase-closeout): dọn file/test tạm, cache Metro, generated native/build outputs, QR/logs và ảnh chụp có thông tin cá nhân; giữ test hồi quy cần thiết. Rà secrets và mọi giá trị mã/hash trong commit, config và bundle; gửi PR vào `develop` để người dùng review/merge, ghi bằng chứng và phần chưa kiểm chứng.
 
 ## 9. Phase 5 — Docker Compose và artifact đầy đủ
