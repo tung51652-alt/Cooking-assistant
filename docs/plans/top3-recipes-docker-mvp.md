@@ -18,6 +18,7 @@ Luồng mục tiêu:
 ```
 
 - Frontend cơ bản dựa trên khung HTML tại `/home/trantung/ict/FrontEndCookLens`, tận dụng tối đa bố cục, tên lớp, thành phần, tài nguyên và style của bản gốc. Dùng được trên desktop và điện thoại; có preview ảnh, trạng thái tải, lỗi và kết quả rỗng. Chi tiết tái sử dụng và phần tài nguyên đang thiếu nằm ở Phase 4.
+- Trong MVP, điện thoại dùng web responsive trên trình duyệt; không tạo APK hoặc project native. App điện thoại giai đoạn sau dùng Expo, dùng chung public API và tái sử dụng TypeScript types/logic phù hợp. DOM/CSS web cần chuyển sang component tương thích Expo khi thực hiện giai đoạn đó.
 - Hỗ trợ 30 lớp của checkpoint hiện tại. Ảnh nhiều món và món ngoài bộ nhãn phải được giải thích là giới hạn của model; người dùng luôn sửa được lựa chọn.
 - Runtime chuẩn dùng CPU, không cần CUDA, Python/Java/Node cài trên máy người dùng hay khóa API LLM.
 - Sau khi lấy bộ phát hành gồm Compose và cấu hình mặc định, người dùng chạy một lệnh Docker để kéo image và khởi động toàn bộ stack. Không phải lấy checkpoint, model embedding hay seed database thủ công.
@@ -280,7 +281,7 @@ Nguyên tắc phối hợp: frontend chỉ biết public API, `confidence` và `
 - [ ] Recipe cards có title, preview, nguồn và thời gian/khẩu phần nếu có; chi tiết nguyên liệu và bước nấu theo thứ tự. Escape dữ liệu nguồn, không render HTML thô không tin cậy.
 - [ ] Empty/error states cho ảnh lỗi, món không có recipe, API chưa ready, timeout; có retry rõ ràng. Không giữ recipe cũ dưới tên món mới.
 - [ ] Hủy/bỏ qua response cũ khi request mới bắt đầu; đổi ảnh reset selection và recipe, giải phóng preview URL.
-- [ ] Responsive, keyboard labels/focus và trạng thái cho screen reader; kiểm thử desktop/mobile.
+- [ ] Responsive, keyboard labels/focus và trạng thái cho screen reader; kiểm thử trình duyệt desktop/mobile. Đây là kiểm thử web responsive, không phải build APK; app Expo thuộc giai đoạn sau.
 - [ ] So sánh screenshot bản triển khai với baseline nguồn ở cùng viewport desktop/mobile cho upload, recognition và recipe; ghi phần giữ nguyên, phần cần sửa và khác biệt do chức năng mới vào PR. Chỉ giữ ảnh baseline/bằng chứng được chọn, dọn ảnh test sinh tự động.
 - [ ] API base URL release là `/api`; Nginx reverse proxy đến backend bằng tên service, cấu hình upload limit/timeout thống nhất. Frontend production không dùng Vite dev server.
 - [ ] UI integration/E2E tests cho luồng chính và lỗi; Dockerfile build static + Nginx runtime, không bake địa chỉ máy thành viên.
@@ -292,6 +293,29 @@ Nguyên tắc phối hợp: frontend chỉ biết public API, `confidence` và `
 - [ ] Tạo PR kèm đối chiếu style và kết quả kiểm thử; chờ người dùng review/merge rồi fetch xác nhận trước tích hợp release.
 
 Điều kiện ra phase: người dùng mới hoàn thành upload → chọn món → đọc recipe trên giao diện, không cần Swagger, console hoặc lệnh ngoài Docker; tận dụng khung nguồn và đã review khác biệt style, không có chatbot. PR được người dùng merge vào `develop`.
+
+### Mobile bằng Expo — mốc sau MVP web, cùng domain
+
+Mobile là một client khác của CookLens, giữ nguyên luồng **chụp/chọn ảnh → Top-3 → xác nhận/sửa món → tối đa ba công thức → chi tiết nguyên liệu/bước nấu/nguồn**, taxonomy 30 món và giới hạn model. Không thêm chatbot, đăng nhập, lịch sử hoặc service AI riêng để làm mobile. Các Phase 0–7 vẫn nghiệm thu bản web/Docker; checklist dưới đây là mốc Expo tiếp theo, không là điều kiện chặn phát hành web và chưa bắt đầu triển khai.
+
+Nguyên tắc chung:
+
+- **Tổ chức mã:** khi bắt đầu tạo `mobile/` cho Expo/React Native trên nhánh `feature/mobile-expo` từ `develop` đã tích hợp. Chỉ tách types/validation/logic thuần thực sự dùng chung sang `packages/` khi có hai client cần; không tạo thư viện rỗng từ bây giờ. Tách adapter upload và navigation cho từng nền tảng; giữ màu sắc, typography và cấu trúc màn hình của web nhưng chuyển DOM/CSS sang component native phù hợp.
+- **Cùng backend:** dùng public API version hiện có, cùng `normalized_dish`, schema lỗi và ý nghĩa confidence/retrieval score; không gọi thẳng vision, recipes hoặc Qdrant. Model, corpus và trọng số vẫn ở Docker trên máy chủ; điện thoại không tải model hoặc chạy inference cục bộ. “Offline sau khi pull image” là khả năng của stack server; điện thoại vẫn cần kết nối tới server đó.
+- **Địa chỉ truy cập:** web tiếp tục gọi `/api` cùng origin; Expo cần base URL tuyệt đối tới public gateway `/api`. Điện thoại thật dùng IP LAN của máy chạy Docker hoặc URL HTTPS truy cập được; `127.0.0.1` trên điện thoại là chính điện thoại. Giữ Compose mặc định bind loopback, chỉ thêm cấu hình LAN dev tường minh khi đến mốc Expo; chỉ mở gateway, không mở các service nội bộ. QR/Metro kết nối được chưa chứng minh API truy cập được.
+- **Cách chạy:** ưu tiên thử trên điện thoại bằng Expo Go nếu bộ SDK/dependency đã chọn tương thích; kiểm tra lại tài liệu Expo ở lúc triển khai. Không thêm pipeline APK/AAB, EAS Build hoặc phát hành store trong phạm vi này. Nếu có dependency buộc dùng development build, phải rà lại lựa chọn thư viện và cập nhật phương án với người dùng trước khi đổi cách chạy đã thống nhất.
+- **Ảnh và state:** xin quyền camera/thư viện đúng lúc, xử lý từ chối/hủy chọn và có lựa chọn thay thế. Chuyển ảnh điện thoại sang JPEG/PNG khi cần, giữ đúng orientation và giới hạn upload của API; không mở rộng định dạng phía server ngầm. Dùng multipart qua adapter native; đổi ảnh/món, điều hướng Back, retry hoặc app quay lại foreground không được làm response cũ ghi đè kết quả mới.
+- **Cấu hình:** base URL là cấu hình public; không đưa secret vào `EXPO_PUBLIC_*`, bundle hoặc QR/logs. Quy tắc biến môi trường theo [Expo environment variables](https://docs.expo.dev/guides/environment-variables/); cách chạy trên thiết bị theo [Expo start developing](https://docs.expo.dev/get-started/start-developing/). Đây là tham chiếu hiện tại, không pin SDK cho mốc chưa triển khai.
+
+Checklist khi bắt đầu và nghiệm thu mốc Expo:
+
+- [ ] Chốt SDK/dependencies hỗ trợ Expo Go, vị trí mã và adapter dùng chung; bổ sung hướng dẫn cài dependency/start/scan QR, không yêu cầu người dùng build APK.
+- [ ] Kiểm tra từ điện thoại tới gateway và cùng API contract, taxonomy/model/corpus version; không nhân bản backend hoặc pipeline dữ liệu cho mobile.
+- [ ] Hoàn thành camera/thư viện, permission denied/cancel, preview/đổi ảnh, validation/chuyển định dạng và upload; không lưu ảnh người dùng lâu hơn nhu cầu của luồng.
+- [ ] Hiển thị Top-3, xác nhận/sửa món, danh sách/chi tiết công thức và nguồn với cùng hành vi web; có loading/empty/error/retry, xử lý mất mạng và kết quả trả chậm/sai thứ tự.
+- [ ] Kiểm thử trên thiết bị thật Android và iOS theo phạm vi bàn giao đã chốt; kiểm tra safe area, chữ lớn, screen reader, nút Back và chuyển nền/quay lại app. Báo rõ nền tảng chưa được kiểm chứng; không dùng test viewport web thay bằng chứng Expo.
+- [ ] Chạy lại luồng web và kiểm tra contract nếu tách mã chung/thay gateway; bảo đảm mobile không làm hỏng bản Docker/web đã nghiệm thu.
+- [ ] Áp dụng [cổng kết thúc phase](#phase-closeout): dọn file/test tạm, cache Metro, generated native/build outputs, QR/logs và ảnh chụp có thông tin cá nhân; giữ test hồi quy cần thiết. Rà secrets/hash nhạy cảm trong commit, config và bundle; gửi PR vào `develop` để người dùng review/merge, ghi bằng chứng và phần chưa kiểm chứng.
 
 ## 9. Phase 5 — Docker Compose và artifact đầy đủ
 
