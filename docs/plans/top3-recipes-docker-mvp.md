@@ -345,13 +345,13 @@ recipes ready ──────────────────────
 
 Compose phải dùng `healthcheck` cùng `depends_on` condition phù hợp. Container đang chạy chưa có nghĩa là model/index đã sẵn sàng; `recipe-init` kết thúc 0 là hành vi thành công, không đặt restart vô hạn cho job này. Restart của dependency sau startup vẫn cần timeout/reconnect trong service, không dựa riêng vào thứ tự boot.
 
-- [ ] Tạo release/dev Compose tách biệt, cùng cấu hình service names, version và ports. Chỉ frontend bind `127.0.0.1:8080` mặc định; chỉ mở cổng debug AI/Qdrant trong dev profile.
+- [x] Tạo release/dev Compose tách biệt, cùng cấu hình service names, version và ports. Chỉ frontend bind `127.0.0.1:8080` mặc định; chỉ mở cổng debug AI/Qdrant trong dev profile.
 - [ ] Healthchecks dùng công cụ có thật trong image, có `start_period` đủ thời gian load model/seed; timeout/retries hữu hạn. `recipe-init` phải thất bại rõ ràng khi bundle không vượt kiểm tra toàn vẹn nội bộ/version.
-- [ ] Image chạy user không phải root khi khả thi, dependency/runtime khóa version, build nhiều stage, `.dockerignore` không gửi secrets/venv lên build context.
-- [ ] Pin Qdrant, runtime base và image ứng dụng bằng version/tag dễ đọc; release manifest không ghi giá trị mã/hash. Không dùng `latest` làm định danh tái lập.
+- [x] Image chạy user không phải root khi khả thi, dependency/runtime khóa version, build nhiều stage, `.dockerignore` không gửi secrets/venv lên build context.
+- [x] Pin Qdrant, runtime base và image ứng dụng bằng version/tag dễ đọc; release manifest không ghi giá trị mã/hash. Không dùng `latest` làm định danh tái lập.
 - [ ] Volume Qdrant tồn tại qua restart; `up` lần hai không seed trùng; volume mới tự seed đúng, volume cũ upgrade theo collection version/alias.
 - [ ] Default CPU đủ chạy model, giới hạn worker/concurrency và memory theo số đo. Không tự tạo nhiều bản model vì worker count mặc định cao; GPU chỉ là profile sau này.
-- [ ] Build context cung cấp checkpoint qua quy trình artifact có version và kiểm tra toàn vẹn nội bộ; secret lấy artifact dùng build secret/CI secret, không `ARG`/`ENV` chứa token trong layer.
+- [x] Build context cung cấp checkpoint qua quy trình artifact có version và kiểm tra toàn vẹn nội bộ; secret lấy artifact dùng build secret/CI secret, không `ARG`/`ENV` chứa token trong layer.
 - [ ] Chạy stack từ bộ Compose tải riêng, ngoài thư mục source, với cache/volume trống; xác minh mọi artifact được lấy từ image và không cần Python/Java/Node trên host.
 - [ ] Chặn outbound Internet của runtime sau khi pull image và kiểm thử luồng chính; host vẫn cần Internet ở bước pull và mở link nguồn.
 - [ ] Ghi measured cold-start, seed time, disk/image size, peak RAM và latency; runbook nêu cấu hình máy tối thiểu đã kiểm chứng.

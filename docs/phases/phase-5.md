@@ -12,9 +12,11 @@
 
 ## Bằng chứng
 
-Local: 13 deploy tests pass; YAML release/dev parse được, scanner metadata và whitespace pass. Không có Docker CLI trên host Windows này; Docker build/runtime phải xác minh trên Ubuntu CI trước khi ghi hoàn tất.
+Local: deploy tests, YAML release/dev, scanner metadata và whitespace được kiểm tra trước commit. Không có Docker CLI trên host Windows này; Docker build/runtime xác minh trên Ubuntu CI.
 
-Đang chờ gate `Docker standalone candidate / standalone-and-offline`. Chưa ghi nhận số đo hoặc đánh dấu kiểm thử runtime đã pass trước khi có kết quả thực.
+CI đã build đủ image candidate, kiểm tra cấu hình release/dev, kiểm tra Nginx debug trên read-only/tmpfs và khởi động stack tới trạng thái healthy. Gate tiếp theo phát hiện phần rà history frontend quét cả layer upstream Nginx vì stage runtime không có WORKDIR. Đã sửa bằng cách xác minh và tách đúng suffix history của base image; test hồi quy vẫn chặn literal trong layer dự án và từ chối base history không khớp. Không nới scanner metadata chung.
+
+Đang chờ toàn bộ gate `Docker standalone candidate / standalone-and-offline`. Chưa ghi nhận số đo hoặc đánh dấu các bước persistence/offline đã pass trước khi có kết quả thực. Checklist Phase 5 chỉ tick các phần đã có bằng chứng build/config/startup; phần chưa nghiệm thu vẫn để trống.
 
 ## Giới hạn
 
