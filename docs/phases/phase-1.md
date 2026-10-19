@@ -11,7 +11,7 @@ Trạng thái: **phần triển khai và kiểm thử kỹ thuật đã sẵn s�
 | Mapping | [Taxonomy](../../data/processed/30vnfoods-label-map.json) giữ thứ tự 30 nhãn checkpoint, canonical key, tên Việt NFC và alias không nhập nhằng. Metadata test đối chiếu 25.032 hàng split, gồm 5.004 hàng Test; không đổi split |
 | Model | CPU, eval/inference mode; load một lần/process từ staging hoặc FOOD_MODEL_PATH. Strict weights, architecture, image size, transform và class/taxonomy compatibility; không tải pretrained weights |
 | Top-3 | Full softmax, sort stable và lấy ba mục đầu, tie theo class ID. Không normalize lại 3 mục, không round trước sort, không tự xác nhận món |
-| API | `/predict` nội bộ, `/health/live`, `/health/ready`, Swagger upload; model/taxonomy versions. `/health` giữ alias, shape Top-1 cũ được thay thế rõ trong tài liệu |
+| API | [Fixture nội bộ dùng chung](../contracts/fixtures/vision-predict.json) cho typed-client tests ở backend; `/predict` nội bộ, `/health/live`, `/health/ready`, Swagger upload; model/taxonomy versions. `/health` giữ alias, shape Top-1 cũ được thay thế rõ trong tài liệu |
 | Validation | Giới hạn file/request/pixels/frames, MIME-format match, corrupt/bomb và RGB conversion. Body chunked được giới hạn trước parser; một work slot, quá tải 503, deadline nhận body 15 giây |
 | Lỗi | Code/message/request ID an toàn; không trả/log raw exception, stack hoặc path riêng. Model/mapping hỏng làm startup fail; health ready chỉ sau validation |
 | Docker | Non-root, model/mapping/notice đóng gói, không fixture/tests/notebooks/dataset/frontend/docs/env trong application tree. Smoke offline/read-only; không publish Hub hoặc gắn tag release ứng dụng |

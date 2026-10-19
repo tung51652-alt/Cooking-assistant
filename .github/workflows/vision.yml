@@ -5,6 +5,7 @@ on:
     paths:
       - 'ai/cv/**'
       - 'data/processed/**'
+      - 'docs/contracts/fixtures/vision-predict.json'
       - 'deploy/artifacts/**'
       - 'deploy/docker/Dockerfile.vision'
       - 'deploy/scripts/smoke_vision_container.py'
@@ -15,6 +16,7 @@ on:
     paths:
       - 'ai/cv/**'
       - 'data/processed/**'
+      - 'docs/contracts/fixtures/vision-predict.json'
       - 'deploy/artifacts/**'
       - 'deploy/docker/Dockerfile.vision'
       - 'deploy/scripts/smoke_vision_container.py'

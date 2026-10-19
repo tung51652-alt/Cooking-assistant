@@ -23,6 +23,7 @@ from ai.cv.inference.errors import MAX_REQUEST_BYTES, MAX_UPLOAD_BYTES
 from ai.cv.inference.guard import RequestGuard, Runtime
 from ai.cv.inference.inference import evaluation_transform, predict_image
 from ai.cv.inference.main import create_app
+from ai.cv.inference.schemas import PredictionResponse
 from ai.cv.inference.model import ROOT, load_model
 
 FIXTURE = Path(__file__).parent / 'fixtures/food.png'
@@ -62,6 +63,11 @@ class FoodApiTests(unittest.TestCase):
         self.assertEqual(result['model_version'], self.model.model_version)
         self.assertEqual(result['taxonomy_version'], '1.0.0')
         predictions = result['predictions']
+        fixture = json.loads((ROOT / 'docs/contracts/fixtures/vision-predict.json').read_text())
+        PredictionResponse.model_validate(fixture)
+        self.assertEqual(set(result), set(fixture))
+        self.assertEqual([(p['class_id'], p['normalized_dish'], p['rank']) for p in predictions],
+                         [(p['class_id'], p['normalized_dish'], p['rank']) for p in fixture['predictions']])
         self.assertEqual([p['rank'] for p in predictions], [1, 2, 3])
         self.assertEqual(len({p['class_id'] for p in predictions}), 3)
         self.assertEqual(predictions[0]['normalized_dish'], 'bun_dau_mam_tom')
