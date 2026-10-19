@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-import re
 import unicodedata
 import unittest
 
