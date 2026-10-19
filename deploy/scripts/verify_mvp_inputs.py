@@ -35,6 +35,12 @@ def verify(checkpoint=None):
     require(vision["classifier_weight_shape"] == [30, 1408], "Unexpected classifier shape")
     require(re.fullmatch(r"[0-9a-f]{64}", vision["sha256"]), "Invalid checkpoint checksum")
     require(vision["size_bytes"] > 0, "Invalid checkpoint size")
+    require(re.fullmatch(r"vision-model-v[0-9]+", vision["artifact_release_tag"]), "Invalid model release tag")
+    require(vision["filename"] == "efficientnet_b2_best.pt", "Unexpected checkpoint filename")
+    expected_source = ("https://github.com/tung51652-alt/Cooking-assistant/releases/download/"
+                       + vision["artifact_release_tag"] + "/" + vision["filename"])
+    require(vision["ci_source_uri"] == expected_source, "Unexpected vision release source")
+    require(vision["provenance"]["public_distribution_authorized"] is True, "Missing project owner distribution permission")
     embedding = manifest["embedding"]
     require(re.fullmatch(r"[0-9a-f]{40}", embedding["revision"]), "Embedding revision must be immutable")
     require(re.fullmatch(r"[0-9a-f]{64}", embedding["weights_sha256"]), "Invalid embedding checksum")
@@ -56,7 +62,7 @@ def verify(checkpoint=None):
     print("PASS: input manifest invariants and three HTML reference fingerprints")
     if checkpoint is not None:
         print("PASS: local checkpoint bytes match the recorded artifact")
-    print("Not a release approval: CI artifact transfer, licensing, corpus coverage and registry access have separate gates.")
+    print("Not a stack release approval: corpus coverage, runtime benchmarks and registry push access have later gates.")
 
 
 def main():

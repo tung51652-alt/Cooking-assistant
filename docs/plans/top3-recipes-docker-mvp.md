@@ -153,25 +153,28 @@ Dockerfile chỉ mô tả đóng gói, không chứa business logic. Schema đ�
 
 Nhánh: `feature/mvp-contracts` từ `develop`. Service tham gia: tất cả; chưa thay runtime.
 
+Trạng thái: đầu vào và quyết định đã chuẩn bị để review; chờ merge PR #6. Bằng chứng tại [báo cáo Phase 0](../phases/phase-0.md). Corpus coverage và benchmark thực tế vẫn thuộc các phase triển khai.
+
 Nguyên tắc phối hợp: CV và recipe thống nhất mapping trước khi viết DTO frontend/backend; chọn version corpus/model là một phần của release, không chốt riêng từng service.
 
 - [x] Chốt các API và error/status semantics, đường dẫn public/nội bộ trong [contract v1](../contracts/mvp-v1.md).
 - [x] Chốt UI: upload → ba lựa chọn → xác nhận → danh sách/chi tiết; luôn sửa món được, kể cả confidence cao; chưa có chatbot.
 - [x] Audit nguồn và chốt hướng xử lý style: đã lưu ba HTML/fingerprint, ghi CSS/JS thiếu; người dùng cho phép dựng CSS/JS từ khung HTML. Làm khung độc lập sớm trên nhánh frontend và PR riêng để duyệt baseline desktop/mobile, chưa thay nghiệm thu Phase 4.
 - [x] Chốt gate/thiết bị mục tiêu, concurrency và policy luôn chọn/sửa món trong [runtime decisions](../decisions/mvp-runtime.md); không tự xác nhận bằng threshold 0.30. Chưa tuyên bố benchmark đã đạt.
-- [ ] Hoàn tất checkpoint supply: đã load/đối chiếu/hash metadata thật trong [artifact manifest](../../deploy/artifacts/manifest.json); CI artifact URI/quyền truy cập vẫn chưa có.
+- [x] Hoàn tất checkpoint supply: đã load/đối chiếu/hash metadata thật trong [artifact manifest](../../deploy/artifacts/manifest.json); đã chọn GitHub Release `vision-model-v1`, URL public cố định và script tải/xác minh cho developer/CI.
 - [x] Chọn baseline multilingual-e5-small với revision, chiều vector, license claim và cách đóng gói offline trong manifest; kiểm tra chất lượng trên bộ query nghiệm thu thuộc Phase 2, chưa đánh dấu đạt retrieval gate.
 - [x] Chọn policy Wikibooks text có attribution/license theo từng revision và corpus tối thiểu 1 recipe/món; ghi rõ chưa nhập/review, coverage 0/30 và nghĩa vụ bổ sung lớp thiếu ở Phase 2.
-- [ ] Xác minh quyền phân phối checkpoint: manifest hiện có ghi license dataset chưa được làm rõ. Ghi kết luận và attribution trước bước phát hành public; image private cũng cần phù hợp quyền sử dụng.
-- [ ] Hoàn tất quyền phát hành: namespace `trantung2006` và visibility `public` đã được người dùng xác nhận; quyền push/repositories chưa kiểm tra. Kiến trúc ban đầu `linux/amd64`, chưa công bố `arm64`.
-- [x] Chuẩn hóa `.gitignore`/`.dockerignore`: `venv/`, checkpoint local, outputs, secrets, notebook caches; chỉ staging đã xác minh được cấp artifact build, không whitelist toàn bộ máy chủ. Kho chuyển giao artifact CI còn pending riêng.
+- [x] Ghi provenance checkpoint: Phạm Hoàng Minh huấn luyện EfficientNet-B2; người dùng xác nhận quyền public/phân phối và chọn GitHub Releases ngày 2026-10-19. Lưu permission record và license torchvision riêng, không gán license code cho ảnh/checkpoint hoặc phân phối dataset.
+- [x] Chốt registry: namespace `trantung2006`, public, kiến trúc ban đầu `linux/amd64`; kiểm tra quyền push/repositories ở Phase 6 trước publish, chưa công bố `arm64`.
+- [x] Chuẩn hóa `.gitignore`/`.dockerignore`: `venv/`, checkpoint local, outputs, secrets, notebook caches; chỉ staging đã xác minh được cấp artifact build, không whitelist toàn bộ máy chủ. Nguồn artifact CI là GitHub Releases theo manifest.
 - [x] Cập nhật docs tổng thể: phân biệt milestone này với chat/LangGraph/PostgreSQL sau này.
 
 ### Kết thúc Phase 0
 
-- [ ] Rà file thừa và file test/fixture theo [cổng chung](#phase-closeout); tài liệu/asset nguồn chỉ giữ phần có mục đích, không thêm test ứng dụng cho thay đổi thuần docs.
-- [ ] Rà secrets/hash nhạy cảm trong diff, commit, notebook và artifact manifest; checksum/commit SHA hợp lệ được giữ có chủ đích.
-- [ ] Tạo PR kèm kết quả kiểm tra; chờ người dùng merge rồi fetch xác nhận `origin/develop` trước Phase 1/2 phụ thuộc.
+- [x] Rà file thừa và file test/fixture theo [cổng chung](#phase-closeout); tài liệu/asset nguồn chỉ giữ phần có mục đích, không thêm test ứng dụng cho thay đổi thuần docs.
+- [x] Rà secrets/hash nhạy cảm trong diff, commit, notebook và artifact manifest; checksum/commit SHA hợp lệ được giữ có chủ đích.
+- [x] Tạo PR #6 kèm contract, manifest, verifier và báo cáo kiểm tra để người dùng review.
+- [ ] Người dùng merge PR #6; agent fetch xác nhận `origin/develop` trước Phase 1/2 phụ thuộc.
 
 Điều kiện ra phase: contract, taxonomy và artifact manifest được review; có nguồn corpus hợp lệ, model runtime được chọn và tiêu chí nghiệm thu đã chốt. Người dùng merge PR vào `develop` làm nền cho các service.
 

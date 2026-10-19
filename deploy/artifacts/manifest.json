@@ -70,14 +70,23 @@
     },
     "build_staging_path": "deploy/artifacts/staging/vision/efficientnet_b2_best.pt",
     "runtime_path": "/opt/cooklens/models/efficientnet_b2_best.pt",
-    "ci_source_uri": null,
-    "acquisition_status": "local_bytes_verified_ci_transfer_pending",
-    "redistribution_status": "pending_checkpoint_provenance_and_dataset_rights",
+    "ci_source_uri": "https://github.com/tung51652-alt/Cooking-assistant/releases/download/vision-model-v1/efficientnet_b2_best.pt",
+    "acquisition_status": "github_release_selected_pending_roundtrip_verification",
+    "redistribution_status": "public_distribution_authorized_by_project_owner",
     "provenance": {
       "provided_by": "project_user",
       "training_branch_commit": "612c67b",
       "source_repository": "https://github.com/ds4v/30VNFoods",
-      "dataset_card": "https://www.kaggle.com/datasets/quandang/vietnamese-foods"
+      "dataset_card": "https://www.kaggle.com/datasets/quandang/vietnamese-foods",
+      "trained_by": "Phạm Hoàng Minh",
+      "confirmed_by": "project_owner",
+      "confirmation_date": "2026-10-19",
+      "public_distribution_authorized": true,
+      "permission_record": "deploy/artifacts/vision-model-v1.md",
+      "implementation_license": "BSD-3-Clause",
+      "implementation_license_url": "https://github.com/pytorch/vision/blob/v0.23.0/LICENSE",
+      "checkpoint_spdx_license": null,
+      "dataset_rights_independently_verified": false
     },
     "verification": {
       "format_load": "torch.load(weights_only=True,map_location=cpu)",
@@ -91,7 +100,8 @@
       "top3": 0.9608313349320543,
       "macro_f1": 0.8769650306514689
     },
-    "metrics_source": "612c67b:ai/cv/experiments/efficientnet-b2-30vnfoods-2026-09-30/experiment_summary.json"
+    "metrics_source": "612c67b:ai/cv/experiments/efficientnet-b2-30vnfoods-2026-09-30/experiment_summary.json",
+    "artifact_release_tag": "vision-model-v1"
   },
   "embedding": {
     "embedding_version": "multilingual-e5-small-v1",
