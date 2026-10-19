@@ -1,18 +1,20 @@
-"""Load the checkpoint format saved by Cooklen_30VNFoods.ipynb."""
+"""Load and validate all runtime artifacts once, without any network operation."""
 
 from dataclasses import dataclass
-from pathlib import Path
+import json
 import os
+from pathlib import Path
 
 import torch
 from torch import nn
 from torchvision.models import EfficientNet_B2_Weights, efficientnet_b2
 
+from .taxonomy import Dish, load_taxonomy
 
-DEFAULT_CHECKPOINT = (
-    Path(__file__).resolve().parents[1]
-    / "experiments/efficientnet-b2-30vnfoods-2026-09-30/efficientnet_b2_best.pt"
-)
+ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_CHECKPOINT = ROOT / 'deploy/artifacts/staging/vision/efficientnet_b2_best.pt'
+DEFAULT_TAXONOMY = ROOT / 'data/processed/30vnfoods-label-map.json'
+MANIFEST = ROOT / 'deploy/artifacts/manifest.json'
 
 
 @dataclass(frozen=True)
@@ -20,31 +22,40 @@ class LoadedModel:
     network: nn.Module
     device: torch.device
     classes: tuple[str, ...]
+    dishes: tuple[Dish, ...]
+    model_version: str
+    taxonomy_version: str
 
 
 def load_model() -> LoadedModel:
-    checkpoint_path = Path(os.environ.get("FOOD_MODEL_PATH", DEFAULT_CHECKPOINT))
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
-
-    if not isinstance(checkpoint, dict) or checkpoint.get("architecture") != "efficientnet_b2":
-        raise ValueError("Expected an efficientnet_b2 training checkpoint")
-    if checkpoint.get("image_size") != EfficientNet_B2_Weights.DEFAULT.transforms().crop_size[0]:
-        raise ValueError("Checkpoint image size does not match training evaluation transforms")
-
-    classes = checkpoint.get("classes")
-    if (
-        not isinstance(classes, list)
-        or not classes
-        or not all(isinstance(label, str) and label.strip() for label in classes)
-        or len(set(classes)) != len(classes)
-    ):
-        raise ValueError("Checkpoint must contain an ordered list of unique class names")
-
-    # No ImageNet download: all trained weights come from the local checkpoint.
+    manifest = json.loads(MANIFEST.read_text())
+    vision = manifest['vision']
+    path = Path(os.environ.get('FOOD_MODEL_PATH', str(DEFAULT_CHECKPOINT)))
+    taxonomy_path = Path(os.environ.get('FOOD_TAXONOMY_PATH', str(DEFAULT_TAXONOMY)))
+    threads = int(os.environ.get('TORCH_NUM_THREADS', '4'))
+    if not 1 <= threads <= 32:
+        raise ValueError('Invalid CPU thread configuration')
+    torch.set_num_threads(threads)
+    if path.stat().st_size != vision['size_bytes']:
+        raise ValueError('Checkpoint size mismatch')
+    checkpoint = torch.load(path, map_location='cpu', weights_only=True)
+    if not isinstance(checkpoint, dict) or checkpoint.get('architecture') != vision['architecture']:
+        raise ValueError('Unexpected checkpoint architecture')
+    preset = EfficientNet_B2_Weights.IMAGENET1K_V1.transforms()
+    if checkpoint.get('image_size') != preset.crop_size[0]:
+        raise ValueError('Unexpected checkpoint image size')
+    classes = checkpoint.get('classes')
+    if classes != vision['class_labels'] or len(classes) != 30 or len(set(classes)) != 30:
+        raise ValueError('Checkpoint class order mismatch')
+    recorded = vision['transform']
+    if (preset.crop_size != recorded['crop_size'][:1] or preset.resize_size != [recorded['resize_short_edge']]
+            or preset.mean != recorded['mean'] or preset.std != recorded['std']
+            or preset.interpolation.value != recorded['interpolation'] or not preset.antialias):
+        raise ValueError('Evaluation preprocessing mismatch')
+    dishes = load_taxonomy(taxonomy_path, classes, manifest['taxonomy_version'])
     network = efficientnet_b2(weights=None)
     network.classifier[1] = nn.Linear(network.classifier[1].in_features, len(classes))
-    network.load_state_dict(checkpoint["model_state_dict"], strict=True)
-    network.to(device)
+    network.load_state_dict(checkpoint['model_state_dict'], strict=True)
     network.eval()
-    return LoadedModel(network=network, device=device, classes=tuple(classes))
+    return LoadedModel(network, torch.device('cpu'), tuple(classes), dishes,
+                       vision['model_version'], manifest['taxonomy_version'])

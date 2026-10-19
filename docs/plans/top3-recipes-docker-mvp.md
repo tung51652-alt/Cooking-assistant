@@ -155,7 +155,7 @@ Dockerfile chỉ mô tả đóng gói, không chứa business logic. Schema đ�
 
 Nhánh: `feature/mvp-contracts` từ `develop`. Service tham gia: tất cả; chưa thay runtime.
 
-Trạng thái: đầu vào và quyết định đã chuẩn bị để review; chờ merge PR #6. Bằng chứng tại [báo cáo Phase 0](../phases/phase-0.md). Corpus coverage và benchmark thực tế vẫn thuộc các phase triển khai.
+Trạng thái: Phase 0 đã được người dùng merge qua PR #6; agent đã fetch xác nhận trên `origin/develop`. Bằng chứng tại [báo cáo Phase 0](../phases/phase-0.md). Corpus coverage và benchmark thực tế vẫn thuộc các phase triển khai.
 
 Nguyên tắc phối hợp: CV và recipe thống nhất mapping trước khi viết DTO frontend/backend; chọn version corpus/model là một phần của release, không chốt riêng từng service.
 
@@ -178,7 +178,7 @@ Nguyên tắc phối hợp: CV và recipe thống nhất mapping trước khi vi
 - [x] Rà file thừa và file test/fixture theo [cổng chung](#phase-closeout); tài liệu/asset nguồn chỉ giữ phần có mục đích, không thêm test ứng dụng cho thay đổi thuần docs.
 - [x] Rà secrets và mọi giá trị mã/hash trong diff, commit, notebook và artifact manifest; không giữ lại giá trị mã/hash dưới bất kỳ ngoại lệ nào.
 - [x] Tạo PR #6 kèm contract, manifest, verifier và báo cáo kiểm tra để người dùng review.
-- [ ] Người dùng merge PR #6; agent fetch xác nhận `origin/develop` trước Phase 1/2 phụ thuộc.
+- [x] Người dùng merge PR #6; agent đã fetch xác nhận `origin/develop` trước Phase 1/2 phụ thuộc.
 
 Điều kiện ra phase: contract, taxonomy và artifact manifest được review; có nguồn corpus hợp lệ, model runtime được chọn và tiêu chí nghiệm thu đã chốt. Người dùng merge PR vào `develop` làm nền cho các service.
 
@@ -186,23 +186,26 @@ Nguyên tắc phối hợp: CV và recipe thống nhất mapping trước khi vi
 
 Nhánh: chỉnh sửa `minh/cv` sau khi cập nhật từ `develop`; đồng thời chuẩn bị `feature/data-recipes` bằng phần thay đổi data riêng. Hai PR ghi rõ thứ tự phụ thuộc mapping.
 
+Trạng thái: phần triển khai kỹ thuật sẵn sàng review, kiểm thử bằng checkpoint thật và image CPU; chờ merge các PR theo thứ tự mapping → CV. Xem [báo cáo Phase 1](../phases/phase-1.md) và giới hạn kiểm chứng accuracy.
+
 Nguyên tắc phối hợp: CV sở hữu prediction; mapping là artifact dùng chung, không tự viết lại class list trong frontend/backend. Mọi service kiểm tra `taxonomy_version` tương thích.
 
-- [ ] Data: nhập mapping 30 lớp; đối chiếu từng index/nhãn với `classes` trong checkpoint và manifest split. Có display name tiếng Việt, alias được kiểm tra, version và provenance.
-- [ ] CV: thay Top-1 thành `topk(3)` với confidence gốc, rank ổn định; `eval()` và `inference_mode()`, giữ nguyên deterministic transform training/evaluation.
-- [ ] CV: model load đúng một lần mỗi process; `FOOD_MODEL_PATH` hỗ trợ đường dẫn `/opt/cooklens/models/efficientnet_b2_best.pt`; thiếu/sai checkpoint thì startup thất bại rõ ràng.
-- [ ] CV: giữ kiểm tra ảnh lỗi, RGB/grayscale/RGBA, ảnh quá lớn/decompression bomb; thống nhất lỗi MIME và giới hạn 10 MiB với backend.
-- [ ] CV: endpoint `/health/live`, `/health/ready`, prediction nội bộ và model/taxonomy version; không tự tải pretrained weights lúc startup.
-- [ ] Backend contract: fixture đúng shape Top-3; quyết định tương thích endpoint `/predict` cũ trong nội bộ và route public `/api/vision/predict` ở Spring.
-- [ ] Kiểm thử: 3 class duy nhất, đúng thứ tự, confidence trong [0,1], tổng Top-3 ≤ 1; mapping khớp checkpoint; ảnh thật và ảnh không hợp lệ; lỗi inference không lộ nội bộ.
-- [ ] Đối chiếu Top-1 mới với inference cũ và báo cáo Top-3 trên split cố định; ghi latency CPU và peak RAM, không dùng latency T4 trong báo cáo làm cam kết CPU.
-- [ ] Thêm Dockerfile CV sớm để kiểm tra loader/transform trong image CPU; trọng số staging lấy theo manifest, không commit file `.pt`.
+- [x] Data: nhập mapping 30 lớp; đối chiếu từng index/nhãn với `classes` trong checkpoint và manifest split. Có display name tiếng Việt, alias được kiểm tra, version và provenance.
+- [x] CV: thay Top-1 thành Top-3, sort ổn định trên 30 lớp rồi lấy ba mục đầu với confidence gốc, rank ổn định; `eval()` và `inference_mode()`, giữ nguyên deterministic transform training/evaluation.
+- [x] CV: model load đúng một lần mỗi process; `FOOD_MODEL_PATH` hỗ trợ đường dẫn `/opt/cooklens/models/efficientnet_b2_best.pt`; thiếu/sai checkpoint thì startup thất bại rõ ràng.
+- [x] CV: giữ kiểm tra ảnh lỗi, RGB/grayscale/RGBA, ảnh quá lớn/decompression bomb; thống nhất lỗi MIME và giới hạn 10 MiB với backend.
+- [x] CV: endpoint `/health/live`, `/health/ready`, prediction nội bộ và model/taxonomy version; không tự tải pretrained weights lúc startup.
+- [x] Backend contract: fixture đúng shape Top-3; quyết định tương thích endpoint `/predict` cũ trong nội bộ và route public `/api/vision/predict` ở Spring.
+- [x] Kiểm thử: 3 class duy nhất, đúng thứ tự, confidence trong [0,1], tổng Top-3 ≤ 1; mapping khớp checkpoint; ảnh thật và ảnh không hợp lệ; lỗi inference không lộ nội bộ.
+- [x] Đối chiếu Top-1 mới với inference cũ và báo cáo Top-3 trên split cố định; ghi latency CPU và peak RAM, không dùng latency T4 trong báo cáo làm cam kết CPU. Metric test split là báo cáo huấn luyện đã có, chưa chạy lại trên máy hiện tại vì không có ảnh gốc; nghiệm thu release phải kiểm tra lại theo Phase 7.
+- [x] Thêm Dockerfile CV sớm để kiểm tra loader/transform trong image CPU; trọng số staging lấy theo manifest, không commit file `.pt`.
 
 ### Kết thúc Phase 1
 
-- [ ] Rà file thừa, test/fixture tạm, outputs notebook, cache và checkpoint local theo [cổng chung](#phase-closeout); giữ test hồi quy hữu ích, loại dữ liệu không cần khỏi image.
-- [ ] Rà secrets và mọi giá trị mã/hash trong diff/commit, notebook, cấu hình và image CV; xác nhận checkpoint vào đúng artifact, không vào Git.
-- [ ] Tạo PR CV/data mapping kèm bằng chứng; người dùng merge đúng thứ tự, agent fetch xác nhận trước phần phụ thuộc.
+- [x] Rà file thừa, test/fixture tạm, outputs notebook, cache và checkpoint local theo [cổng chung](#phase-closeout); giữ test hồi quy hữu ích, loại dữ liệu không cần khỏi image.
+- [x] Rà secrets và mọi giá trị mã/hash trong diff/commit, notebook, cấu hình và image CV; xác nhận checkpoint vào đúng artifact, không vào Git.
+- [x] Chuẩn bị PR CV/data mapping kèm bằng chứng, báo cáo file/test/policy/image.
+- [ ] Người dùng merge đúng thứ tự mapping → CV; agent fetch xác nhận trước phần phụ thuộc.
 
 Điều kiện ra phase: image thử nghiệm nhận ảnh và trả Top-3 đúng contract, health chỉ ready sau load; mapping dùng được từ mọi service; PR CV/data mapping đạt kiểm thử và được người dùng merge vào `develop`.
 

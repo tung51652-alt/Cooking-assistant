@@ -1,0 +1,16 @@
+{
+  "kind": "phase1_cpu_smoke_latency_not_accuracy_evaluation",
+  "transport": "ASGI TestClient, real model, validation and multipart upload; no external network latency",
+  "sample": "supplied notebook food figure, reused for latency only",
+  "runs": 100,
+  "concurrency": 1,
+  "cpu_threads": 4,
+  "architecture": "x86_64",
+  "python_version": "3.12.3",
+  "startup_seconds": 0.208,
+  "warm_mean_ms": 67.194,
+  "warm_p50_ms": 66.529,
+  "warm_p95_ms": 78.702,
+  "process_peak_rss_mib": 488.93,
+  "limits": "Single supplied image; full held-out accuracy and whole-stack resource tests are not re-run here."
+}

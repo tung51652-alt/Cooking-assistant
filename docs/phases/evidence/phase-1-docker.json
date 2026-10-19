@@ -1,0 +1,17 @@
+{
+  "image_tag": "cooklens-vision:phase1",
+  "platform": "linux/amd64",
+  "network": "none",
+  "filesystem": "read-only; 32 MiB temporary upload filesystem",
+  "cpu_limit": 4,
+  "memory_limit_gib": 2,
+  "user": "non-root",
+  "cgroup_peak_memory_mib": 358.84,
+  "checks": [
+    "live and ready",
+    "real photo Top-3",
+    "invalid MIME rejection",
+    "no tests/notebooks/frontend/docs/git/env in runtime application tree"
+  ],
+  "limits": "Single image smoke test; not a full accuracy or stack benchmark"
+}

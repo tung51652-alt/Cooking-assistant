@@ -1,0 +1,54 @@
+name: Vision Top-3
+
+on:
+  pull_request:
+    paths:
+      - 'ai/cv/**'
+      - 'data/processed/**'
+      - 'deploy/artifacts/**'
+      - 'deploy/docker/Dockerfile.vision'
+      - 'deploy/scripts/smoke_vision_container.py'
+      - '.dockerignore'
+      - '.github/workflows/vision.yml'
+  push:
+    branches: [develop, main]
+    paths:
+      - 'ai/cv/**'
+      - 'data/processed/**'
+      - 'deploy/artifacts/**'
+      - 'deploy/docker/Dockerfile.vision'
+      - 'deploy/scripts/smoke_vision_container.py'
+      - '.dockerignore'
+      - '.github/workflows/vision.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-model-and-image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check public metadata policy
+        run: python3 deploy/scripts/check_public_metadata.py
+      - name: Stage verified public model
+        run: python3 deploy/scripts/fetch_vision_checkpoint.py
+      - name: Install CPU runtime and test transport
+        run: |
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 torchvision==0.29.1
+          python -m pip install -r ai/cv/inference/requirements-test.txt
+      - name: Validate taxonomy and real model API
+        run: |
+          python -m unittest discover -s data/tests -v
+          python -m unittest discover -s ai/cv/inference/tests -v
+      - name: Build experimental CPU image
+        run: docker build -f deploy/docker/Dockerfile.vision -t cooklens-vision:phase1 .
+      - name: Verify offline read-only image
+        run: python3 deploy/scripts/smoke_vision_container.py
