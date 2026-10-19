@@ -12,7 +12,7 @@ Phạm vi hiện tại là web responsive, dùng trên trình duyệt máy tính
 | `recognition.html` | result-card, mainResult/confidence, topResults, confirmButton | `src/features/RecognitionPage.tsx` |
 | `recipe.html` | recipe-info-grid, ingredients/recipeInfo, steps-card/recipeSteps | `src/features/RecipePage.tsx` |
 
-Nguồn không có những CSS/JS được HTML tham chiếu. Người dùng đã cho phép bổ sung CSS/JS từ khung này; palette/font/spacing ở `src/styles.css` là bản mới để review, không tuyên bố giống một bộ CSS gốc chưa có. [PR Phase 0 #6](https://github.com/tung51652-alt/Cooking-assistant/pull/6) lưu snapshot/fingerprint HTML gốc; frontend này không phụ thuộc việc PR đó đã merge để build.
+Nguồn không có những CSS/JS được HTML tham chiếu. Người dùng đã cho phép bổ sung CSS/JS từ khung này; palette/font/spacing ở `src/styles.css` là bản mới để review, không tuyên bố giống một bộ CSS gốc chưa có. [PR Phase 0 #6](https://github.com/tung51652-alt/Cooking-assistant/pull/6) lưu snapshot/metadata HTML gốc; frontend này không phụ thuộc việc PR đó đã merge để build.
 
 Giữ thương hiệu/logo emoji CookLens, nhãn tiếng Việt và URL `/index.html`, `/recognition.html`, `/recipe.html`; `/` cũng mở upload. React điều hướng bằng History API, browser Back/Forward vẫn hoạt động. Khi reload/deep-link, state ảnh không được lưu và màn hình giải thích cách bắt đầu lại. Chưa có link, route, dữ liệu hoặc logic chatbot/cooking assistant.
 
@@ -59,4 +59,4 @@ E2E chạy build production qua preview server ở desktop 1440×900 và mobile 
 
 Nếu máy đã có Chromium tương thích, có thể truyền `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` khi chạy test; không hardcode đường dẫn máy thành viên trong repo. `test-results`, trace và reports được ignore. Bốn ảnh trong `docs/` là baseline mới có chủ đích: upload desktop/mobile, recognition và recipe desktop. Hai ảnh kết quả/recipe dùng API fixture có nhãn kiểm thử, không phải bằng chứng inference/retrieval thật. Đặt `COOKLENS_CAPTURE_BASELINES=1` lúc chạy suite để cập nhật chúng có chủ đích; test mặc định không ghi đè baseline. Không đưa output test hàng loạt vào Git.
 
-Trước PR: build/E2E, rà diff/file thừa/test tạm, secrets/password hashes, lockfile/bundle. File test hồi quy hữu ích được giữ; checksum/integrity trong lockfile là metadata hợp lệ. Chưa có image runtime để kiểm tra layer trong PR khung này; chờ người dùng merge, không auto-merge.
+Trước PR: build/E2E, rà diff/file thừa/test tạm, secrets/password hashes, lockfile/bundle. File test hồi quy hữu ích được giữ; không ghi giá trị mã/hash kể cả trong lockfile. Khi npm sinh lại integrity metadata, phải loại các giá trị này trước commit và chạy scanner của dự án. Chưa có image runtime để kiểm tra layer trong PR khung này; chờ người dùng merge, không auto-merge.

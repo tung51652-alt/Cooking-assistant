@@ -2,6 +2,12 @@
 
 Tài liệu này là chuẩn kỹ thuật chung cho CookLens. Nó ưu tiên tính đúng đắn của luồng **ảnh → món xác nhận → recipe có nguồn → hướng dẫn có state**, không tối ưu hóa cho mô hình hay agent phức tạp nhất.
 
+## Milestone đang triển khai
+
+Phạm vi v1 hiện tại là **Top-3 từ ảnh → xác nhận món → tìm tối đa 3 recipe → chi tiết trên frontend**. [Contract v1](contracts/mvp-v1.md) chốt endpoint, error code, giới hạn byte/pixel, confirmation, timeout và version; [quyết định runtime](decisions/mvp-runtime.md) chốt stack/embedding/gates. Các định nghĩa cụ thể ở contract v1 áp dụng cho lần giao này; bảng khái quát bên dưới mô tả kiến trúc dài hạn.
+
+Chưa có chat/LangGraph, PostgreSQL/JPA hoặc persistence hội thoại trong runtime của lần giao. Frontend React/Vite tái sử dụng [HTML CookLens đã audit](frontend-reference/README.md), qua Nginx gọi Spring backend; backend gọi vision/recipes bằng HTTP. Qdrant + job init phục vụ corpus có version. Không cần LLM/key để tra recipe. Mã source/API/Docker runtime sẽ được tích hợp ở các phase sau, không được hiểu là đã triển khai do có tài liệu.
+
 ## Ranh giới trách nhiệm
 
 | Lớp | Chịu trách nhiệm | Không chịu trách nhiệm |
@@ -48,12 +54,14 @@ Vector similarity không được phép tự vượt qua filter món đã xác n
 
 - API dùng Java record DTO + Bean Validation; breaking change phải version contract.
 - Spring controllers gọi `service/`; service gọi typed HTTP clients đến CV/RAG/LangGraph services trong `ai/` với timeout và error mapping.
-- Spring Data JPA/PostgreSQL lưu dữ liệu ứng dụng; Qdrant và LangGraph checkpointer thuộc các dịch vụ AI.
+- Khi bổ sung tài khoản/lịch sử, Spring Data JPA/PostgreSQL lưu dữ liệu ứng dụng; Qdrant thuộc retrieval. LangGraph/checkpointer chỉ thêm ở milestone chat, không là dependency khởi động v1 hiện tại.
 - Dùng springdoc annotations để sinh OpenAPI từ controller; không hand-maintain OpenAPI YAML.
 - Backend xác thực loại/kích thước ảnh, giới hạn request, đặt timeout downstream và trả lỗi có mã ổn định.
 - Frontend không giữ secret hoặc gọi trực tiếp Qdrant/LLM/model inference.
 
 ## LangGraph state & persistence
+
+Phần này là thiết kế tương lai, chưa thuộc tiêu chí hoàn thành milestone Top-3/recipe hiện tại.
 
 State tối thiểu:
 

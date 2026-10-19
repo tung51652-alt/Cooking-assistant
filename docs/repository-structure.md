@@ -1,5 +1,7 @@
 # Cấu trúc repository CookLens
 
+Milestone hiện tại theo [kế hoạch Top-3/recipe](plans/top3-recipes-docker-mvp.md), [contract v1](contracts/mvp-v1.md) và [quyết định runtime](decisions/mvp-runtime.md). Sơ đồ dưới là định hướng dài hạn; frontend lần này dùng React/TypeScript/Vite tái sử dụng HTML CookLens, PostgreSQL và LangGraph/chat chưa được khởi tạo. Snapshot HTML tại `docs/frontend-reference/` chỉ là tài liệu, không là source production thứ hai.
+
 ## Nguyên tắc
 
 Repository được tổ chức theo sáu miền trách nhiệm để mọi thành viên biết mã, dữ liệu, hạ tầng và tài liệu thuộc về đâu. Thư mục cấp cao nhất chỉ gồm `ai`, `data`, `backend`, `frontend`, `deploy`, `docs` (ngoài file cấu hình gốc như `README.md`).
@@ -93,7 +95,7 @@ mọi miền → docs (tham chiếu, không import runtime)
 ## Quy ước commit dữ liệu và artifact
 
 - Không commit ảnh dataset, checkpoints, vector index, `.env`, token hoặc log chứa dữ liệu người dùng.
-- `data/raw` lưu source manifest gồm nguồn, license, version/checksum và ngày lấy dữ liệu.
+- `data/raw` lưu source manifest gồm nguồn, license, version và ngày lấy dữ liệu.
 - Experiment CV/RAG lưu config, seed, chỉ số và link artifact; bảng tổng hợp nằm trong `docs/cv` hoặc `docs/data`.
 - Khi thêm module, tạo test cạnh module hoặc trong `backend/tests`; mô tả cách chạy trong tài liệu liên quan.
 

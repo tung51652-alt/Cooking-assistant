@@ -1,5 +1,7 @@
 # Data & RAG
 
+Milestone hiện tại là retrieval từ corpus có nguồn, chưa gọi LLM/web search trong runtime. [Quyết định Phase 0](../decisions/mvp-runtime.md) chọn Wikibooks Cookbook text làm nguồn khởi đầu theo policy từng trang/revision; chưa nhập/review recipe nào và chưa chứng minh phủ đủ 30 món. [Artifact manifest](../../deploy/artifacts/manifest.json) ghi trạng thái này; không dùng sample bên dưới như dữ liệu production.
+
 ## Nguyên tắc
 
 - Recipe là nguồn sự thật cho nguyên liệu, định lượng và bước nấu; ảnh chỉ nhận diện món.
@@ -12,6 +14,7 @@
 | --- | --- | --- | --- |
 | [Vietnamese Recipe Dataset](https://github.com/PTIT-KLTN/vietnamese_recipe_dataset) | Tham chiếu recipe Việt, normalization | Đang đánh giá | Crawl bên thứ ba; chỉ research/education đến khi xác minh quyền. |
 | Recipe tự biên soạn/cấp phép | Corpus MVP | Chưa có | Lưu tác giả, nguồn, license. |
+| Wikibooks Cookbook text | Nguồn khởi đầu cho corpus v1 | Chọn policy nguồn, chưa nhập/review | Lưu URL/revision, attribution/history, CC BY-SA notice và phần dịch/chỉnh sửa; kiểm tra license từng trang, không tự lấy media. |
 | [RecipeNLG](https://github.com/Glorf/recipenlg) | Thử nghiệm retrieval | Chưa dùng | Chỉ dùng subset sau kiểm tra license. |
 | 30VNFoods | Label map CV → `normalized_dish` | Chưa dùng | Không phải recipe source. |
 
@@ -25,7 +28,7 @@
   "ingredients": [{"name":"sườn heo","normalized_name":"pork_rib","quantity":500,"unit":"g","optional":false,"note":null}],
   "instructions": [{"step":1,"text":"Sơ chế và ướp sườn.","duration_minutes":20}],
   "tags": ["vietnamese", "rice", "pork"],
-  "source": {"name":"Tên nguồn","url":"https://example.com","license":"permission-reference","retrieved_at":"YYYY-MM-DD"},
+  "source": {"name":"Tên nguồn","url":"https://example.com","license":"permission-reference","retrieved_at":"YYYY-MM-DD","attribution":"Tác giả hoặc history link","revision_url":null,"modifications":"Mô tả phần dịch/chuẩn hóa nếu có"},
   "created_at": "YYYY-MM-DD", "updated_at": "YYYY-MM-DD"
 }
 ```
@@ -37,6 +40,8 @@
 | thời gian / servings | Số dương hoặc `null`, không tự bịa. |
 | `instructions` | Step liên tục từ 1. |
 | `source` | Bắt buộc provenance và quyền dùng. |
+
+Contract v1 yêu cầu thêm `source.attribution`, `revision_url` (nullable với dữ liệu nhóm tự biên soạn), `modifications`. Quantity có thể `null` khi nguồn không có số chính xác; giữ khoảng/“tùy khẩu vị” ở note. Placeholder license trong ví dụ không là bằng chứng quyền phân phối. Search/detail/error schema và metadata bắt buộc nằm ở [contract v1](../contracts/mvp-v1.md).
 
 ## Qdrant document
 
