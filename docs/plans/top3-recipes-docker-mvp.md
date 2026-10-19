@@ -241,25 +241,25 @@ Nguyên tắc phối hợp: data pipeline chịu trách nhiệm tính đúng c�
 
 ## 7. Phase 3 — Backend tích hợp API public
 
-Nhánh: `feature/backend-top3-recipes` từ `develop` đã có contract; có thể dùng stubs khi chờ AI, nhưng nghiệm thu bằng service thật.
+Nhánh: `feature/backend-top3-recipes` từ `develop` đã có Phase 0–2 và bản sửa audit. Triển khai kỹ thuật và kiểm thử với AI thật; chờ người dùng review/merge. Xem [báo cáo Phase 3](../phases/phase-3.md) và [hướng dẫn backend](../../backend/README.md).
 
 Nguyên tắc phối hợp: backend làm cổng public duy nhất, điều phối HTTP và chuẩn hóa lỗi. CV và recipes triển khai độc lập; không có dependency hai chiều, không giữ ảnh qua request.
 
-- [ ] Khởi tạo Spring Boot theo cấu trúc `controller/service/client/dto/config/exception`; dependency/build version được pin, có cấu hình local và Docker.
-- [ ] Viết typed clients vision/recipes; connect/read timeout, request ID, payload limit. Không tự retry upload/inference vô hạn; chỉ retry hữu hạn thao tác idempotent theo policy.
-- [ ] Hiện thực `/api/vision/predict`, `/api/dishes`, `/api/recipes/search`, `/api/recipes/{id}` và OpenAPI public.
-- [ ] Chặn `confirmed_dish` ngoài taxonomy; giữ nguyên tên món xác nhận khi gọi retrieval. Không lấy món thứ hai thay món đã chọn vì vector score cao hơn.
-- [ ] Map lỗi nội bộ sang error DTO chung, phân biệt dependency chưa ready, timeout, invalid image và empty recipe; không trả 200 với lỗi nằm trong body.
-- [ ] Actuator/liveness riêng; readiness tổng hợp dependency với timeout và cache ngắn, tránh tạo tải kiểm tra quá lớn.
-- [ ] Cấu hình CORS dev theo allowlist nếu khác origin; release dùng reverse proxy `/api` cùng origin, trình duyệt không biết địa chỉ container AI.
-- [ ] Integration tests: CV thật → Top-3 → chọn món → search → detail, cộng case dependency dừng/timeout và model/corpus version sai.
-- [ ] Sinh contract frontend từ OpenAPI; ghi version API và fixture dùng chung, Dockerfile backend nhiều stage.
+- [x] Khởi tạo Spring Boot theo cấu trúc `controller/service/client/dto/config/exception`; dependency/build version được pin, có cấu hình local và Docker.
+- [x] Viết typed clients vision/recipes; connect/read timeout, request ID, payload limit. Không tự retry upload/inference vô hạn; chỉ retry hữu hạn thao tác idempotent theo policy.
+- [x] Hiện thực `/api/vision/predict`, `/api/dishes`, `/api/recipes/search`, `/api/recipes/{id}` và OpenAPI public.
+- [x] Chặn `confirmed_dish` ngoài taxonomy; giữ nguyên tên món xác nhận khi gọi retrieval. Không lấy món thứ hai thay món đã chọn vì vector score cao hơn.
+- [x] Map lỗi nội bộ sang error DTO chung, phân biệt dependency chưa ready, timeout, invalid image và empty recipe; không trả 200 với lỗi nằm trong body.
+- [x] Actuator/liveness riêng; readiness tổng hợp dependency với timeout và cache ngắn, tránh tạo tải kiểm tra quá lớn.
+- [x] Cấu hình CORS dev theo allowlist nếu khác origin; release dùng reverse proxy `/api` cùng origin, trình duyệt không biết địa chỉ container AI.
+- [x] Integration tests: CV thật → Top-3 → chọn món → search → detail, cộng case dependency dừng/timeout và model/corpus version sai.
+- [x] Sinh contract frontend từ OpenAPI; ghi version API và fixture dùng chung, Dockerfile backend nhiều stage.
 
 ### Kết thúc Phase 3
 
-- [ ] Rà file thừa, test/stub tạm, build output và fixture theo [cổng chung](#phase-closeout); giữ contract/integration tests và không đưa chúng vào runtime image.
-- [ ] Rà secrets và mọi giá trị mã/hash trong config, connection strings, logs, commit và image backend; OpenAPI/error response không chứa credential hoặc dữ liệu nội bộ nhạy cảm.
-- [ ] Tạo PR có kết quả kiểm tra; chờ người dùng merge rồi fetch xác nhận trước frontend nghiệm thu với backend thật.
+- [x] Rà file thừa, test/stub tạm, build output và fixture theo [cổng chung](#phase-closeout); giữ contract/integration tests và không đưa chúng vào runtime image.
+- [x] Rà secrets và mọi giá trị mã/hash trong config, connection strings, logs, commit và image backend; OpenAPI/error response không chứa credential hoặc dữ liệu nội bộ nhạy cảm.
+- [ ] Người dùng review/merge PR Phase 3; agent fetch xác nhận trước frontend nghiệm thu với backend thật.
 
 Điều kiện ra phase: Swagger backend kiểm thử được toàn luồng với CV/recipes thật; contract và lỗi ổn định; PR được người dùng merge vào `develop`.
 

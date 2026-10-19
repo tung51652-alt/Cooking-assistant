@@ -1,0 +1,16 @@
+{
+  "public_api_version": "1.0.0",
+  "corpus_version": "cooklens-recipes-v1",
+  "real_model_flow": true,
+  "explicit_second_prediction_confirmed": true,
+  "catalog_dishes_searched": 30,
+  "dependency_stop_recovery": true,
+  "request_ids_preserved": true,
+  "only_gateway_published_on_loopback": true,
+  "ai_services_only_internal_networks": true,
+  "full_flow_without_external_network": true,
+  "backend_non_root": true,
+  "backend_read_only": true,
+  "backend_memory_peak_bytes": 270475264,
+  "limitation": "Integration smoke; not a throughput benchmark or independent recipe evaluation."
+}

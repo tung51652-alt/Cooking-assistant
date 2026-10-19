@@ -1,0 +1,47 @@
+server:
+  port: 8080
+  forward-headers-strategy: none
+  tomcat:
+    threads:
+      max: 32
+      min-spare: 2
+    max-connections: 128
+    accept-count: 32
+    max-swallow-size: 0B
+spring:
+  application:
+    name: cooklens-backend
+  servlet:
+    multipart:
+      enabled: false
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    deserialization:
+      fail-on-null-for-primitives: true
+      fail-on-trailing-tokens: true
+      fail-on-unknown-properties: false
+    mapper:
+      allow-coercion-of-scalars: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,dependencies
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  paths-to-match: /api/**
+cooklens:
+  vision-url: ${VISION_URL:http://127.0.0.1:8000}
+  recipes-url: ${RECIPES_URL:http://127.0.0.1:8001}
+  cors-origins: ${CORS_ORIGINS:}

@@ -1,0 +1,28 @@
+# Overlay on recipes.phase2.yml; this is the Phase 3 integration stack.
+services:
+  recipes:
+    ports: !reset []
+    networks: !override [recipes]
+  vision:
+    image: cooklens-vision:phase1
+    networks: [recipes]
+    read_only: true
+    tmpfs: ['/tmp:rw,noexec,nosuid,size=32m']
+    cpus: 4
+    mem_limit: 1g
+  backend:
+    image: cooklens-backend:phase3
+    environment:
+      VISION_URL: http://vision:8000
+      RECIPES_URL: http://recipes:8001
+    depends_on:
+      vision:
+        condition: service_healthy
+      recipes:
+        condition: service_healthy
+    networks: [recipes, browser]
+    ports: ['127.0.0.1:${BACKEND_PORT:-8080}:8080']
+    read_only: true
+    tmpfs: ['/tmp:rw,noexec,nosuid,size=32m']
+    cpus: 2
+    mem_limit: 512m
