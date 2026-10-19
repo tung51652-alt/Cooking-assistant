@@ -1,0 +1,4951 @@
+[
+  {
+    "id": "cooklens_banh_can_home",
+    "title": "Bánh căn trứng tôm làm bằng khuôn",
+    "normalized_dish": "banh_can",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Bột gạo tẻ",
+        "normalized_name": "rice_flour",
+        "quantity": 250,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Cơm nguội đã bảo quản lạnh đúng cách",
+        "normalized_name": "cooked_rice",
+        "quantity": 80,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước",
+        "normalized_name": "water",
+        "quantity": 450,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Trứng cút",
+        "normalized_name": "quail_eggs",
+        "quantity": 16,
+        "unit": "quả",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tôm bóc vỏ bỏ chỉ",
+        "normalized_name": "shrimp",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành lá",
+        "normalized_name": "scallion",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn quét khuôn và làm mỡ hành",
+        "normalized_name": "vegetable_oil",
+        "quantity": 25,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Muối",
+        "normalized_name": "salt",
+        "quantity": 2,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước mắm",
+        "normalized_name": "fish_sauce",
+        "quantity": 35,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Đường",
+        "normalized_name": "sugar",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước ấm pha nước chấm",
+        "normalized_name": "sauce_water",
+        "quantity": 100,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước cốt chanh",
+        "normalized_name": "lime_juice",
+        "quantity": 25,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tỏi băm",
+        "normalized_name": "garlic",
+        "quantity": 10,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Ớt băm",
+        "normalized_name": "chili",
+        "quantity": null,
+        "unit": null,
+        "optional": true,
+        "note": "Theo khẩu vị"
+      },
+      {
+        "name": "Rau sống và dưa leo",
+        "normalized_name": "fresh_greens",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Xay cơm với nước thành hỗn hợp mịn, khuấy với bột gạo và muối. Để bột nghỉ trong ngăn mát khoảng 30 phút; trước mỗi lần đổ khuấy lại để bột không lắng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Cắt tôm nhỏ và xào với một phần dầu đến khi thịt tôm đục hoàn toàn. Hành lá rửa sạch, thái nhỏ, làm nóng phần dầu còn lại rồi trộn hành để làm mỡ hành.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Hòa nước ấm với đường cho tan, thêm nước mắm và nước chanh, sau đó thêm tỏi và ớt. Rửa rau, để ráo; thái dưa leo.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Làm nóng khuôn bánh căn bằng đất hoặc khuôn chuyên dụng trên bếp. Quét lớp dầu rất mỏng ở lượt đầu, rót bột khoảng hai phần ba mỗi ô, thêm tôm và đập trứng cút lên mặt; đậy nắp.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Nấu lửa vừa đến khi mặt bột khô, bánh se lại, cả lòng đỏ và lòng trắng trứng đông chắc. Thời gian thường khoảng 5–7 phút mỗi mẻ, điều chỉnh theo khuôn; cạy thử một bánh để kiểm tra phần bột bên trong đã chín.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Lấy bánh ra, thêm mỡ hành và dùng nóng với rau, dưa leo, nước mắm đã pha. Khuấy bột và làm nóng lại khuôn trước mẻ sau.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_can",
+      "ai_authored",
+      "mold_baked",
+      "egg",
+      "shrimp"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_banh_cuon_home",
+    "title": "Bánh cuốn nhân thịt mộc nhĩ tráng chảo",
+    "normalized_dish": "banh_cuon",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Bột gạo tẻ",
+        "normalized_name": "rice_flour",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bột năng",
+        "normalized_name": "tapioca_starch",
+        "quantity": 40,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước",
+        "normalized_name": "water",
+        "quantity": 650,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Thịt heo xay",
+        "normalized_name": "ground_pork",
+        "quantity": 250,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Mộc nhĩ khô",
+        "normalized_name": "wood_ear",
+        "quantity": 15,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành tím",
+        "normalized_name": "shallot",
+        "quantity": 50,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn",
+        "normalized_name": "vegetable_oil",
+        "quantity": 35,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Muối",
+        "normalized_name": "salt",
+        "quantity": 3,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước mắm nêm nhân",
+        "normalized_name": "fish_sauce",
+        "quantity": 10,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tiêu xay",
+        "normalized_name": "black_pepper",
+        "quantity": 1,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành phi",
+        "normalized_name": "fried_shallot",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước mắm pha chua ngọt đã chuẩn bị",
+        "normalized_name": "dipping_sauce",
+        "quantity": 150,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dưa leo và rau thơm",
+        "normalized_name": "fresh_greens",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Hòa bột gạo, bột năng, nước, 2 g muối và 15 ml dầu cho hết vón. Đậy kín và để nghỉ trong ngăn mát khoảng 30 phút.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Ngâm mộc nhĩ với nước sạch khoảng 15–20 phút, rửa lại, cắt bỏ chân và băm nhỏ. Băm hành tím. Phi hành với 10 ml dầu, cho thịt xay vào đảo tơi rồi thêm mộc nhĩ, nước mắm, phần muối còn lại và tiêu.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Xào nhân đến khi thịt chín hoàn toàn, tâm phần thịt đạt ít nhất 71°C; để nhân trong bát riêng, dùng thìa sạch. Chuẩn bị đĩa hoặc thớt phẳng quét dầu mỏng để úp bánh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Làm nóng chảo chống dính khoảng 20–24 cm trên lửa vừa nhỏ, quét lớp dầu rất mỏng. Khuấy bột rồi rót một vá nhỏ, nghiêng chảo để bột phủ thành lớp mỏng và đậy nắp.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Sau khoảng 45–60 giây, khi bánh chuyển trong và không còn bột lỏng, úp bánh lên đĩa đã quét dầu. Cho một dải nhân lên bánh, gấp hai mép rồi cuốn lại; nếu bánh còn ướt bột, tiếp tục đậy nắp nấu trước khi lấy ra.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Lặp lại với phần bột còn lại, khuấy bột trước từng lượt. Rắc hành phi lên bánh, dùng nóng với dưa leo, rau thơm và nước mắm pha.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_cuon",
+      "ai_authored",
+      "pan_steamed",
+      "pork"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_banh_gio_home",
+    "title": "Bánh giò lá chuối nhân thịt mộc nhĩ",
+    "normalized_dish": "banh_gio",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 6,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Bột gạo tẻ",
+        "normalized_name": "rice_flour",
+        "quantity": 250,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bột năng",
+        "normalized_name": "tapioca_starch",
+        "quantity": 50,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước dùng không mặn đã lọc",
+        "normalized_name": "broth",
+        "quantity": 1000,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Thịt heo xay",
+        "normalized_name": "ground_pork",
+        "quantity": 300,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Mộc nhĩ khô",
+        "normalized_name": "wood_ear",
+        "quantity": 20,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành tím",
+        "normalized_name": "shallot",
+        "quantity": 50,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn",
+        "normalized_name": "vegetable_oil",
+        "quantity": 30,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước mắm",
+        "normalized_name": "fish_sauce",
+        "quantity": 15,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Muối",
+        "normalized_name": "salt",
+        "quantity": 5,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tiêu xay",
+        "normalized_name": "black_pepper",
+        "quantity": 2,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Lá chuối sạch để gói",
+        "normalized_name": "banana_leaf",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Khoảng 12 miếng lớn, cần hai lớp cho mỗi bánh"
+      },
+      {
+        "name": "Trứng cút đã luộc chín bóc vỏ",
+        "normalized_name": "cooked_quail_eggs",
+        "quantity": 6,
+        "unit": "quả",
+        "optional": true,
+        "note": "Thêm một quả mỗi bánh nếu thích"
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Ngâm mộc nhĩ cho mềm, rửa sạch, bỏ chân và băm; băm hành tím. Rửa lá chuối, trụng nhanh cho mềm, lau ráo rồi xếp sẵn hai lớp lá cho từng bánh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Phi hành với 15 ml dầu, cho thịt xay và mộc nhĩ vào xào tơi. Nêm nước mắm, 2 g muối và tiêu; nấu nhân chín hoàn toàn, thịt xay đạt ít nhất 71°C rồi để riêng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Hòa bột gạo, bột năng với nước dùng đã nguội, 3 g muối và 15 ml dầu. Để nghỉ khoảng 20 phút trong ngăn mát rồi khuấy lại.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Đun nồi bột trên lửa nhỏ, khuấy liên tục từ đáy đến khi bột sánh đặc, mịn và có thể giữ một vệt thìa. Tắt bếp khi bột đủ đặc để gói, không để đóng cục hoặc cháy đáy.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Gấp hai lớp lá thành phễu, cho một phần bột, thêm nhân và trứng cút tùy chọn, phủ bột kín nhân. Gấp lá thành gói kín và buộc nhẹ bằng lạt thực phẩm; không dùng túi ni lông trong nồi hấp.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Xếp bánh vào xửng khi nước đã sôi, hấp khoảng 35–45 phút. Mở kiểm tra một bánh: vỏ phải dẻo chín đều, không còn lõi bột trắng sống, nhân nóng; thêm thời gian nếu bánh gói lớn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Để bánh nghỉ khoảng 10 phút cho bột ổn định rồi dùng ấm. Chia phần không dùng ngay vào hộp sạch và làm lạnh sớm.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_gio",
+      "ai_authored",
+      "steamed",
+      "banana_leaf",
+      "pork"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_banh_khot_home",
+    "title": "Bánh khọt tôm nước cốt dừa",
+    "normalized_dish": "banh_khot",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Bột gạo tẻ",
+        "normalized_name": "rice_flour",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bột năng",
+        "normalized_name": "tapioca_starch",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước cốt dừa",
+        "normalized_name": "coconut_milk",
+        "quantity": 200,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước",
+        "normalized_name": "water",
+        "quantity": 300,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bột nghệ",
+        "normalized_name": "turmeric",
+        "quantity": 2,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Muối",
+        "normalized_name": "salt",
+        "quantity": 3,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tôm bóc vỏ bỏ chỉ",
+        "normalized_name": "shrimp",
+        "quantity": 300,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành lá",
+        "normalized_name": "scallion",
+        "quantity": 40,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn cho khuôn và mỡ hành",
+        "normalized_name": "vegetable_oil",
+        "quantity": 100,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tôm khô giã nhỏ",
+        "normalized_name": "dried_shrimp",
+        "quantity": 20,
+        "unit": "g",
+        "optional": true,
+        "note": "Ngâm, làm sạch và rang chín trước khi rắc"
+      },
+      {
+        "name": "Rau xà lách và rau thơm",
+        "normalized_name": "fresh_greens",
+        "quantity": 300,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước mắm chua ngọt đã pha",
+        "normalized_name": "dipping_sauce",
+        "quantity": 150,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Khuấy bột gạo, bột năng, nghệ, muối, nước và nước cốt dừa đến mịn. Đậy và để nghỉ trong ngăn mát khoảng 30 phút; khuấy đều trước khi đổ bánh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Xào sơ tôm với một ít dầu đến khi thịt chuyển đục và chín; để riêng. Thái hành lá, làm nóng một ít dầu rồi trộn với hành. Tôm khô tùy chọn được rang chín và giã nhỏ.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Làm nóng khuôn bánh khọt, cho dầu vào từng ô đủ phủ đáy. Rót bột khoảng hai phần ba ô, đặt một con tôm lên mỗi bánh rồi đậy nắp, giữ lửa vừa.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Khi mặt bánh đã se, mở nắp và thêm vài giọt dầu quanh mép để bánh vàng giòn. Nấu đến khi bột trong lòng bánh chín hoàn toàn, đáy giòn; một mẻ thường khoảng 5–7 phút, tùy khuôn và độ dày.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Cạy bánh ra, đặt lên giá hoặc giấy thấm dầu ngắn rồi rắc mỡ hành và tôm khô nếu dùng. Dùng ngay với rau sống đã rửa, để ráo và nước mắm pha.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_khot",
+      "ai_authored",
+      "mold_fried",
+      "shrimp",
+      "coconut"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_banh_pia_home",
+    "title": "Bánh pía đậu xanh sầu riêng làm tại nhà",
+    "normalized_dish": "banh_pia",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 6,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Bột mì đa dụng cho bột nước",
+        "normalized_name": "water_dough_flour",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn cho bột nước",
+        "normalized_name": "water_dough_oil",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Đường cho bột nước",
+        "normalized_name": "water_dough_sugar",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước cho bột nước",
+        "normalized_name": "water_dough_water",
+        "quantity": 90,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bột mì đa dụng cho bột dầu",
+        "normalized_name": "oil_dough_flour",
+        "quantity": 120,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn cho bột dầu",
+        "normalized_name": "oil_dough_oil",
+        "quantity": 60,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Đậu xanh khô đã bỏ vỏ",
+        "normalized_name": "mung_bean",
+        "quantity": 150,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Cơm sầu riêng bỏ hạt",
+        "normalized_name": "durian",
+        "quantity": 120,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Đường cho nhân",
+        "normalized_name": "filling_sugar",
+        "quantity": 90,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn sên nhân",
+        "normalized_name": "filling_oil",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Muối",
+        "normalized_name": "salt",
+        "quantity": 1,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Lòng đỏ trứng vịt muối đã nấu chín",
+        "normalized_name": "cooked_salted_yolk",
+        "quantity": 6,
+        "unit": "cái",
+        "optional": true,
+        "note": "Mỗi lòng đỏ cắt đôi, dùng cho 12 bánh nhỏ"
+      },
+      {
+        "name": "Trứng gà để quét mặt",
+        "normalized_name": "egg_wash",
+        "quantity": 1,
+        "unit": "quả",
+        "optional": false,
+        "note": null
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Ngâm đậu xanh khoảng 3–4 giờ trong ngăn mát, rửa rồi hấp hoặc nấu với lượng nước vừa đủ đến mềm. Xay hoặc nghiền mịn đậu khi còn ấm.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Cho đậu, đường, muối và dầu sên nhân vào chảo chống dính, đảo lửa nhỏ đến khi hỗn hợp gom khối. Thêm sầu riêng, tiếp tục đảo cho nhân dẻo, ráo và giữ hình; để nguội, chia 12 phần. Thêm nửa lòng đỏ muối đã nấu chín vào mỗi phần nếu dùng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Trộn riêng 200 g bột mì, 30 g đường, 30 g dầu và 90 ml nước thành bột nước mềm, nhào vừa đủ mịn rồi đậy nghỉ 30 phút. Trộn 120 g bột mì với 60 g dầu thành bột dầu, đậy lại.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Chia mỗi loại bột thành 12 phần. Cán một phần bột nước bọc kín một phần bột dầu, cán nhẹ thành dải rồi cuộn lại; đậy nghỉ 10 phút. Xoay dải 90 độ, cán và cuộn thêm một lượt, tránh làm rách lớp bột.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Cán từng cuộn thành miếng tròn, đặt nhân giữa và túm kín mép. Đặt mép xuống khay có giấy nướng, ấn dẹt nhẹ. Làm nóng lò ở 175°C trước khi cho bánh vào.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Nướng khoảng 15 phút cho vỏ định hình, lấy ra quét lớp trứng đánh tan thật mỏng. Nướng thêm khoảng 15–20 phút đến khi vỏ chín vàng nhạt, khô đều và lớp trứng chín; điều chỉnh theo lò và kích thước bánh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Để bánh nguội hoàn toàn trên giá. Bảo quản phần chưa dùng trong hộp kín ở ngăn mát; chưa xác định hạn sử dụng ở nhiệt độ phòng cho công thức tự biên soạn này.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_pia",
+      "ai_authored",
+      "baked",
+      "mung_bean",
+      "durian"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null. Mẻ gợi ý 12 bánh nhỏ, mỗi khẩu phần khoảng hai bánh. Chưa kiểm nghiệm hạn sử dụng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_banh_trang_nuong_home",
+    "title": "Bánh tráng nướng trứng thịt băm bằng chảo",
+    "normalized_dish": "banh_trang_nuong",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Bánh tráng gạo loại nướng",
+        "normalized_name": "rice_paper",
+        "quantity": 4,
+        "unit": "miếng",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Trứng gà",
+        "normalized_name": "eggs",
+        "quantity": 4,
+        "unit": "quả",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Thịt heo xay",
+        "normalized_name": "ground_pork",
+        "quantity": 150,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tôm khô",
+        "normalized_name": "dried_shrimp",
+        "quantity": 20,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành lá",
+        "normalized_name": "scallion",
+        "quantity": 40,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành tím băm",
+        "normalized_name": "shallot",
+        "quantity": 15,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn",
+        "normalized_name": "vegetable_oil",
+        "quantity": 15,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước mắm",
+        "normalized_name": "fish_sauce",
+        "quantity": 5,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tương ớt",
+        "normalized_name": "chili_sauce",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Mayonnaise",
+        "normalized_name": "mayonnaise",
+        "quantity": 20,
+        "unit": "g",
+        "optional": true,
+        "note": null
+      },
+      {
+        "name": "Phô mai bào",
+        "normalized_name": "cheese",
+        "quantity": 40,
+        "unit": "g",
+        "optional": true,
+        "note": null
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Ngâm tôm khô cho mềm, rửa, để ráo rồi băm nhỏ. Thái hành lá, chia riêng phần đầu trắng. Phi hành tím với dầu, thêm thịt xay và tôm khô, nêm nước mắm và xào đến khi thịt chín hoàn toàn, tâm thịt đạt ít nhất 71°C.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Làm nóng chảo chống dính đáy phẳng trên lửa nhỏ vừa. Đặt một miếng bánh tráng lên, rắc một ít hành lá và nhân đã xào.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Đập một quả trứng lên mặt bánh, dùng thìa dàn trứng đều thành lớp mỏng để trứng phủ các khe giữa nhân. Nướng trên chảo và xoay bánh khi cần để đáy không cháy.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Khi trứng bắt đầu se, thêm phô mai nếu dùng. Đậy nắp ngắn để mặt trứng chín chắc, sau đó mở nắp cho bánh khô giòn; kiểm tra không còn trứng lỏng trước khi lấy ra.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Rưới tương ớt và mayonnaise tùy chọn, gấp hoặc cắt bánh, dùng nóng. Làm lần lượt với phần nguyên liệu còn lại, giữ lửa đủ nhỏ để vỏ giòn mà không cháy.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_trang_nuong",
+      "ai_authored",
+      "pan_grilled",
+      "egg",
+      "pork"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_banh_xeo_home",
+    "title": "Bánh xèo tôm thịt kiểu gia đình",
+    "normalized_dish": "banh_xeo",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Bột gạo tẻ",
+        "normalized_name": "rice_flour",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bột năng",
+        "normalized_name": "tapioca_starch",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước cốt dừa",
+        "normalized_name": "coconut_milk",
+        "quantity": 200,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước",
+        "normalized_name": "water",
+        "quantity": 400,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bột nghệ",
+        "normalized_name": "turmeric",
+        "quantity": 3,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Muối",
+        "normalized_name": "salt",
+        "quantity": 3,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Thịt ba chỉ thái mỏng",
+        "normalized_name": "pork_belly",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tôm bóc vỏ bỏ chỉ",
+        "normalized_name": "shrimp",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Giá đỗ",
+        "normalized_name": "bean_sprouts",
+        "quantity": 300,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành tây thái mỏng",
+        "normalized_name": "onion",
+        "quantity": 100,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành lá thái nhỏ",
+        "normalized_name": "scallion",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn",
+        "normalized_name": "vegetable_oil",
+        "quantity": 70,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Rau xà lách và rau thơm",
+        "normalized_name": "fresh_greens",
+        "quantity": 300,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước mắm chua ngọt đã pha",
+        "normalized_name": "dipping_sauce",
+        "quantity": 180,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Khuấy bột gạo, bột năng, nghệ, muối, nước và nước cốt dừa cho mịn. Đậy và cho nghỉ trong ngăn mát khoảng 30 phút; trộn hành lá vào, khuấy lại trước mỗi vá bột.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Xào thịt ba chỉ với một ít dầu đến chín kỹ, sau đó xào tôm đến khi toàn bộ thịt tôm đục. Để nhân chín riêng, chia cho khoảng 6–8 bánh tùy kích thước chảo.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Làm nóng chảo chống dính 24–28 cm, láng một ít dầu. Cho một phần hành tây vào đảo rồi rót một vá bột, nghiêng chảo để bột phủ thật mỏng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Xếp một phần tôm thịt và giá lên một nửa bánh. Đậy nắp khoảng 2–3 phút cho bột và giá chín, mở nắp rồi nấu tiếp đến khi mép bánh vàng, đáy giòn và không còn bột ướt.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Thêm vài giọt dầu quanh mép nếu cần, gấp nửa bánh không có nhân lên phần nhân rồi lấy ra. Rót bột mỏng hơn hoặc hạ lửa nếu đáy vàng khi mặt bánh còn sống.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Dùng bánh ngay khi còn giòn, cuốn cùng rau đã rửa và để ráo, chấm nước mắm pha. Khuấy lại bột và làm nóng chảo trước lượt tiếp theo.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_xeo",
+      "ai_authored",
+      "pan_fried",
+      "shrimp",
+      "pork"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_bun_thit_nuong_home",
+    "title": "Bún thịt nướng sả với rau và nước mắm",
+    "normalized_dish": "bun_thit_nuong",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Bún tươi",
+        "normalized_name": "rice_vermicelli",
+        "quantity": 600,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Thịt nạc vai heo thái lát mỏng",
+        "normalized_name": "pork_shoulder",
+        "quantity": 500,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Sả băm",
+        "normalized_name": "lemongrass",
+        "quantity": 25,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành tím băm",
+        "normalized_name": "shallot",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tỏi băm",
+        "normalized_name": "garlic",
+        "quantity": 15,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước mắm",
+        "normalized_name": "fish_sauce",
+        "quantity": 50,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Đường",
+        "normalized_name": "sugar",
+        "quantity": 50,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn",
+        "normalized_name": "vegetable_oil",
+        "quantity": 40,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước cốt chanh",
+        "normalized_name": "lime_juice",
+        "quantity": 30,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước ấm pha nước chấm",
+        "normalized_name": "sauce_water",
+        "quantity": 120,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành lá",
+        "normalized_name": "scallion",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dưa leo",
+        "normalized_name": "cucumber",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Cà rốt",
+        "normalized_name": "carrot",
+        "quantity": 100,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Xà lách và rau thơm",
+        "normalized_name": "fresh_greens",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Lạc rang giã dập",
+        "normalized_name": "roasted_peanut",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Ớt băm",
+        "normalized_name": "chili",
+        "quantity": null,
+        "unit": null,
+        "optional": true,
+        "note": "Theo khẩu vị"
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Trộn thịt với sả, hành tím, 10 g tỏi, 25 ml nước mắm, 20 g đường và 15 ml dầu. Đậy kín, ướp trong ngăn mát ít nhất 30 phút; để riêng dụng cụ chạm thịt sống.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Pha nước chấm bằng 120 ml nước ấm, 30 g đường, 25 ml nước mắm, 30 ml nước chanh, 5 g tỏi và ớt tùy chọn. Rửa rau, thái dưa leo, bào cà rốt thành sợi.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Làm nóng lò ở khoảng 210°C. Xếp thịt thành một lớp trên khay có giá, nướng khoảng 15–20 phút và trở mặt giữa chừng; có thể dùng chảo nướng thay lò. Nấu đến khi thịt chín kỹ, kiểm tra tâm lát dày nhất đạt ít nhất 71°C theo mức chín gợi ý của công thức.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Đun phần dầu còn lại cho nóng, trộn với hành lá thái nhỏ để làm mỡ hành. Trụng bún theo hướng dẫn trên bao bì nếu cần và để ráo.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Chia rau, dưa leo, cà rốt và bún vào tô, thêm thịt đã nướng, mỡ hành và lạc rang. Chan nước mắm khi dùng. Dùng kẹp sạch gắp thịt chín, không dùng lại nước ướp thịt sống làm xốt.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "bun_thit_nuong",
+      "ai_authored",
+      "grilled",
+      "lemongrass",
+      "pork"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_chao_long_home",
+    "title": "Cháo lòng heo nấu chín kỹ",
+    "normalized_dish": "chao_long",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Gạo tẻ",
+        "normalized_name": "rice",
+        "quantity": 150,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Gạo nếp",
+        "normalized_name": "sticky_rice",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Xương heo",
+        "normalized_name": "pork_bones",
+        "quantity": 500,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tim heo đã sơ chế sạch",
+        "normalized_name": "pork_heart",
+        "quantity": 150,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Gan heo đã sơ chế sạch",
+        "normalized_name": "pork_liver",
+        "quantity": 100,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dạ dày heo đã sơ chế sạch",
+        "normalized_name": "pork_stomach",
+        "quantity": 150,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước",
+        "normalized_name": "water",
+        "quantity": 2500,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Gừng",
+        "normalized_name": "ginger",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành tím",
+        "normalized_name": "shallot",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước mắm",
+        "normalized_name": "fish_sauce",
+        "quantity": 25,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Muối",
+        "normalized_name": "salt",
+        "quantity": 5,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành lá và rau mùi",
+        "normalized_name": "fresh_herbs",
+        "quantity": 40,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tiêu xay",
+        "normalized_name": "black_pepper",
+        "quantity": 2,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Chọn nội tạng đã được sơ chế từ cơ sở có kiểm soát. Loại màng, cục máu và phần không ăn được; giữ nguyên liệu lạnh trong lúc chuẩn bị. Dùng thớt và dao riêng cho thực phẩm sống, rửa tay và dụng cụ trước khi xử lý phần đã chín.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Chần xương rồi bỏ nước chần, rửa sạch nồi. Cho xương vào với 2,5 lít nước, hành tím và một nửa gừng; đun sôi, hớt bọt, ninh lửa nhỏ khoảng 45–60 phút, lọc lấy nước dùng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Luộc tim, gan và dạ dày trong nồi riêng có gừng còn lại. Nấu từng loại đến chín hoàn toàn; dạ dày thường cần lâu hơn tim và gan. Công thức dùng mốc tâm ít nhất 75°C để kiểm tra độ chín của nội tạng, không lấy màu sắc hoặc thời gian đơn lẻ làm tiêu chí duy nhất.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Vo và rang sơ gạo cho thơm, cho vào nước dùng đã lọc, đun sôi rồi hạ nhỏ lửa. Khuấy định kỳ, nấu đến khi gạo nở mềm và cháo sánh, khoảng 40–60 phút; bổ sung nước sôi nếu cần.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Thái nội tạng chín bằng dụng cụ sạch, cho phần sẽ dùng vào cháo và đun nóng lại kỹ, nêm nước mắm và muối. Chia ra bát, thêm hành rau mùi và tiêu; dùng nóng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Công thức này dùng tim, gan và dạ dày đã nấu chín; không cần tiết sống hoặc tiết canh. Phần còn lại chia hộp nhỏ, làm lạnh sớm để bảo quản.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "chao_long",
+      "ai_authored",
+      "porridge",
+      "cooked_offal"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null. Biến thể dùng tim, gan, dạ dày; không hướng dẫn tiết canh hoặc chế biến nội tạng sống."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_mi_quang_home",
+    "title": "Mì Quảng gà tôm nước dùng ít",
+    "normalized_dish": "mi_quang",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Sợi mì Quảng",
+        "normalized_name": "quang_noodles",
+        "quantity": 600,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Thịt đùi gà lọc xương",
+        "normalized_name": "chicken_thigh",
+        "quantity": 400,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Xương gà",
+        "normalized_name": "chicken_bones",
+        "quantity": 700,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tôm bóc vỏ bỏ chỉ",
+        "normalized_name": "shrimp",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước",
+        "normalized_name": "water",
+        "quantity": 1500,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành tây",
+        "normalized_name": "onion",
+        "quantity": 100,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành tím băm",
+        "normalized_name": "shallot",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tỏi băm",
+        "normalized_name": "garlic",
+        "quantity": 10,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bột nghệ",
+        "normalized_name": "turmeric",
+        "quantity": 3,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu lạc hoặc dầu thực vật",
+        "normalized_name": "vegetable_oil",
+        "quantity": 40,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước mắm",
+        "normalized_name": "fish_sauce",
+        "quantity": 35,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Muối",
+        "normalized_name": "salt",
+        "quantity": 5,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Đường",
+        "normalized_name": "sugar",
+        "quantity": 10,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Lạc rang giã dập",
+        "normalized_name": "roasted_peanut",
+        "quantity": 30,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Giá và rau sống",
+        "normalized_name": "fresh_greens",
+        "quantity": 300,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bánh tráng mè nướng",
+        "normalized_name": "sesame_rice_cracker",
+        "quantity": 100,
+        "unit": "g",
+        "optional": true,
+        "note": null
+      },
+      {
+        "name": "Chanh và ớt",
+        "normalized_name": "lime_chili",
+        "quantity": null,
+        "unit": null,
+        "optional": true,
+        "note": "Theo khẩu vị"
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Cho xương gà và hành tây vào nồi với nước, đun sôi và hớt bọt; ninh lửa nhỏ khoảng 40–50 phút rồi lọc lấy nước dùng. Giữ nước dùng nóng để nấu nhân.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Cắt thịt gà thành miếng vừa ăn, trộn với nghệ, một nửa hành tỏi băm và 15 ml nước mắm, ướp trong ngăn mát khoảng 20 phút. Để tôm riêng, không trộn vào bát thịt gà sống.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Phi phần hành tỏi còn lại với dầu, cho gà vào đảo săn. Thêm khoảng 500 ml nước dùng, đun nhỏ lửa đến khi thịt gà chín hoàn toàn, tâm phần dày nhất đạt ít nhất 74°C.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Thêm tôm vào nồi gà, nấu đến khi thịt tôm đục hoàn toàn. Nêm phần nước mắm còn lại, muối và đường, thêm nước dùng khi cần để có phần nước nhân đậm đà vừa ăn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Rửa và để ráo rau, trụng giá nếu thích. Làm nóng sợi mì theo hướng dẫn trên bao bì, chia vào tô cùng rau.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Xếp gà tôm lên mì, chan ít nước nhân và thêm chút nước dùng nóng theo khẩu vị; lượng nước chỉ ở phần dưới tô. Rắc lạc, thêm bánh tráng mè, chanh và ớt tùy chọn, trộn khi ăn.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "mi_quang",
+      "ai_authored",
+      "chicken",
+      "shrimp",
+      "turmeric"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_nem_chua_home",
+    "title": "Nem chua rán giòn từ nem thành phẩm",
+    "normalized_dish": "nem_chua",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Nem chua thành phẩm từ cơ sở có kiểm soát",
+        "normalized_name": "prepared_nem_chua",
+        "quantity": 400,
+        "unit": "g",
+        "optional": false,
+        "note": "Còn hạn dùng, giữ lạnh theo nhãn; tháo toàn bộ lá, dây và màng gói trước khi chế biến"
+      },
+      {
+        "name": "Bột mì",
+        "normalized_name": "wheat_flour",
+        "quantity": 40,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Trứng gà đánh tan",
+        "normalized_name": "eggs",
+        "quantity": 1,
+        "unit": "quả",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bột chiên xù",
+        "normalized_name": "breadcrumbs",
+        "quantity": 80,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu chiên",
+        "normalized_name": "frying_oil",
+        "quantity": 500,
+        "unit": "ml",
+        "optional": false,
+        "note": "Lượng để chiên, không phải lượng dầu hấp thụ"
+      },
+      {
+        "name": "Dưa leo",
+        "normalized_name": "cucumber",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Tương ớt",
+        "normalized_name": "chili_sauce",
+        "quantity": 40,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Kiểm tra nhãn, hạn dùng và tình trạng bảo quản của nem thành phẩm, giữ lạnh đến lúc chế biến. Bóc bỏ hết lá, màng và dây gói; dùng loại có nguồn gốc rõ và không dùng nem có dấu hiệu hỏng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Chuẩn bị ba đĩa bột mì, trứng đánh tan và bột chiên xù. Lăn nem lần lượt qua bột mì, trứng rồi bột chiên xù cho phủ đều; đặt lên khay sạch.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Đun dầu trong nồi hoặc chảo thành cao đến khoảng 165–170°C, giữ dầu dưới mức bốc khói. Thả nem từng mẻ nhỏ để tránh dầu trào và tránh nhiệt giảm đột ngột.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Chiên và trở nhẹ đến khi vỏ vàng giòn, trứng áo chín và nem nóng kỹ đến tâm. Kiểm tra phần dày nhất đạt ít nhất 74°C; thời gian phụ thuộc kích thước nên cần đo, giảm lửa nếu vỏ vàng quá nhanh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Vớt lên giá cho ráo dầu, dùng nóng với dưa leo đã rửa và tương ớt. Công thức này chế biến nem chua đã làm sẵn thành món rán; quy trình sản xuất hoặc lên men thịt sống không nằm trong công thức.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "nem_chua",
+      "ai_authored",
+      "cooked_variant",
+      "uses_prepared_nem_chua"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null. Biến thể nem chua rán từ sản phẩm có nguồn gốc rõ; không phải hướng dẫn tự lên men nem chua từ thịt sống."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "cooklens_xoi_xeo_home",
+    "title": "Xôi xéo đậu xanh hành phi",
+    "normalized_dish": "xoi_xeo",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Gạo nếp",
+        "normalized_name": "sticky_rice",
+        "quantity": 400,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Đậu xanh khô đã bỏ vỏ",
+        "normalized_name": "mung_bean",
+        "quantity": 200,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Hành tím thái mỏng",
+        "normalized_name": "shallot",
+        "quantity": 100,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Bột nghệ",
+        "normalized_name": "turmeric",
+        "quantity": 2,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Muối",
+        "normalized_name": "salt",
+        "quantity": 6,
+        "unit": "g",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Dầu ăn hoặc mỡ gà đã thắng chín",
+        "normalized_name": "cooked_fat",
+        "quantity": 80,
+        "unit": "ml",
+        "optional": false,
+        "note": null
+      },
+      {
+        "name": "Nước sạch để ngâm và hấp",
+        "normalized_name": "water",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Đủ cho nồi hấp; không đổ ngập trực tiếp gạo khi đồ"
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Vo nếp, ngâm với nước pha nghệ trong ngăn mát khoảng 4–6 giờ. Ngâm đậu xanh riêng khoảng 3–4 giờ trong ngăn mát rồi rửa lại cả hai, để nếp ráo nước.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Trộn đậu với 2 g muối, hấp đến mềm hoàn toàn, thường khoảng 20–30 phút. Nghiền mịn khi còn ấm và nắm thành khối chắc để có thể thái lát lên xôi.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Trộn nếp ráo với 4 g muối, cho vào xửng có lỗ thoát hơi và tạo vài khe nhỏ cho hơi lưu thông. Hấp trên nước đang sôi khoảng 30–40 phút, đảo nhẹ giữa chừng, đến khi hạt dẻo chín đều; không để nước cạn dưới đáy.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Phi hành thái mỏng với dầu hoặc mỡ gà trên lửa vừa nhỏ, đảo cho vàng nhạt rồi vớt ra ngay để hành không cháy vì nhiệt dư. Giữ lại phần dầu mỡ phi hành đã chín.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Xới xôi ra đĩa, thái mỏng khối đậu xanh phủ lên, thêm hành phi và một ít dầu mỡ hành. Dùng nóng; các mốc hấp chỉ để tham khảo, kiểm tra hạt nếp và đậu đã mềm chín trước khi dùng.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "xoi_xeo",
+      "ai_authored",
+      "steamed",
+      "mung_bean",
+      "fried_shallot"
+    ],
+    "source": {
+      "name": "CookLens — công thức do AI biên soạn",
+      "url": "https://github.com/tung51652-alt/Cooking-assistant/pull/10/files",
+      "license": "CC-BY-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "CookLens project, AI-authored text, 2026. Project owner authorized original AI-authored recipes and public distribution. License: https://creativecommons.org/licenses/by/4.0/. Authorship record: data/recipes/AUTHORSHIP.md.",
+      "revision_url": null,
+      "modifications": "Biên soạn mới theo yêu cầu chủ dự án, không phải bản nhập từ Wikibooks. Định lượng và mốc thời gian là gợi ý cho mẻ gia đình, chưa nấu kiểm chứng; tổng thời gian để null."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_banh_beo_chen",
+    "title": "Bánh bèo chén",
+    "normalized_dish": "banh_beo",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "bột gạo",
+        "normalized_name": "bot_gao",
+        "quantity": 200.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 200 g bột gạo"
+      },
+      {
+        "name": "bột năng",
+        "normalized_name": "bot_nang",
+        "quantity": 20.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 20 g bột năng"
+      },
+      {
+        "name": "bánh mì khô cắt hạt lựu (Semmelwürfel)",
+        "normalized_name": "semmelwurfel",
+        "quantity": 1.0,
+        "unit": "chén",
+        "optional": false,
+        "note": "Theo nguồn: 1 chén Semmelwürfel"
+      },
+      {
+        "name": "Tôm cháy hoặc 200 g tôm tươi (nếu không có tôm tươi thì sử dụng 50 g tôm khô)",
+        "normalized_name": "tom_chay_hoac_200_g_tom_tuoi_neu_khong_co_tom_tuoi_thi_su_dung_50_g_tom_kho",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "hành lá cắt nhuyễn",
+        "normalized_name": "hanh_la_cat_nhuyen",
+        "quantity": 1.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 muỗng canh hành lá cắt nhuyễn"
+      },
+      {
+        "name": "muối",
+        "normalized_name": "muoi",
+        "quantity": 0.3333333333333333,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 1/3 muỗng cà phê muối"
+      },
+      {
+        "name": "dầu ăn",
+        "normalized_name": "dau_an",
+        "quantity": 1.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 muỗng canh dầu ăn"
+      },
+      {
+        "name": "nước",
+        "normalized_name": "nuoc",
+        "quantity": 500.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 500 g nước"
+      },
+      {
+        "name": "Nước mắm chua ngọt dùng kèm",
+        "normalized_name": "nuoc_mam_chua_ngot_dung_kem",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Cho bột năng và bột gạo vào 1 tô lớn, cho 500 g nước , muối, dầu ăn vào và khuấy đều cho bột hòa tan trong nước.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Để bột nghỉ khoảng 20 phút.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Trong khi bột nghĩ thì làm phần tôm cháy và bánh mì chiên:",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Bánh mì chiên: Cho 3 muỗng canh dầu ăn vào 1 chảo dầu, dầu nóng, cho bánh mì khô cắt hạt lựu (Semmelwürfel) (bánh mì khô) vào và chiên vàng. Bánh mì chiên xong để lên giấy cho thấm bớt dầu.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Tôm cháy: Tôm rửa sạch, bỏ đầu đuôi, hấp hoặc luộc chín, rồi giả nhuyễn. Bắc chảo lên bếp để lửa thật nhỏ cho tôm vào chà tôm cho tơi ra khoảng 5 phút (lưu ý lửa phải thật nhỏ, nếu lửa lớn tôm sẽ bị vón cục). Nếu sử dụng tôm khô thì ngâm tôm khô với nước ấm cho mềm rồi đem giã nhuyễn và chà tôm trên chảo với lửa nhỏ như đối với tôm tươi.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Dầu hành: cho khoảng 1/2 chén dầu ăn vào lò vi sóng quay khoảng 30 giây đến 1 phút (600W) lấy ra cho hành lá vào.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Cho nước vào xửng hấp, đợi cho nước trong xửng sôi, xếp chén vào, để chén trong xửng thật nóng (khoảng 5 phút) thì đổ bột vào (đổ khoảng 1/2 chén, trước khi đổ nhớ khuấy bột). Bánh hấp được 10 phút thì chín, lấy ra để nguội.",
+        "duration_minutes": null
+      },
+      {
+        "step": 8,
+        "text": "Cho ít dầu hành, tôm cháy và bánh mì chiên lên mỗi chén bánh bèo ăn cùng với nước mắm chua ngọt.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_beo"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_bèo_chén",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_bèo_chén?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_bèo_chén&oldid=243178",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_banh_bot_loc",
+    "title": "Bánh bột lọc",
+    "normalized_dish": "banh_bot_loc",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "bột năng",
+        "normalized_name": "bot_nang",
+        "quantity": 200.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 200 g bột năng"
+      },
+      {
+        "name": "tôm nhỏ",
+        "normalized_name": "tom_nho",
+        "quantity": 200.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 200 g tôm nhỏ"
+      },
+      {
+        "name": "Gia vị: nước mắm , muối , tiêu , đường , hạt nêm từ thịt, ớt bột paprika",
+        "normalized_name": "gia_vi_nuoc_mam_muoi_tieu_duong_hat_nem_tu_thit_ot_bot_paprika",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Dầu ăn",
+        "normalized_name": "dau_an",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Hành lá",
+        "normalized_name": "hanh_la",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "nước sôi",
+        "normalized_name": "nuoc_soi",
+        "quantity": 1.0,
+        "unit": "chén",
+        "optional": false,
+        "note": "Theo nguồn: 1 chén nước sôi"
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Tôm cắt đầu đuôi, rửa sạch, con nhỏ thì để nguyên con, con lớn thì cắt làm hai hoặc làm ba, ướp chút muối, nước mắm, đường, ớt bột paprika cho có màu đỏ (hoặc dùng màu hạt điều cũng được), hạt nêm từ thịt cho vừa ăn rồi ram lên.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Bột năng đổ ra tô lớn, chế 1 chén nước sôi vào, lúc này bột rất là nóng dùng đũa trộn đều, bột hơi nguội thì dùng tay nhào bột đến khi bột dẻo mịn. Ngắt từng cục bột nhỏ vê tròn như trái chanh nhỏ rồi dùng đồ cán, cán bột cho mỏng ra, bỏ hai con tôm vào giữa rồi xếp lại hình bán nguyệt, dùng khuôn làm bánh pateso ấn phần mép bột cho dính chặt.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Trong một cái nồi nước sôi, cho hai muỗng dầu ăn vào, đổ bánh đã nặn vào, dùng đũa khuấy nhẹ cho bánh khỏi dính vào nhau, bánh chín thì nổi lên mặt nước, dùng vợt vớt ra và đổ vào một tô nước lạnh thì bánh sẽ trong.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Hành lá bỏ vào chén, đổ dầu ăn ngập hành lá, nêm nếm tí muối và đường cho đậm đà rồi bỏ vào lò vi sóng quay 30 giây 500W.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Bánh sau khi xả nước lạnh xếp ra đĩa, rưới dầu hành lên, ăn với nước mắm cay chua ngọt.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_bot_loc"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_bột_lọc",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_bột_lọc?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_bột_lọc&oldid=246726",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_banh_bot_loc_hue",
+    "title": "Bánh bột lọc Huế",
+    "normalized_dish": "banh_bot_loc",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "bột năng",
+        "normalized_name": "bot_nang",
+        "quantity": 2.0,
+        "unit": "chén",
+        "optional": false,
+        "note": "Theo nguồn: 2 chén bột năng"
+      },
+      {
+        "name": "nước (tỉ lệ pha bột là 1 bột:1 nước)",
+        "normalized_name": "nuoc_ti_le_pha_bot_la_1_bot_1_nuoc",
+        "quantity": 2.0,
+        "unit": "chén",
+        "optional": false,
+        "note": "Theo nguồn: 2 chén nước (tỉ lệ pha bột là 1 bột:1 nước)"
+      },
+      {
+        "name": "150 g tôm đất (bỏ đầu, chỉ lưng, để vỏ và đuôi)",
+        "normalized_name": "150_g_tom_dat_bo_dau_chi_lung_de_vo_va_duoi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "thịt ba chỉ thái miếng nhỏ",
+        "normalized_name": "thit_ba_chi_thai_mieng_nho",
+        "quantity": 100.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 100 g thịt ba chỉ thái miếng nhỏ"
+      },
+      {
+        "name": "Gia vị nêm nếm: nước mắm, muối, đường, hạt nêm",
+        "normalized_name": "gia_vi_nem_nem_nuoc_mam_muoi_duong_hat_nem",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Dầu ăn , dầu điều , lá chuối",
+        "normalized_name": "dau_an_dau_dieu_la_chuoi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Hành tím dùng ướp nhân",
+        "normalized_name": "hanh_tim_dung_uop_nhan",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Chuẩn bị lá chuối: lau sạch, xé cỡ 15 cm chiều ngang, xé khoảng 25 sợi dây bằng lá chuối để cột bánh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Làm phần nhân trước: ướp thịt ba chỉ với tí muối, ít nước mắm, hạt nêm, đường, hành tím. Tôm cũng ướp như thịt ba chỉ (ướp tôm riêng, thịt riêng). Cho thịt ba chỉ vào trước, thịt săn lại thì cho tôm vào vì tôm chín rất nhanh, nêm nếm lại vừa ăn, cho 2 muỗng cà phê dầu điều vào, tắt bếp.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Phần vỏ bánh: cho 2 chén bột năng, 2 chén nước, 1/2 muỗng cà phê muối và 2 muỗng canh dầu ăn vào nồi (phần dầu ăn rất quan trọng, nếu không có dầu dầu ăn thì khi gói bánh rất khó, sẽ bị dính) khuấy đều cho tan bột, bắc lên bếp để lửa nhỏ (số 3 hoặc 4) quậy đều tay, đến khi thấy hơi nặng tay thì nhấc ra khỏi bếp, quậy thêm vài vòng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Gói bánh: trải miếng lá lên thớt, dùng cọ phết tí dầu ăn lên mặt lá, múc 1 muỗng bột vào, cứ lấy cái muỗng nhựa xới cơm múc tí bột vào, lúc thì nhiều lúc thì ít, để lần sau phải dùng 1 muỗng canh múc chắc là đều hơn, dàn đều bột ra, cho 1 con tôm và 1 miếng thịt vào chính giữa, gấp phần rìa bột vào đậy kín tôm và thịt. Gấp 2 mí miếng lá chuối 2 bên lại, sau đó gập 2 đầu lại. Cứ 2 cái bánh thì dùng dây lá chuối cột lại cho chặt.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Hấp bánh: khoảng 15 phút là bánh chín, để bánh nguội khoảng 3 giờ ăn ngon hơn.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_bot_loc"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_bột_lọc_Huế",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_bột_lọc_Huế?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_bột_lọc_Huế&oldid=241488",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_banh_canh_ca",
+    "title": "Bánh canh cá",
+    "normalized_dish": "banh_canh",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "file cá basa (nếu mua được cá lóc thì càng ngon)",
+        "normalized_name": "file_ca_basa_neu_mua_duoc_ca_loc_thi_cang_ngon",
+        "quantity": 250.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 250 g file cá basa (nếu mua được cá lóc thì càng ngon)"
+      },
+      {
+        "name": "Bánh canh bột gạo",
+        "normalized_name": "banh_canh_bot_gao",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "xương heo",
+        "normalized_name": "xuong_heo",
+        "quantity": 500.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 500 g xương heo"
+      },
+      {
+        "name": "hành tây",
+        "normalized_name": "hanh_tay",
+        "quantity": 1.0,
+        "unit": "củ",
+        "optional": false,
+        "note": "Theo nguồn: 1 củ hành tây"
+      },
+      {
+        "name": "Hành lá , hành tím",
+        "normalized_name": "hanh_la_hanh_tim",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Hành ngò",
+        "normalized_name": "hanh_ngo",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Gia vị nêm nếm: nước mắm ngon, muối , hạt nêm từ thịt, hạt tiêu",
+        "normalized_name": "gia_vi_nem_nem_nuoc_mam_ngon_muoi_hat_nem_tu_thit_hat_tieu",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Dầu ăn và đường phèn theo bước làm",
+        "normalized_name": "dau_an_va_duong_phen_theo_buoc_lam",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Xương heo trần qua nước sôi cho sạch, rồi cho củ hành tây vào hầm chung, khoảng 45 phút (hầm xương nhớ nêm tí muối và cục đường phèn và vớt bọc thường xuyên) rồi vớt xương ra.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Cá rã đông, dùng giấy thấm hết nước từng miếng cá, cắt khúc, ướp cá với đầu hành tím, tiêu, ít muối, hạt nêm từ thịt khoảng 10 phút.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Cho tí dầu vào chảo, xào sơ cá, nêm nếm lại với nước mắm, tí đường cho vừa ăn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Cá xào xong cho vô nồi nước hầm xương nấu sôi lại, nêm khoảng 1/2 muỗng cà phê nước mắm ngon cho đậm đà (nấu nước dùng không nên nêm nước nắm nhiều sẽ làm nồi nước chua).",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Bánh canh cho vào nồi nước sôi (nhớ bỏ tí dầu để bánh canh không bị dính) luộc chín, vớt ra xả lại nước lạnh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Dùng nước luộc bánh canh cho khoảng 1/2 đến 1 chén vào nồi nước dùng để tạo độ sánh cho nước dùng, nêm nếm lại vừa miệng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Bỏ bánh canh vào tô, trên để cá, rắc hành ngò, chan nước dùng vào thế là măm măm được rồi.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_canh"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_canh_cá",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_canh_cá?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_canh_cá&oldid=243943",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_banh_canh_cua",
+    "title": "Bánh canh cua",
+    "normalized_dish": "banh_canh",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "xương",
+        "normalized_name": "xuong",
+        "quantity": 500.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 500 g xương"
+      },
+      {
+        "name": "2 hộp Flusskrebs (khoảng 300 g) (nếu mua được cua tươi thì càng tốt)",
+        "normalized_name": "2_hop_flusskrebs_khoang_300_g_neu_mua_duoc_cua_tuoi_thi_cang_tot",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "2 hộp tôm (khoảng 250 g)",
+        "normalized_name": "2_hop_tom_khoang_250_g",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "nấm rơm : 1 hộp hoặc 200 g nấm tươi",
+        "normalized_name": "nam_rom_1_hop_hoac_200_g_nam_tuoi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "hột điều",
+        "normalized_name": "hot_dieu",
+        "quantity": 30.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 30 g hột điều"
+      },
+      {
+        "name": "Hành tím",
+        "normalized_name": "hanh_tim",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "hành tây",
+        "normalized_name": "hanh_tay",
+        "quantity": 2.0,
+        "unit": "củ",
+        "optional": false,
+        "note": "Theo nguồn: 2 củ hành tây"
+      },
+      {
+        "name": "bột năng",
+        "normalized_name": "bot_nang",
+        "quantity": 1.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 muỗng canh bột năng"
+      },
+      {
+        "name": "Bánh canh : 400 g",
+        "normalized_name": "banh_canh_400_g",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Gia vị nêm nếm: muối , tiêu , đường , hạt nêm từ thịt",
+        "normalized_name": "gia_vi_nem_nem_muoi_tieu_duong_hat_nem_tu_thit",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Dầu ăn, nước mắm và hành lá theo bước làm",
+        "normalized_name": "dau_an_nuoc_mam_va_hanh_la_theo_buoc_lam",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "1 củ hành tây nướng sơ rồi cho vào nồi nước dùng nấu chung với xương cho thơm.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Xương heo trần qua nước sôi cho sạch, cho nhúm muối vào hầm khoảng 45-60 phút, vớt xương ra.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Tôm bằm nhỏ, nêm tí muối, đường, hạt nêm, tiêu.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Hột điều đỏ: 4 muỗng canh dầu phi vừa nóng cho hột điều vào đảo nhanh tay nhắc xuống, rây bỏ hột.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Trong 1 chảo nóng, xào ½ củ hành tây cho thơm rồi cho thịt cua với 2 muỗng dầu điều vào xào sơ lửa nhỏ, đảo nhẹ tay.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Hòa ½ chén nước lạnh với 1 muỗng bột năng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Nồi nước dùng sôi lại, múc từng muỗng chả tôm bỏ vào nồi nước dùng. Chả tôm nổi lên vớt ra để ra dĩa.",
+        "duration_minutes": null
+      },
+      {
+        "step": 8,
+        "text": "Cho nấm rơm và màu điều vào, múc từng muỗng bột năng vào nồi nước dùng, khi nào thấy nước hơi sánh thì đừng. Nêm nếm muối, hạt nêm, nước mắm lại lần nữa cho vừa ăn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 9,
+        "text": "Cho bánh canh ra tô với cua thịt và chả tôm.",
+        "duration_minutes": null
+      },
+      {
+        "step": 10,
+        "text": "Chế nước lèo ngập mặt tô bánh canh. Rắc hành lá, hành tây lên rồi măm măm thôi.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_canh"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_canh_cua",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_canh_cua?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_canh_cua&oldid=243158",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_banh_chung_goi_la_chuoi",
+    "title": "Bánh chưng gói lá chuối",
+    "normalized_dish": "banh_chung",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "1½ cup đậu xanh đã rửa và ngâm ít nhất 4 giờ hoặc qua đêm",
+        "normalized_name": "1_cup_dau_xanh_da_rua_va_ngam_it_nhat_4_gio_hoac_qua_dem",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "5½ cup gạo nếp đã rửa, ngâm ít nhất 4 giờ hoặc qua đêm và nêm muối",
+        "normalized_name": "5_cup_gao_nep_da_rua_ngam_it_nhat_4_gio_hoac_qua_dem_va_nem_muoi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "thịt ba chỉ",
+        "normalized_name": "thit_ba_chi",
+        "quantity": 500.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 500 g thịt ba chỉ"
+      },
+      {
+        "name": "2½ thìa cà phê muối",
+        "normalized_name": "2_thia_ca_phe_muoi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "2½ thìa cà phê tiêu đen",
+        "normalized_name": "2_thia_ca_phe_tieu_den",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "hành phi",
+        "normalized_name": "hanh_phi",
+        "quantity": 3.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 3 thìa canh hành phi"
+      },
+      {
+        "name": "dầu thực vật",
+        "normalized_name": "dau_thuc_vat",
+        "quantity": 1.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 thìa canh dầu thực vật"
+      },
+      {
+        "name": "hành tím băm",
+        "normalized_name": "hanh_tim_bam",
+        "quantity": 3.0,
+        "unit": "củ",
+        "optional": false,
+        "note": "Theo nguồn: 3 củ hành tím băm"
+      },
+      {
+        "name": "nước mắm",
+        "normalized_name": "nuoc_mam",
+        "quantity": 2.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 2 thìa canh nước mắm"
+      },
+      {
+        "name": "1 kg lá chuối tươi hoặc đã rã đông",
+        "normalized_name": "1_kg_la_chuoi_tuoi_hoac_da_ra_dong",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Bột nêm theo bước làm của nguồn; không có định lượng",
+        "normalized_name": "bot_nem_theo_buoc_lam_cua_nguon_khong_co_dinh_luong",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Cho đậu xanh đã ngâm vào nồi, thêm nước ngập. Đun sôi rồi hạ lửa, nấu khoảng 20 phút đến khi đậu mềm, nghiền được.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Nghiền đậu, trộn 1 thìa cà phê muối, bột nêm, hành phi, 1 thìa cà phê tiêu và dầu.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Thái thịt cả nạc lẫn mỡ thành miếng lớn, trộn ½ thìa cà phê muối, 1½ thìa cà phê tiêu, hành tím và nước mắm; ướp vài giờ.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Dàn khoảng một cup đậu nghiền trên màng mỏng, đặt thịt vào và nắn nhân thành khối.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Xé lá chuối thành miếng lớn khoảng 18–20 inch. Xếp hai lá chồng một phần, cho một cup nếp vào giữa, thêm nhân và phủ một cup nếp nữa.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Gấp lá kín và gói hai lớp; lớp trong để mặt sẫm hướng vào gạo, lớp ngoài mặt sẫm quay ra ngoài. Buộc chặt bằng dây.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Xếp bánh khít trong nồi lớn, đổ nước ngập, đun sôi rồi luộc liu riu khoảng 6–8 giờ đến khi nếp kết dính và bánh căng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 8,
+        "text": "Tháo dây, bóc lá và dùng sợi dây sạch để cắt bánh. Có thể ăn cùng dưa hành hoặc dưa món.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_chung"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://en.wikibooks.org/wiki/Cookbook:Bánh_chưng",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://en.wikibooks.org/wiki/Cookbook:Bánh_chưng?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Bánh_chưng&oldid=4632245",
+      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_banh_duc_nong",
+    "title": "Bánh đúc nóng",
+    "normalized_dish": "banh_duc",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "200 g Bột gạo hoặc bột nếp",
+        "normalized_name": "200_g_bot_gao_hoac_bot_nep",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Nước lọc",
+        "normalized_name": "nuoc_loc",
+        "quantity": 500.0,
+        "unit": "ml",
+        "optional": false,
+        "note": "Theo nguồn: 500 ml Nước lọc"
+      },
+      {
+        "name": "Thịt heo băm",
+        "normalized_name": "thit_heo_bam",
+        "quantity": 100.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 100 g Thịt heo băm"
+      },
+      {
+        "name": "Hành phi",
+        "normalized_name": "hanh_phi",
+        "quantity": 1.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 muỗng canh Hành phi"
+      },
+      {
+        "name": "Muối",
+        "normalized_name": "muoi",
+        "quantity": 0.5,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 1/2 muỗng cà phê Muối"
+      },
+      {
+        "name": "Nước mắm",
+        "normalized_name": "nuoc_mam",
+        "quantity": 1.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 muỗng canh Nước mắm"
+      },
+      {
+        "name": "1 ít tiêu, rau thơm",
+        "normalized_name": "1_it_tieu_rau_thom",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Trộn bột gạo với nước và một nhúm muối, khuấy đều cho bột mịn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Đun bột trên lửa nhỏ, khuấy đều đến khi sánh mịn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Thêm thịt băm đã xào chín, rắc hành phi và tiêu.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Đổ ra bát, rưới nước mắm pha chua ngọt, ăn nóng với rau thơm.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_duc"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_đúc_nóng",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_đúc_nóng?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_đúc_nóng&oldid=538652",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_banh_mi_nhan_tuy_chon_va_do_chua",
+    "title": "Bánh mì nhân tùy chọn và đồ chua",
+    "normalized_dish": "banh_mi",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "bánh mì baguette",
+        "normalized_name": "banh_mi_baguette",
+        "quantity": 1.0,
+        "unit": "ổ",
+        "optional": false,
+        "note": "Theo nguồn: 1 ổ bánh mì baguette"
+      },
+      {
+        "name": "Cà rốt và củ cải trắng thái sợi",
+        "normalized_name": "ca_rot_va_cu_cai_trang_thai_soi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Muối, nước, giấm dừa hoặc giấm trắng, đường",
+        "normalized_name": "muoi_nuoc_giam_dua_hoac_giam_trang_duong",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Rau mùi, ớt thái mỏng, dưa leo",
+        "normalized_name": "rau_mui_ot_thai_mong_dua_leo",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Nhân chín tùy chọn: thịt heo nướng, gà nướng, pa-tê, giò hoặc đậu phụ đã nêm",
+        "normalized_name": "nhan_chin_tuy_chon_thit_heo_nuong_ga_nuong_pa_te_gio_hoac_dau_phu_da_nem",
+        "quantity": null,
+        "unit": null,
+        "optional": true,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Xốt mayonnaise hoặc xốt tùy chọn trong nguồn",
+        "normalized_name": "xot_mayonnaise_hoac_xot_tuy_chon_trong_nguon",
+        "quantity": null,
+        "unit": null,
+        "optional": true,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Rắc muối nhẹ lên cà rốt và củ cải; để 5 phút rồi rửa nước lạnh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Trộn nước, giấm và đường theo các phần bằng nhau như nguồn; đun sôi, để nguội rồi đổ vào rau. Giữ trong hộp ở tủ lạnh ít nhất một ngày trước khi dùng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Rạch dọc bánh mì, ép nhẹ hoặc bỏ bớt ruột để có chỗ cho nhân. Có thể nướng giòn bánh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Phết xốt đã chọn lên hai mặt trong; thêm nhân đã nấu chín, đồ chua và rau rồi dùng.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_mi"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://en.wikibooks.org/wiki/Cookbook:Bánh_Mì",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://en.wikibooks.org/wiki/Cookbook:Bánh_Mì?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Bánh_Mì&oldid=4605959",
+      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_banh_tet_ngu_sac",
+    "title": "Bánh tét ngũ sắc",
+    "normalized_dish": "banh_tet",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "đậu xanh cà loại bở",
+        "normalized_name": "dau_xanh_ca_loai_bo",
+        "quantity": 600.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 600 g đậu xanh cà loại bở"
+      },
+      {
+        "name": "gấc chín đỏ",
+        "normalized_name": "gac_chin_do",
+        "quantity": 1.0,
+        "unit": "trái",
+        "optional": false,
+        "note": "Theo nguồn: 1 trái gấc chín đỏ"
+      },
+      {
+        "name": "nếp ngon",
+        "normalized_name": "nep_ngon",
+        "quantity": 4.0,
+        "unit": "l",
+        "optional": false,
+        "note": "Theo nguồn: 4 lít nếp ngon"
+      },
+      {
+        "name": "rượu trắng",
+        "normalized_name": "ruou_trang",
+        "quantity": 0.5,
+        "unit": "chén",
+        "optional": false,
+        "note": "Theo nguồn: 1/2 chén rượu trắng"
+      },
+      {
+        "name": "1 xấp lá chuối",
+        "normalized_name": "1_xap_la_chuoi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "1 bó lá dứa , 1 bó lá cẩm",
+        "normalized_name": "1_bo_la_dua_1_bo_la_cam",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Màu xanh lá hồng, cam, vàng",
+        "normalized_name": "mau_xanh_la_hong_cam_vang",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "muối bọt",
+        "normalized_name": "muoi_bot",
+        "quantity": 5.0,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 5 muỗng cà phê muối bọt"
+      },
+      {
+        "name": "dứa chín",
+        "normalized_name": "dua_chin",
+        "quantity": 1.0,
+        "unit": "trái",
+        "optional": false,
+        "note": "Theo nguồn: 1 trái dứa chín"
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Nếp vo sạch ngâm với nước lạnh và nước dứa độ vài giờ. Đổ ra để ráo, chia làm 4 phần.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Đậu xanh ngâm nước vài giờ, đãi vỏ sạch. Cho đậu vào nồi, đổ nước sâm sấp mặt và 1 muỗng cà phê muối vào. Bắc nồi đậu lên bếp nấu lửa vừa, hớt bọt.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Khi gần cạn, bớt lửa nhỏ, cho màu vàng vào khuấy liền tay cho đến khi nước khô. Đem xuống để nguội, xay hoặc tán nhuyễn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Gấc bỏ vỏ, tách múi cho vào thau, cho rượu trắng vào gấc trộn đều để 1/2 giờ. Dùng muỗng đánh tan cơm gấc, bỏ hột. Trộn vào gấc ít màu cam và muối, rồi trộn vào 1 lít nếp.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Lá dứa và lá cẩm rửa sạch, để ráo, giã nhỏ vắt lấy nước. Cho thêm màu xanh vào lá dứa và màu hồng vào lá cẩm. Trộn mỗi thứ vào 1 lít nếp và 1 thìa cà phê muối.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Bắc chảo lên bếp, cho từng thứ nước vào đun sôi, cho nếp vào xào đều, khi nếp đổ nhựa, cạn nước là được.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Lá chuối cắt từng miếng cạnh độ 40 cm. Xếp 2 miếng ngang 2 miếng dọc, bề mặt úp xuống để gói 2 bánh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 8,
+        "text": "Mỗi thứ xôi chia làm 4 phần, cho 1/4 mỗi thứ xôi vào lá. Xếp dài xen kẽ: xôi trắng, xôi lá cẩm, xôi lá dứa, xôi gấc và xôi đậu xanh. Cuộn tròn lại dùng dây cột chặt.",
+        "duration_minutes": null
+      },
+      {
+        "step": 9,
+        "text": "Cho bánh vào nồi nước sôi nấu độ 4-5 giờ. Vớt bánh ra để nguội.",
+        "duration_minutes": null
+      },
+      {
+        "step": 10,
+        "text": "Có thể thêm vào nước cốt dừa nhưng bánh sẽ không để được lâu.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "banh_tet"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_tét_ngũ_sắc",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_tét_ngũ_sắc?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_tét_ngũ_sắc&oldid=243121",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_bun_bo_hue",
+    "title": "Bún bò Huế",
+    "normalized_dish": "bun_bo_hue",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "xương bò chặt khúc",
+        "normalized_name": "xuong_bo_chat_khuc",
+        "quantity": 1.0,
+        "unit": "kg",
+        "optional": false,
+        "note": "Theo nguồn: 1 kg xương bò chặt khúc"
+      },
+      {
+        "name": "giò heo trước",
+        "normalized_name": "gio_heo_truoc",
+        "quantity": 1.0,
+        "unit": "cái",
+        "optional": false,
+        "note": "Theo nguồn: 1 cái giò heo trước"
+      },
+      {
+        "name": "sả",
+        "normalized_name": "sa",
+        "quantity": 1.0,
+        "unit": "bó",
+        "optional": false,
+        "note": "Theo nguồn: 1 bó sả"
+      },
+      {
+        "name": "thịt bò nạm",
+        "normalized_name": "thit_bo_nam",
+        "quantity": 0.5,
+        "unit": "kg",
+        "optional": false,
+        "note": "Theo nguồn: 1/2 kg thịt bò nạm"
+      },
+      {
+        "name": "nước",
+        "normalized_name": "nuoc",
+        "quantity": 3.0,
+        "unit": "l",
+        "optional": false,
+        "note": "Theo nguồn: 3 lít nước"
+      },
+      {
+        "name": "muối",
+        "normalized_name": "muoi",
+        "quantity": 0.5,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 1/2 muỗng cà phê muối"
+      },
+      {
+        "name": "1 cây chả lụa",
+        "normalized_name": "1_cay_cha_lua",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "mắm ruốc",
+        "normalized_name": "mam_ruoc",
+        "quantity": 2.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 2 muỗng canh mắm ruốc"
+      },
+      {
+        "name": "hành tây",
+        "normalized_name": "hanh_tay",
+        "quantity": 2.0,
+        "unit": "củ",
+        "optional": false,
+        "note": "Theo nguồn: 2 củ hành tây"
+      },
+      {
+        "name": "ớt bột",
+        "normalized_name": "ot_bot",
+        "quantity": 1.0,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 muỗng cà phê ớt bột"
+      },
+      {
+        "name": "bột hột điều",
+        "normalized_name": "bot_hot_dieu",
+        "quantity": 1.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 muỗng canh bột hột điều"
+      },
+      {
+        "name": "nhỏ hành lá",
+        "normalized_name": "nho_hanh_la",
+        "quantity": 1.0,
+        "unit": "bó",
+        "optional": false,
+        "note": "Theo nguồn: 1 bó nhỏ hành lá"
+      },
+      {
+        "name": "ngò gai",
+        "normalized_name": "ngo_gai",
+        "quantity": 1.0,
+        "unit": "bó",
+        "optional": false,
+        "note": "Theo nguồn: 1 bó ngò gai"
+      },
+      {
+        "name": "rau quế",
+        "normalized_name": "rau_que",
+        "quantity": 1.0,
+        "unit": "bó",
+        "optional": false,
+        "note": "Theo nguồn: 1 bó rau quế"
+      },
+      {
+        "name": "1 bắp chuối",
+        "normalized_name": "1_bap_chuoi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Giá , chanh",
+        "normalized_name": "gia_chanh",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "bún lớn",
+        "normalized_name": "bun_lon",
+        "quantity": 1.0,
+        "unit": "gói",
+        "optional": false,
+        "note": "Theo nguồn: 1 gói bún lớn"
+      },
+      {
+        "name": "rau muống",
+        "normalized_name": "rau_muong",
+        "quantity": 1.0,
+        "unit": "bó",
+        "optional": false,
+        "note": "Theo nguồn: 1 bó rau muống"
+      },
+      {
+        "name": "Dầu ăn, đường, nước mắm, tía tô, húng lủi và ớt theo bước làm",
+        "normalized_name": "dau_an_duong_nuoc_mam_tia_to_hung_lui_va_ot_theo_buoc_lam",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Bắt nồi nước lên bếp nấu cho sôi, rồi thả xương, giò heo, thịt nạm, 2/3 bó sả, muối vào. Chờ đến khi nước sôi trở lại thì hớt bọt cho kỹ để tránh làm hôi nước lèo. Sau khi vớt hết bọt, vặn lửa nhỏ lại, để lửa riu riu hầm cho thịt chín. Nhớ canh thịt đừng để rục không ngon, thịt giò heo chín trước, vớt ra ngâm vô thau nước và 1/2 muỗng cà phê muối ngâm để thịt không bị đen. Kế đến thịt nạm chín cũng vớt ra và ngâm vào thau nước muối.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Hầm tiếp xương đuôi bò cho chín tới, vớt sả ra bỏ rồi nêm mắm ruốc lượt qua rây, 1 muỗng cà phê đường, 2 muỗng súp nước mắm, nêm cho vừa ăn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Bún đem luộc chín để ráo.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Bắt chảo dầu nóng, cho 1/3 sả còn lại bầm nhuyển vào xào cho thơm, kế cho ớt bột, bột hột điều vào xào rồi đổ qua rây vào soong nước lèo, 1/2 hành xắt nhuyển và 1/3 ngò gai xắt nhuyển vào.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Củ hành xắt khoanh mỏng, 1/2 hành lá còn lại cũng xắt nhuyễn. Thịt giò heo và thịt nạm vớt ra cho ráo nước rồi cho vào nồi nước lèo. Khi nào gần ăn thì vớt ra xắt mỏng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Chả lụa xắt lát mỏng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Bắp chuối xắt nhuyễn ngâm vào thau nước có pha nước chanh để được trắng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 8,
+        "text": "Rau muống cọng bào nhuyển ngâm vào thau nước rửa sạch.",
+        "duration_minutes": null
+      },
+      {
+        "step": 9,
+        "text": "Rau quế, tía tô, húng lủi, giá rửa sạch để ráo.",
+        "duration_minutes": null
+      },
+      {
+        "step": 10,
+        "text": "Chanh xắt miếng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 11,
+        "text": "Ớt xắt lát.",
+        "duration_minutes": null
+      },
+      {
+        "step": 12,
+        "text": "Để bún ra tô, trên để vài lát thịt giò heo, thịt nạm, chả lụa, hành lá, hành củ. Chế nước lèo đang sôi lên trên mặt cho ngập bún. Ăn kèm với giá, rau quế, chanh, bắp chuối, rau muống chẻ. Nếu cần ăn cay thì cho thêm ớt chèo.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "bun_bo_hue"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_bò_Huế",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_bò_Huế?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bún_bò_Huế&oldid=394104",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_bun_dau_mam_tom",
+    "title": "Bún đậu mắm tôm",
+    "normalized_dish": "bun_dau_mam_tom",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "đậu phụ",
+        "normalized_name": "dau_phu",
+        "quantity": 4.0,
+        "unit": "bìa",
+        "optional": false,
+        "note": "Theo nguồn: 4 bìa đậu phụ"
+      },
+      {
+        "name": "thịt chân giò (có thể thay thế bằng thịt ba chỉ )",
+        "normalized_name": "thit_chan_gio_co_the_thay_the_bang_thit_ba_chi",
+        "quantity": 500.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 500 gram thịt chân giò (có thể thay thế bằng thịt ba chỉ )"
+      },
+      {
+        "name": "chả cốm",
+        "normalized_name": "cha_com",
+        "quantity": 300.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 300 gram chả cốm"
+      },
+      {
+        "name": "1,2 kilogram bún lá",
+        "normalized_name": "1_2_kilogram_bun_la",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Rau thơm",
+        "normalized_name": "rau_thom",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "1 bát mắm tôm",
+        "normalized_name": "1_bat_mam_tom",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Rượu nếp cái hoa vàng",
+        "normalized_name": "ruou_nep_cai_hoa_vang",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "đường",
+        "normalized_name": "duong",
+        "quantity": 2.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 2 muỗng canh đường"
+      },
+      {
+        "name": "nước cốt chanh (có thể sử dụng nước tắc)",
+        "normalized_name": "nuoc_cot_chanh_co_the_su_dung_nuoc_tac",
+        "quantity": 2.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 2 muỗng canh nước cốt chanh (có thể sử dụng nước tắc)"
+      },
+      {
+        "name": "ớt bỏ hạt băm nhỏ",
+        "normalized_name": "ot_bo_hat_bam_nho",
+        "quantity": 1.0,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 muỗng cà phê ớt bỏ hạt băm nhỏ"
+      },
+      {
+        "name": "tỏi băm",
+        "normalized_name": "toi_bam",
+        "quantity": 1.0,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 muỗng cà phê tỏi băm"
+      },
+      {
+        "name": "Dầu ăn, gừng, hành khô, muối, hạt nêm và tiêu theo bước làm",
+        "normalized_name": "dau_an_gung_hanh_kho_muoi_hat_nem_va_tieu_theo_buoc_lam",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Thịt chân giò mua về được rửa sạch, để ráo, có thể ướp chút hạt tiêu và bột nêm, sau đó cho vào nồi nước cùng với một ít muối, gừng đập dập, vớt ra và rừa sạch lại.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Cho thịt chân giò vào nồi nước đủ ngập giò, thêm muối, hạt nêm đập dập và hành khô, đun sôi. Khi đã sôi thì hạ nhỏ lửa, vớt bọt để luộc chín thịt heo. Dùng tăm chọc sau 20 phút để kiểm tra, nếu không thấy nước thịt chảy ra nghĩa là thịt đã chín.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Vớt chân giò ra, sau đó để vào tô nước lạnh cho săn chắc lại, dùng dao sắc thịt chân giò ra thành nhiều miếng nhỏ.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Đậu phụ ngâm vào nước muối pha loãng, cho vào ngăn đá để tạo khối, sau đó cắt ra thành miếng vừa ăn. Cho chảo lên bếp đun cho thật nóng, sau đó cho dầu ăn và rán đậu. Khi đậu đã chín thì vớt ra.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Đun nóng dầu ăn thêm một lần nữa trong chảo, cho chả cốm vào rán, sau đó vớt ra, để nguội.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Rau thơm ăn kèm rửa sạch bằng nước muối loãng, để ráo.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Cho mắm tôm vào bát, thêm đường, rượu và nước cốt chanh rồi dùng đũa khuấy thật đều đến khi sủi bọt. Nêm nếm mắm tôm cho vừa ăn. Sau đó, thêm tỏi, ớt bỏ hạt băm nhỏ vào trong bát mắm tôm nếu thích.",
+        "duration_minutes": null
+      },
+      {
+        "step": 8,
+        "text": "Lót một miếng lá chuối trong một cái mẹt, bày lần lượt đậu phụ, thịt, chả cốm, bún lá sắp xếp cho thật đầy đủ và chấm cùng mắm tôm.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "bun_dau_mam_tom"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_đậu_mắm_tôm",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_đậu_mắm_tôm?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bún_đậu_mắm_tôm&oldid=336570",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_bun_mam",
+    "title": "Bún mắm",
+    "normalized_dish": "bun_mam",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Mắm cá linh 150 gr",
+        "normalized_name": "mam_ca_linh_150_gr",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Tôm tươi 200 gr",
+        "normalized_name": "tom_tuoi_200_gr",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Mực ống 1 con",
+        "normalized_name": "muc_ong_1_con",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Sườn heo 200 gr",
+        "normalized_name": "suon_heo_200_gr",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Sả 2 cây, ớt 2 trái, cà tím 1 trái",
+        "normalized_name": "sa_2_cay_ot_2_trai_ca_tim_1_trai",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Thịt heo quay 200 gr",
+        "normalized_name": "thit_heo_quay_200_gr",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Đường trắng 2 gr, hạt nêm 2 muỗng cà phê, muối 1 muỗng cà phê, dầu ăn 5 ml",
+        "normalized_name": "duong_trang_2_gr_hat_nem_2_muong_ca_phe_muoi_1_muong_ca_phe_dau_an_5_ml",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Bún tươi 1 kg",
+        "normalized_name": "bun_tuoi_1_kg",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Ngò rí 100 gr, hành lá 100 gr",
+        "normalized_name": "ngo_ri_100_gr_hanh_la_100_gr",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Nước nấu mắm 200 ml và nước hầm sườn 500 ml theo bước làm",
+        "normalized_name": "nuoc_nau_mam_200_ml_va_nuoc_ham_suon_500_ml_theo_buoc_lam",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Mực làm sạch, cắt thành khoanh tròn. Ớt, rau ngò rí, hành lá rửa sạch, cắt nhỏ.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Tôm rửa sạch, cắt bỏ râu và đầu tôm.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Sả đập dập, cắt nhỏ còn cà tím cắt khúc dài vừa ăn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Sườn heo rửa sạch, chặt khúc.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Dùng một nồi nhỏ nấu sôi 200 ml nước, khi nước sôi, cho mắm cá linh vào, nấu đến khi mắm cá dẻo, mềm là được.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Sau đó, múc nước mắm cá ra, lọc qua rây, bỏ phần xác chỉ lấy phần nước.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Nước sôi cho mắm cá linh vào nấu đến khi dẻo mềm",
+        "duration_minutes": null
+      },
+      {
+        "step": 8,
+        "text": "Đặt một nồi khác lên bếp cho 500 ml nước và sườn heo vào nồi, nấu sôi khoảng 20 phút.",
+        "duration_minutes": null
+      },
+      {
+        "step": 9,
+        "text": "Phi thơm sả với dầu ăn trong chảo, cho cà tím vào xào 3 phút.",
+        "duration_minutes": null
+      },
+      {
+        "step": 10,
+        "text": "Tiếp theo, cho cà tím đã xào, ớt, nước mắm cá linh vào nồi sườn heo nấu cùng. Nêm gia vị 1 muỗng cà phê muối, 2 muỗng cà phê hạt nêm, 2 muỗng canh đường trắng sao cho vừa ăn, nấu thêm khoảng 10 phút.",
+        "duration_minutes": null
+      },
+      {
+        "step": 11,
+        "text": "Thịt heo quay cắt miếng nhỏ, vừa ăn. Tôm, mực ống đem luộc chín. Khi tôm chín sẽ chuyển sang màu hồng cam và cong lại.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "bun_mam"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_mắm",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_mắm?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bún_mắm&oldid=227890",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_bun_rieu_cua",
+    "title": "Bún riêu cua",
+    "normalized_dish": "bun_rieu",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Xương heo (khoảng 800 g)",
+        "normalized_name": "xuong_heo_khoang_800_g",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "1 hộp cua đồng (160 g)",
+        "normalized_name": "1_hop_cua_dong_160_g",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Cà chua : 2-3 quả cắt múi cau",
+        "normalized_name": "ca_chua_2_3_qua_cat_mui_cau",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Trứng : 1 cái",
+        "normalized_name": "trung_1_cai",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Đậu hũ : 2 cái",
+        "normalized_name": "dau_hu_2_cai",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Hột điều màu",
+        "normalized_name": "hot_dieu_mau",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Bún 1 bịch",
+        "normalized_name": "bun_1_bich",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Mắm tôm",
+        "normalized_name": "mam_tom",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Hành lá",
+        "normalized_name": "hanh_la",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Rau sống các loại (rau muống chẻ , xà lách , tía tô , canh giới …)",
+        "normalized_name": "rau_song_cac_loai_rau_muong_che_xa_lach_tia_to_canh_gioi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Gia vị nêm nếm và dầu chiên theo bước làm",
+        "normalized_name": "gia_vi_nem_nem_va_dau_chien_theo_buoc_lam",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Xương heo hầm lấy nước ngọt.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Đậu hủ cắt miếng, chiên vàng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Cà chua 1 phân nữa xào cho ra màu.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Hạt màu điều xào lấy màu.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Trứng đánh tan trộn với hộp cua",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Bún luộc, xã nước lạnh, để ráo.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Nồi nước dùng sôi, đổ hỗn hợp trứng và cua vào, đợi nước sôi vặn nhỏ lửa, riêu chín nổi lên mặt nước.",
+        "duration_minutes": null
+      },
+      {
+        "step": 8,
+        "text": "Đổ dầu màu điều và cà chua đã xào vào nồi riêu.",
+        "duration_minutes": null
+      },
+      {
+        "step": 9,
+        "text": "Phân nữa cà chua còn lại và đậu hũ đổ vào nồi riêu.",
+        "duration_minutes": null
+      },
+      {
+        "step": 10,
+        "text": "Nêm nếm lại vừa ăn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 11,
+        "text": "Bỏ bún vào tô, múc nước riêu cua, cà chua, đậu hũ vào tô.",
+        "duration_minutes": null
+      },
+      {
+        "step": 12,
+        "text": "Rắc hành lá lên.",
+        "duration_minutes": null
+      },
+      {
+        "step": 13,
+        "text": "Ăn kèm với các loại rau muống, canh giới, tía tô, sà lách, mắm nêm, ớt.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "bun_rieu"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_riêu_cua",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_riêu_cua?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bún_riêu_cua&oldid=243272",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_ca_kho_to",
+    "title": "Cá kho tộ",
+    "normalized_dish": "ca_kho_to",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "cá lóc vừa (≈ 700 g)",
+        "normalized_name": "ca_loc_vua_700_g",
+        "quantity": 1.0,
+        "unit": "con",
+        "optional": false,
+        "note": "Theo nguồn: 1 con cá lóc vừa (≈ 700 g)"
+      },
+      {
+        "name": "Nước mắm , bột ngọt , đường , tiêu , dầu ăn , hành lá và ớt",
+        "normalized_name": "nuoc_mam_bot_ngot_duong_tieu_dau_an_hanh_la_va_ot",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Cá lóc làm sạch, để ráo, cắt khúc (nhớ lấy hết máu bầm trên xương sống cá vì phần này rất tanh).",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Ướp cá với nước mắm, bột ngọt, đường, tiêu và dầu ăn chừng 2 giờ.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Cắt ngắn phần lá, phần dọc hành tước mỏng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Ớt: Cắt lát mỏng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Cho một ít đường vào nồi, đun sôi cho đường tan hết và thành màu nâu, cho vào nồi một chút nước sôi.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Xếp cá vào nồi, cho phần nước ướp cá vào Để lửa lớn, cá sôi, trở đều hai mặt. Sau đó rút nhỏ lửa, kho cho đến khi cá cạn nước.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Chế thêm chút dầu ăn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 8,
+        "text": "Cá chín, khi dọn ra, lấy cá đặt vào tô đất có nắp đậy, chan nước cá lên, trên mặt xếp hành cắt nhỏ và dọc hành tước mỏng, ớt cắt lát, đặt lên bếp hâm nóng trở lại. Dọn chung với dưa cải chua.",
+        "duration_minutes": null
+      },
+      {
+        "step": 9,
+        "text": "Có thể dùng cá trê, cá bông lau. Tại Việt Nam cá kho tộ có rất nhiều kiểu. Theo kiểu miền Nam Việt Nam thì cá kho tộ thường kho chung với ba rọi, có thêm tép mỡ. Có rất nhiều cá mà ta có thể kho tộ trong tô đất hoặc nồi đất (cái trách) như cá lóc, rô, bông lau, kèo, lòng tong, trạch v.v. Trước hết làm như trên và rửa cá sạch (có nhiều loại cá không cần rửa), ướp mắm, đường, nước màu dừa, bột ngọt, 1 tép tỏi bầm nhuyễn, nếu thích không cần để lâu lắm, khoảng 5-10 phút là đủ.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "ca_kho_to"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Cá_kho_tộ",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Cá_kho_tộ?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Cá_kho_tộ&oldid=152283",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_canh_chua_ca_voi_mang_va_dua",
+    "title": "Canh chua cá với măng và dứa",
+    "normalized_dish": "canh_chua",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "1 con cá da trơn hoặc cá thịt trắng chắc",
+        "normalized_name": "1_con_ca_da_tron_hoac_ca_thit_trang_chac",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "2 cây hành lá: giữ phần xanh trang trí, đập phần trắng để ướp",
+        "normalized_name": "2_cay_hanh_la_giu_phan_xanh_trang_tri_dap_phan_trang_de_uop",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "nước mắm để ướp",
+        "normalized_name": "nuoc_mam_de_uop",
+        "quantity": 4.0,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 4 thìa cà phê nước mắm để ướp"
+      },
+      {
+        "name": "muối để ướp",
+        "normalized_name": "muoi_de_uop",
+        "quantity": 1.0,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 thìa cà phê muối để ướp"
+      },
+      {
+        "name": "Tiêu đen xay",
+        "normalized_name": "tieu_den_xay",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "nước",
+        "normalized_name": "nuoc",
+        "quantity": 950.0,
+        "unit": "ml",
+        "optional": false,
+        "note": "Theo nguồn: 950 ml nước"
+      },
+      {
+        "name": "muối cho canh",
+        "normalized_name": "muoi_cho_canh",
+        "quantity": 2.0,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 2 thìa cà phê muối cho canh"
+      },
+      {
+        "name": "nước mắm cho canh",
+        "normalized_name": "nuoc_mam_cho_canh",
+        "quantity": 2.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 2 thìa canh nước mắm cho canh"
+      },
+      {
+        "name": "½ cup (120 g) măng chua",
+        "normalized_name": "cup_120_g_mang_chua",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "¼ quả dứa bỏ lõi, thái lát",
+        "normalized_name": "qua_dua_bo_loi_thai_lat",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "rau mùi băm",
+        "normalized_name": "rau_mui_bam",
+        "quantity": 2.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 2 thìa canh rau mùi băm"
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Ướp cá với đầu hành đập dập, tiêu, muối và nước mắm khoảng 15 phút.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Đun nước sôi, cho măng chua và dứa vào nấu 5 phút.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Thêm cá đã ướp, nấu sôi tổng cộng 10 phút; trong lúc nấu nêm nước mắm và muối.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Rắc rau mùi và phần hành lá xanh khi dùng.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "canh_chua"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://en.wikibooks.org/wiki/Cookbook:Canh_Chua_(Vietnamese_Hot_and_Sour_Soup)",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://en.wikibooks.org/wiki/Cookbook:Canh_Chua_(Vietnamese_Hot_and_Sour_Soup)?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Canh_Chua_(Vietnamese_Hot_and_Sour_Soup)&oldid=4629675",
+      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_cao_lau_hoi_an",
+    "title": "Cao lầu Hội An",
+    "normalized_dish": "cao_lau",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "500 g thịt đùi heo hoặc ba rọi",
+        "normalized_name": "500_g_thit_dui_heo_hoac_ba_roi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "gia vị ướp xá xíu",
+        "normalized_name": "gia_vi_uop_xa_xiu",
+        "quantity": 1.0,
+        "unit": "gói",
+        "optional": false,
+        "note": "Theo nguồn: 1 gói gia vị ướp xá xíu"
+      },
+      {
+        "name": "dừa xiêm",
+        "normalized_name": "dua_xiem",
+        "quantity": 1.0,
+        "unit": "trái",
+        "optional": false,
+        "note": "Theo nguồn: 1 trái dừa xiêm"
+      },
+      {
+        "name": "500 g xương ống hoặc xương đuôi heo",
+        "normalized_name": "500_g_xuong_ong_hoac_xuong_duoi_heo",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "sợi cao lầu khô",
+        "normalized_name": "soi_cao_lau_kho",
+        "quantity": 500.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 500 g sợi cao lầu khô"
+      },
+      {
+        "name": "hoành thánh",
+        "normalized_name": "hoanh_thanh",
+        "quantity": 100.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 100 g hoành thánh"
+      },
+      {
+        "name": "giá",
+        "normalized_name": "gia",
+        "quantity": 200.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 200 g giá"
+      },
+      {
+        "name": "Rau sống ăn kèm",
+        "normalized_name": "rau_song_an_kem",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Tương ớt Hội An",
+        "normalized_name": "tuong_ot_hoi_an",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Gia vị: dầu ăn, nước mắm, muối, bột ngọt, tiêu, hành tím",
+        "normalized_name": "gia_vi_dau_an_nuoc_mam_muoi_bot_ngot_tieu_hanh_tim",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Nước hầm xương 1,5 lít, hành tây và dầu hành phi theo bước làm",
+        "normalized_name": "nuoc_ham_xuong_1_5_lit_hanh_tay_va_dau_hanh_phi_theo_buoc_lam",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Xương ống (hoặc xương đuôi) Hầm với 1,5 lít nước khoảng 30 phút, nhớ vớt bọt cho nước dùng trong rồi cho củ hành tây vô hầm chung,nêm nếm muối, nước mắm, bột ngọt, tiêu cho vừa ăn.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Sợi cao lầu ngâm nước cho nở rồi bắc nước sôi luộc chín. Luộc xong xả lại nước nguội rồi trộn với xíu dầu hành phi.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Bắc chảo với xíu dầu ăn chiên sơ thịt heo rồi cho nước ướp vô rim,cho nước dừa vô rim nhỏ lửa, thêm 1/2 muỗng cà phê muối, xíu bột ngọt. Thịt xíu vừa chín thì gắp ra. Phần nước xá xíu để chan lên cao lầu. Thịt xíu cắt lát mỏng. Miếng hoành thánh cắt làm 4 cho vô chảo dầu chiên giòn. Giá chần qua nước sôi, rau sống rửa sạch.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Cho giá,ít rau sống, cao lầu vào tô,xếp thịt xíu lên, chan 1 vá nước dùng hầm xương, 1/2 vá nước sốt xá xíu, cho thêm vài miếng hoành thánh chiên, ăn cay thì thêm 1 muỗng tương ớt Hội An nữa là thưởng thức được rồi.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "cao_lau"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Cao_lầu_Hội_An",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Cao_lầu_Hội_An?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Cao_lầu_Hội_An&oldid=243301",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_com_tam",
+    "title": "Cơm tấm",
+    "normalized_dish": "com_tam",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": 4,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "sườn cốt lết",
+        "normalized_name": "suon_cot_let",
+        "quantity": 500.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 500 g sườn cốt lết"
+      },
+      {
+        "name": "tấm ngon",
+        "normalized_name": "tam_ngon",
+        "quantity": 0.5,
+        "unit": "lon",
+        "optional": false,
+        "note": "Theo nguồn: 1/2 lon tấm ngon"
+      },
+      {
+        "name": "mỡ nước",
+        "normalized_name": "mo_nuoc",
+        "quantity": 2.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 2 muỗng canh mỡ nước"
+      },
+      {
+        "name": "mỡ hành",
+        "normalized_name": "mo_hanh",
+        "quantity": 2.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 2 muỗng canh mỡ hành"
+      },
+      {
+        "name": "đường",
+        "normalized_name": "duong",
+        "quantity": 2.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 2 muỗng canh đường"
+      },
+      {
+        "name": "muối",
+        "normalized_name": "muoi",
+        "quantity": 0.5,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 1/2 muỗng cà phê muối"
+      },
+      {
+        "name": "bột ngọt",
+        "normalized_name": "bot_ngot",
+        "quantity": 0.5,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 1/2 muỗng cà phê bột ngọt"
+      },
+      {
+        "name": "hành tỏi băm",
+        "normalized_name": "hanh_toi_bam",
+        "quantity": 1.0,
+        "unit": "tsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 muỗng cà phê hành tỏi băm"
+      },
+      {
+        "name": "Tiêu , tỏi, ớt",
+        "normalized_name": "tieu_toi_ot",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Nước mắm và đồ chua dùng kèm theo bước làm",
+        "normalized_name": "nuoc_mam_va_do_chua_dung_kem_theo_buoc_lam",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Tấm vo sạch, cho vào nồi canh nước vừa phải, nấu chín trên bếp củi.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Sườn rửa sạch, cắt mỏng khoảng 1,5 cm, ướp mỡ nước, muối, đường, bột ngọt, hành tỏi băm, tiêu, trộn đều hỗn hợp, để ít nhất 2 giờ cho thấm gia vị.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Chuẩn bị lò than cháy đỏ đều nhưng không để lửa ngọn, cho thịt lên vỉ nướng. Khi nướng, thỉnh thoảng lại tẩm gia vị vào sườn để sườn không bị khô và thấm đều.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Làm nước mắm: Bắc bếp, cho nước mắm, đường nấu khoảng 10 phút cho sánh lại, nêm nước mắm vừa mặn. Nhắc xuống để nguội, cho ớt tỏi băm vào.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Cho cơm tấm và sườn nướng vào đĩa, rưới mỡ hành lên, dọn ăn với nước mắm ớt và đồ chua (dưa leo, cà chua...). Nếu thích cay bạn có thể dùng thêm ớt, tiêu xanh đều ngon.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "com_tam"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Cơm_tấm",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Cơm_tấm?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Cơm_tấm&oldid=244215",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_goi_cuon_tom_thit",
+    "title": "Gỏi cuốn tôm thịt",
+    "normalized_dish": "goi_cuon",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "bánh tráng",
+        "normalized_name": "banh_trang",
+        "quantity": 4.0,
+        "unit": "miếng",
+        "optional": false,
+        "note": "Theo nguồn: 4 miếng bánh tráng"
+      },
+      {
+        "name": "4–8 con tôm đã nấu chín khi cuốn",
+        "normalized_name": "48_con_tom_da_nau_chin_khi_cuon",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "50 g thịt heo hoặc gà đã nấu chín",
+        "normalized_name": "50_g_thit_heo_hoac_ga_da_nau_chin",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "bún đã luộc",
+        "normalized_name": "bun_da_luoc",
+        "quantity": 50.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 50 g bún đã luộc"
+      },
+      {
+        "name": "dưa leo thái thanh",
+        "normalized_name": "dua_leo_thai_thanh",
+        "quantity": 1.0,
+        "unit": "quả",
+        "optional": false,
+        "note": "Theo nguồn: 1 quả dưa leo thái thanh"
+      },
+      {
+        "name": "xà lách",
+        "normalized_name": "xa_lach",
+        "quantity": 4.0,
+        "unit": "lá",
+        "optional": false,
+        "note": "Theo nguồn: 4 lá xà lách"
+      },
+      {
+        "name": "cải thảo bổ dọc",
+        "normalized_name": "cai_thao_bo_doc",
+        "quantity": 2.0,
+        "unit": "lá",
+        "optional": false,
+        "note": "Theo nguồn: 2 lá cải thảo bổ dọc"
+      },
+      {
+        "name": "Rau mùi, húng quế hoặc bạc hà tùy khẩu vị",
+        "normalized_name": "rau_mui_hung_que_hoac_bac_ha_tuy_khau_vi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Nước ấm",
+        "normalized_name": "nuoc_am",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Nhúng bánh tráng vào nước ấm vài giây cho ướt đều rồi lấy ra ngay.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Đặt bánh lên thớt hoặc đĩa; xếp một phần nhân gần mép bánh, dưa leo song song với mép.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Gấp mép bánh qua nhân và cuộn một vòng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Gấp hai cạnh vào để khép hai đầu, sau đó cuộn hết phần bánh còn lại.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Để cuốn nghỉ khoảng 5 phút cho bề mặt ráo hơn rồi dùng; lặp lại cho các cuốn còn lại.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "goi_cuon"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://en.wikibooks.org/wiki/Cookbook:Summer_Rolls",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://en.wikibooks.org/wiki/Cookbook:Summer_Rolls?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Summer_Rolls&oldid=4630369",
+      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_hu_tieu_nam_vang",
+    "title": "Hủ tiếu Nam Vang",
+    "normalized_dish": "hu_tieu",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "xương heo",
+        "normalized_name": "xuong_heo",
+        "quantity": 0.5,
+        "unit": "kg",
+        "optional": false,
+        "note": "Theo nguồn: 1/2 kg xương heo"
+      },
+      {
+        "name": "gan heo",
+        "normalized_name": "gan_heo",
+        "quantity": 300.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 300 g gan heo"
+      },
+      {
+        "name": "1 tim heo",
+        "normalized_name": "1_tim_heo",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "cật",
+        "normalized_name": "cat",
+        "quantity": 1.0,
+        "unit": "trái",
+        "optional": false,
+        "note": "Theo nguồn: 1 trái cật"
+      },
+      {
+        "name": "thịt xay",
+        "normalized_name": "thit_xay",
+        "quantity": 200.0,
+        "unit": "g",
+        "optional": false,
+        "note": "Theo nguồn: 200 g thịt xay"
+      },
+      {
+        "name": "Tôm khô : 1 nhúm",
+        "normalized_name": "tom_kho_1_nhum",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Tôm : 200-300 g",
+        "normalized_name": "tom_200_300_g",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Khô mực đã nướng: 1 con (loại vừa, không lớn lắm, để ngọt thịt)",
+        "normalized_name": "kho_muc_da_nuong_1_con_loai_vua_khong_lon_lam_de_ngot_thit",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Hủ tiếu dai: 1 bịch",
+        "normalized_name": "hu_tieu_dai_1_bich",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Củ cải trắng",
+        "normalized_name": "cu_cai_trang",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Rau ăn kèm: giá , hẹ , cần , xà lách",
+        "normalized_name": "rau_an_kem_gia_he_can_xa_lach",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Gia vị nêm nếm: muối , hạt nêm , tiêu",
+        "normalized_name": "gia_vi_nem_nem_muoi_hat_nem_tieu",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Đường phèn, hành tây, dầu ăn, rượu trắng, gừng và tỏi theo bước làm",
+        "normalized_name": "duong_phen_hanh_tay_dau_an_ruou_trang_gung_va_toi_theo_buoc_lam",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Có trong phần hướng dẫn của nguồn; nguồn không định lượng đầy đủ."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Tôm khô ngâm nước ấm.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Xương heo rửa sạch, trụng sơ cho hết chất dơ, cho vô nồi, ít muối và cục đường phèn hầm.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Khi thấy nồi xương sôi thì cho củ hành tây, tôm khô, khô mực, củ cải trắng và hạt nêm vô, hạ lửa trung bình thấp , nhớ canh chừng hớt bọt cho nồi nước lèo được trong, hầm trong khoảng 45-60 phút.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Trong khi hầm xương thì chuẩn bị phần nhân:",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Tôm rửa sạch, rút chỉ bụng, lưng, ướp tí muối.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Thịt xay nêm nếm ít muối, hạt nêm, tiêu. Bắc chảo lên bếp, cho tí dầu ăn vào với ít nước xào cho ráo nước, lấy ra tô nhỏ.",
+        "duration_minutes": null
+      },
+      {
+        "step": 7,
+        "text": "Cật cắt làm 2 theo chiều dài, cắt bỏ màng trắng bên trong cho hết hôi, pha 1 chén nước với 2 muỗng rượu trắng và vài lát gừng cho cật vào ngâm khoảng 10-15 phút cho hết hôi rồi xả lại bằng nước lạnh.",
+        "duration_minutes": null
+      },
+      {
+        "step": 8,
+        "text": "Luộc tim, gan, cật nấu nồi nước sôi, bỏ tí muối và vài lát gừng vào. Khi nước bắt đầu sôi (bắt đầu nổi bọt) thì cho tim, gan, cật vô, để sôi lại chừng 1 phút tắt lửa, đậy nắp lại vẫn để trên bếp chừng 15 phút cho tim, gan, cật chín từ từ, làm như vậy tim, gan, cật chín mà không bị khô. Sau đó lấy ra xả lại bằng nước lạnh, khi nào gần ăn thì mới thái.",
+        "duration_minutes": null
+      },
+      {
+        "step": 9,
+        "text": "Tỏi phi: tỏi bằm nhỏ, cho dầu vào nồi, khi dầu nóng cho tỏi vào phi thấy hơi vàng thì tắt lửa, nhắc bếp ra khỏi lò, đừng để nồi trên bếp, hơi nóng của bếp sẽ làm tỏi cháy đen.",
+        "duration_minutes": null
+      },
+      {
+        "step": 10,
+        "text": "Nồi nước dùng nấu sôi lại, cho tôm vào luộc (luộc chung như vậy nước dùng càng thêm đậm đà), nêm nếm lại nồi nước dùng cho vừa ăn. Múc 1 hay 2 muỗng tỏi phi bỏ vào nồi nước dùng cho thơm.",
+        "duration_minutes": null
+      },
+      {
+        "step": 11,
+        "text": "Sắp hủ tiếu vào tô, cho chút tỏi phi vào cho hủ tiếu khỏi dính, trên mặt xếp vài lát gan, cật, tim, 2 hay 3 con tôm, trứng cút (nếu thích), thịt bằm, chan nước lèo lên, bỏ hẹ cắt khúc lên. Ăn kèm với đĩa rau cần, xà lách.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "hu_tieu"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Hủ_tiếu_Nam_Vang",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Hủ_tiếu_Nam_Vang?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Hủ_tiếu_Nam_Vang&oldid=152690",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_pho_bo_ninh_xuong",
+    "title": "Phở bò ninh xương",
+    "normalized_dish": "pho",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "hành tây lớn bổ tư",
+        "normalized_name": "hanh_tay_lon_bo_tu",
+        "quantity": 2.0,
+        "unit": "củ",
+        "optional": false,
+        "note": "Theo nguồn: 2 củ hành tây lớn bổ tư"
+      },
+      {
+        "name": "1 thìa canh dầu thực vật hoặc dầu lạc",
+        "normalized_name": "1_thia_canh_dau_thuc_vat_hoac_dau_lac",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "xương bò còn ít thịt",
+        "normalized_name": "xuong_bo_con_it_thit",
+        "quantity": 5.0,
+        "unit": "pound",
+        "optional": false,
+        "note": "Theo nguồn: 5 pound xương bò còn ít thịt"
+      },
+      {
+        "name": "1 nhánh gừng nhỏ thái",
+        "normalized_name": "1_nhanh_gung_nho_thai",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "quế nhỏ",
+        "normalized_name": "que_nho",
+        "quantity": 1.0,
+        "unit": "thanh",
+        "optional": false,
+        "note": "Theo nguồn: 1 thanh quế nhỏ"
+      },
+      {
+        "name": "thảo quả",
+        "normalized_name": "thao_qua",
+        "quantity": 2.0,
+        "unit": "quả",
+        "optional": false,
+        "note": "Theo nguồn: 2 quả thảo quả"
+      },
+      {
+        "name": "4 đinh hương",
+        "normalized_name": "4_dinh_huong",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "hồi",
+        "normalized_name": "hoi",
+        "quantity": 1.0,
+        "unit": "hoa",
+        "optional": false,
+        "note": "Theo nguồn: 1 hoa hồi"
+      },
+      {
+        "name": "tiêu đen nguyên hạt",
+        "normalized_name": "tieu_den_nguyen_hat",
+        "quantity": 1.0,
+        "unit": "tbsp",
+        "optional": false,
+        "note": "Theo nguồn: 1 thìa canh tiêu đen nguyên hạt"
+      },
+      {
+        "name": "Bánh phở ngâm nước nóng cho mềm và để ráo",
+        "normalized_name": "banh_pho_ngam_nuoc_nong_cho_mem_va_de_rao",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Thịt thăn bò thái thật mỏng",
+        "normalized_name": "thit_than_bo_thai_that_mong",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Hành tây thái, hành lá và rau mùi",
+        "normalized_name": "hanh_tay_thai_hanh_la_va_rau_mui",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Ớt, giá, chanh, húng quế, nước mắm, tương ớt hoặc tương đen tùy chọn",
+        "normalized_name": "ot_gia_chanh_hung_que_nuoc_mam_tuong_ot_hoac_tuong_den_tuy_chon",
+        "quantity": null,
+        "unit": null,
+        "optional": true,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Tỏi dùng trong bước ninh của nguồn; không có định lượng",
+        "normalized_name": "toi_dung_trong_buoc_ninh_cua_nguon_khong_co_dinh_luong",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Phi hành tây với dầu đến khi hơi vàng rồi vớt ra để ráo.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Rửa xương bò, cho vào nồi với nước lạnh ngập xương. Đun từ từ đến sôi, hạ lửa nấu 10–15 phút và hớt bọt.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Thêm hành đã phi, gừng, quế, thảo quả, hồi, đinh hương, tỏi và tiêu. Đun sôi lại rồi ninh liu riu, hé nắp ít nhất 6 giờ, có thể đến 12 giờ. Hớt bọt và thêm nước để xương luôn ngập.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Lọc bỏ xương, rau và gia vị, giữ nước dùng sôi nóng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Cho bánh phở vào tô, xếp thịt bò thái thật mỏng rồi chan nước dùng đang sôi để thịt chín. Thêm hành và rau mùi, dùng ngay với rau và xốt tùy chọn.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "pho"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://en.wikibooks.org/wiki/Cookbook:Phở_Bò_(Vietnamese_Beef_Noodle_Soup)",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://en.wikibooks.org/wiki/Cookbook:Phở_Bò_(Vietnamese_Beef_Noodle_Soup)?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Phở_Bò_(Vietnamese_Beef_Noodle_Soup)&oldid=4518483",
+      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  },
+  {
+    "id": "wb_pho_ga",
+    "title": "Phở gà",
+    "normalized_dish": "pho",
+    "language": "vi",
+    "cuisine": "vietnamese",
+    "servings": null,
+    "prep_time_minutes": null,
+    "cook_time_minutes": null,
+    "ingredients": [
+      {
+        "name": "Gà nguyên con (1,1kg đến 1,5kg)",
+        "normalized_name": "ga_nguyen_con_1_1kg_den_1_5kg",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Bánh phở 400g",
+        "normalized_name": "banh_pho_400g",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Gia vị nấu phở (thảo quả, quế, hoa hồi)",
+        "normalized_name": "gia_vi_nau_pho_thao_qua_que_hoa_hoi",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Củ hành tây",
+        "normalized_name": "cu_hanh_tay",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Hành lá",
+        "normalized_name": "hanh_la",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Gừng",
+        "normalized_name": "gung",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Giá",
+        "normalized_name": "gia",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      },
+      {
+        "name": "Gia vị nêm nếm:đường phèn, muối, hạt nêm từ thịt",
+        "normalized_name": "gia_vi_nem_nem_duong_phen_muoi_hat_nem_tu_thit",
+        "quantity": null,
+        "unit": null,
+        "optional": false,
+        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+      }
+    ],
+    "instructions": [
+      {
+        "step": 1,
+        "text": "Gừng + củ hành nướng sơ cho thơm.",
+        "duration_minutes": null
+      },
+      {
+        "step": 2,
+        "text": "Gà rã đông cho vào nồi đổ nước lạnh ngập, nêm muối, đường phèn đun với lửa lớn cho sôi bùng thì vớt bọt, bỏ gừng + hành tây đã nướng vào giảm nhỏ lửa (khoảng số 3 hoặc 4), hầm gà cho mềm khoảng ba tiếng đối với Suppenhühner.",
+        "duration_minutes": null
+      },
+      {
+        "step": 3,
+        "text": "Gà chín vớt ra để nguội, thái miếng vừa ăn, xương gà thì cho lại vào nồi nước dùng.",
+        "duration_minutes": null
+      },
+      {
+        "step": 4,
+        "text": "Gia vị nấu phở bỏ vào túi vải thả vào nồi nước dùng đun khoảng 45 phút, nêm nếm muối, hạt nêm, đường vừa ăn thì tắt lửa.",
+        "duration_minutes": null
+      },
+      {
+        "step": 5,
+        "text": "Bánh phở luộc chín rồi cho ra bát.",
+        "duration_minutes": null
+      },
+      {
+        "step": 6,
+        "text": "Xếp thịt gà lên mặt bánh phở, chan nước phở vào, rắc hành tây + hành lá thái nhỏ lên là hoàn thành.",
+        "duration_minutes": null
+      }
+    ],
+    "tags": [
+      "vietnamese",
+      "pho"
+    ],
+    "source": {
+      "name": "Wikibooks",
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Phở_gà",
+      "license": "CC-BY-SA-4.0",
+      "retrieved_at": "2026-10-19",
+      "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Phở_gà?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Phở_gà&oldid=243125",
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; giữ định lượng trong tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác định để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng."
+    },
+    "created_at": "2026-10-19",
+    "updated_at": "2026-10-19"
+  }
+]

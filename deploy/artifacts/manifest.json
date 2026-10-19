@@ -132,13 +132,13 @@
     "source_policy": "Use a reviewed bundle with a human-readable release version; do not persist upstream object identifiers."
   },
   "corpus": {
-    "corpus_version": null,
-    "recipe_count": 0,
-    "reviewed_class_coverage": 0,
+    "corpus_version": "cooklens-recipes-v1",
+    "recipe_count": 33,
+    "reviewed_class_coverage": 30,
     "required_class_coverage": 30,
-    "source_selection": "Wikibooks Cookbook text; licensed team additions if needed",
+    "source_selection": "21 Wikibooks text recipes and 12 explicitly labeled original AI-authored recipes authorized by project owner",
     "source_policy_url": "https://en.wikibooks.org/wiki/Wikibooks:Copyrights",
-    "status": "source_policy_selected_no_recipes_imported_or_reviewed"
+    "status": "full_taxonomy_coverage_structure_reviewed_kitchen_validation_not_performed"
   },
   "registry": {
     "provider": "docker_hub",
