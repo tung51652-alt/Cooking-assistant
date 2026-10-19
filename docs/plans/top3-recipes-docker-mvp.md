@@ -19,7 +19,7 @@ Luồng mục tiêu:
      → lọc recipe theo món → xếp hạng → danh sách recipe → chi tiết recipe
 ```
 
-- Frontend cơ bản dựa trên khung HTML tại `/home/trantung/ict/FrontEndCookLens`, tận dụng tối đa bố cục, tên lớp, thành phần, tài nguyên và style của bản gốc. Dùng được trên desktop và điện thoại; có preview ảnh, trạng thái tải, lỗi và kết quả rỗng. Chi tiết tái sử dụng và phần tài nguyên đang thiếu nằm ở Phase 4.
+- Frontend cơ bản dựa trên nguồn Stitch chuẩn tại `/home/trantung/ict/stitch_giao_di_n_chatbot_m_th_c`, tận dụng tối đa bố cục, tên lớp, thành phần, tài nguyên và style của bản gốc. Dùng được trên desktop và điện thoại; có preview ảnh, trạng thái tải, lỗi và kết quả rỗng. Chi tiết tái sử dụng và phần tài nguyên đang thiếu nằm ở Phase 4.
 - Trong MVP, điện thoại dùng web responsive trên trình duyệt; không tạo APK hoặc project native. App điện thoại giai đoạn sau dùng Expo, dùng chung public API và tái sử dụng TypeScript types/logic phù hợp. DOM/CSS web cần chuyển sang component tương thích Expo khi thực hiện giai đoạn đó.
 - Hỗ trợ 30 lớp của checkpoint hiện tại. Ảnh nhiều món và món ngoài bộ nhãn phải được giải thích là giới hạn của model; người dùng luôn sửa được lựa chọn.
 - Runtime chuẩn dùng CPU, không cần CUDA, Python/Java/Node cài trên máy người dùng hay khóa API LLM.
@@ -241,7 +241,7 @@ Nguyên tắc phối hợp: data pipeline chịu trách nhiệm tính đúng c�
 
 ## 7. Phase 3 — Backend tích hợp API public
 
-Nhánh: `feature/backend-top3-recipes` từ `develop` đã có Phase 0–2 và bản sửa audit. Triển khai kỹ thuật và kiểm thử với AI thật; chờ người dùng review/merge. Xem [báo cáo Phase 3](../phases/phase-3.md) và [hướng dẫn backend](../../backend/README.md).
+Nhánh: `feature/backend-top3-recipes` từ `develop` đã có Phase 0–2 và bản sửa audit. Đã triển khai, kiểm thử với AI thật và được người dùng merge qua PR #13; develop đã được cập nhật trước Phase 4. Xem [báo cáo Phase 3](../phases/phase-3.md) và [hướng dẫn backend](../../backend/README.md).
 
 Nguyên tắc phối hợp: backend làm cổng public duy nhất, điều phối HTTP và chuẩn hóa lỗi. CV và recipes triển khai độc lập; không có dependency hai chiều, không giữ ảnh qua request.
 
@@ -259,53 +259,44 @@ Nguyên tắc phối hợp: backend làm cổng public duy nhất, điều phố
 
 - [x] Rà file thừa, test/stub tạm, build output và fixture theo [cổng chung](#phase-closeout); giữ contract/integration tests và không đưa chúng vào runtime image.
 - [x] Rà secrets và mọi giá trị mã/hash trong config, connection strings, logs, commit và image backend; OpenAPI/error response không chứa credential hoặc dữ liệu nội bộ nhạy cảm.
-- [ ] Người dùng review/merge PR Phase 3; agent fetch xác nhận trước frontend nghiệm thu với backend thật.
+- [x] Người dùng review/merge PR Phase 3; agent fetch xác nhận trước frontend nghiệm thu với backend thật.
 
 Điều kiện ra phase: Swagger backend kiểm thử được toàn luồng với CV/recipes thật; contract và lỗi ổn định; PR được người dùng merge vào `develop`.
 
-## 8. Phase 4 — Frontend cơ bản
+## 8. Phase 4 — Frontend theo nguồn Stitch và tích hợp thật
 
-Nhánh: `feature/frontend-top3-recipes` từ `develop`. Dùng khung HTML người dùng cung cấp tại `/home/trantung/ict/FrontEndCookLens` làm nguồn nền, chuyển phần cần thiết sang React + TypeScript + Vite, build static và Nginx serve. Giữ CSS/style gốc khi có, chỉ bổ sung cho trạng thái/API/responsive còn thiếu; không thay bằng template hoặc một bộ UI có giao diện khác. Framework phục vụ tổ chức mã, không là lý do thiết kế lại.
+Nhánh triển khai: `feature/frontend-phase4` từ develop đã có Phase 0–3, tận dụng frontend React/TypeScript/Vite đã merge. Ngày 2026-10-19 người dùng xác nhận gửi nhầm nguồn trước đó: **nguồn chuẩn thay bằng `/home/trantung/ict/stitch_giao_di_n_chatbot_m_th_c`**, gồm `code.html` và `screen.png`. `/home/trantung/ict/FrontEndCookLens` và snapshot Phase 0 chỉ còn là lịch sử, không dùng làm baseline màu/font/bố cục cho lần thiết kế này.
 
-Nguyên tắc phối hợp: frontend chỉ biết public API, `confidence` và `retrieval_score` là hai khái niệm khác nhau. State chọn món nằm ở UI; mỗi lần đổi ảnh/đổi món phải vô hiệu kết quả cũ.
+### Bước bổ sung: kiểm kê và thiết kế lại từ nguồn đúng
 
-### Khung đã kiểm tra và phần cần tái sử dụng
+- [x] Đọc code.html, xem screen.png; lưu bản tham chiếu trong docs/frontend-reference/stitch, không đưa HTML demo/chat vào runtime.
+- [x] Trích tokens nền kem #FAF0E1, primary cam #C84B00, nút camera xanh #2B8A3E, card #FFFDF8, border #EADBC8, font Epilogue/Plus Jakarta Sans, bo góc và bố cục hai panel upload/preview.
+- [x] Thiết kế lại upload/nhận diện/list-detail theo cùng style; giữ brand CookLens, routes đã dùng và label tiếng Việt. Không biến UI thành một template khác.
+- [x] Dùng font/icon local có notices/license, bỏ Tailwind/Google Fonts CDN và JS demo khỏi app. Đối chiếu screenshot nguồn và triển khai; phân biệt phần có ảnh nguồn với màn hình được mở rộng từ tokens.
+- [x] Loại nav/chat, tài khoản, lưu bộ sưu tập, thông báo và cooking assistant chưa có chức năng. Panel trợ lý trong nguồn chuyển thành hướng dẫn luồng hiện có; không giả trạng thái AI online hoặc sinh món/công thức demo.
 
-Đã đọc ngày 2026-10-19: thư mục chứa `index.html`, `recognition.html`, `recipe.html`, `chat.html`, `cooking.html`, một file `.iml` và `src/Main.java`. Không tìm thấy thư mục CSS/JS tại các đường dẫn HTML tham chiếu (`css/*`, `js/*`, `../css/*`, `../js/*`), kể cả thư mục cha. Vì vậy hiện xác nhận được khung DOM và nội dung, chưa đủ dữ liệu xác nhận màu sắc, font và spacing bản thiết kế hoàn chỉnh. Không coi giao diện HTML không tải được CSS là baseline style đã hoàn thiện.
+Nguyên tắc phối hợp: frontend chỉ gọi public /api cùng origin, dùng contract sinh từ OpenAPI đã kiểm tra snake_case và schema 200. Confidence CV và cosine retrieval là hai khái niệm khác nhau; state xác nhận nằm tại UI, mọi thay đổi ảnh/món vô hiệu kết quả cũ. Backend chỉ sửa phần OpenAPI phát hiện chưa khớp wire contract, không đổi API version hoặc domain.
 
-| HTML nguồn | Phần giữ lại/tận dụng | Thay đổi để nối MVP |
-| --- | --- | --- |
-| `index.html` | Brand CookLens, navigation tiếng Việt, `upload-container`, `upload-box`, `preview-box`, chọn/chụp ảnh, nút xóa/nhận diện | Nối upload thật, validation, preview, loading/error và state; camera là khả năng của file input trên thiết bị hỗ trợ, có chọn file làm phương án dự phòng |
-| `recognition.html` | `recognition-container`, `result-card`, kết quả chính/confidence, khối `topResults`, xác nhận món | Kết quả chính + hai khả năng khác tạo đủ Top-3; mọi mục chọn được, thêm sửa món; dữ liệu đến từ CV, bỏ ghi chú/logic trông chờ chatbot |
-| `recipe.html` | `recipe-info-grid`, khối nguyên liệu/thông tin, `steps-card`, bố cục bước nấu và footer | Nối recipe detail thật, bổ sung danh sách kết quả và provenance; loại CTA hỏi chatbot và link cooking mode chưa triển khai |
-| `cooking.html` | Có thể tham khảo markup trình bày bước nấu để giảm viết lại | Chỉ tận dụng phần hiển thị phù hợp; chưa mở route/tính năng cooking assistant hoặc mở rộng scope |
-| `chat.html` | Chỉ lưu thông tin đây là trang có trong nguồn tham chiếu | Chưa chuyển vào bundle/route/sidebar, không để nút Chat/Hỏi CookLens hoạt động giả hoặc trang rỗng |
-
-- [ ] Kiểm kê và nhập đúng phần nguồn HTML/CSS/JS/ảnh/font cần dùng vào `frontend/`, ghi provenance và mapping nguồn → component trong tài liệu frontend. Không copy `.iml`, `src/Main.java`, bản backup hoặc cả project IDE vào app.
-- [ ] Tìm/bổ sung bộ CSS/JS còn thiếu từ nguồn thiết kế nếu có; xác định style tokens từ bản thật. Khi chưa lấy được, ghi rõ giới hạn và giữ DOM/cấu trúc/tên lớp có thể tái sử dụng; phần CSS dựng bổ sung phải được review bằng ảnh so sánh, không tuyên bố khớp style khi chưa có baseline.
-- [ ] Giữ tối đa bố cục, thương hiệu, tên màn hình, typography, màu, spacing, button/card style và assets của nguồn sau khi có chúng; gom CSS chung, chỉ sửa có lý do về chức năng, responsive hoặc accessibility. Không ép thêm framework CSS làm thay đổi style.
-- [ ] Sửa các link asset/route tương đối sai khi chuyển cấu trúc file; assets phục vụ từ image, font/icon/ảnh cần cho UI không phụ thuộc CDN lúc runtime.
-- [ ] Bỏ navigation Chat, CTA “Hỏi CookLens”, link cooking mode chưa có chức năng và mọi lời mời chatbot; các trang upload/nhận diện/công thức vẫn giữ ngôn ngữ giao diện chung của bản nguồn.
-
-- [ ] Tách features upload/predictions/recipes và API client/types, không dồn tất cả logic vào một file component.
-- [ ] Upload JPG/PNG, xem trước ảnh, kiểm tra kích thước; có loading, submit disabled khi đang xử lý và nút đổi ảnh.
-- [ ] Hiển thị đúng 3 ứng viên, tên tiếng Việt, confidence; người dùng chọn một món hoặc sửa trong danh mục 30 món. Không trình bày prediction là kết luận chắc chắn.
-- [ ] Sau chọn món, tự tìm recipe; luôn hiển thị món đã xác nhận và nút đổi lựa chọn. Không cần người dùng nhập lại tên món.
-- [ ] Recipe cards có title, preview, nguồn và thời gian/khẩu phần nếu có; chi tiết nguyên liệu và bước nấu theo thứ tự. Escape dữ liệu nguồn, không render HTML thô không tin cậy.
-- [ ] Empty/error states cho ảnh lỗi, món không có recipe, API chưa ready, timeout; có retry rõ ràng. Không giữ recipe cũ dưới tên món mới.
-- [ ] Hủy/bỏ qua response cũ khi request mới bắt đầu; đổi ảnh reset selection và recipe, giải phóng preview URL.
-- [ ] Responsive, keyboard labels/focus và trạng thái cho screen reader; kiểm thử trình duyệt desktop/mobile. Đây là kiểm thử web responsive, không phải build APK; app Expo thuộc giai đoạn sau.
-- [ ] So sánh screenshot bản triển khai với baseline nguồn ở cùng viewport desktop/mobile cho upload, recognition và recipe; ghi phần giữ nguyên, phần cần sửa và khác biệt do chức năng mới vào PR. Chỉ giữ ảnh baseline/bằng chứng được chọn, dọn ảnh test sinh tự động.
-- [ ] API base URL release là `/api`; Nginx reverse proxy đến backend bằng tên service, cấu hình upload limit/timeout thống nhất. Frontend production không dùng Vite dev server.
-- [ ] UI integration/E2E tests cho luồng chính và lỗi; Dockerfile build static + Nginx runtime, không bake địa chỉ máy thành viên.
+- [x] Tách upload/predictions/recipes, API client/types và CSS tokens; tận dụng logic validation/cancel/reset đã có thay vì chép JS demo.
+- [x] Dùng type sinh từ OpenAPI đầy đủ; kiểm tra api_version, request ID, shape/version metadata, Top-3/rank/score, danh mục và món đã xác nhận ở runtime.
+- [x] Upload JPG/PNG tối đa 10 MiB/25 triệu pixel, xem trước/xóa/chụp/đổi ảnh; loading, disabled, lỗi và retry rõ ràng.
+- [x] Hiển thị đúng ba ứng viên, tên tiếng Việt/confidence, chưa chọn mặc định. Xác nhận một món hoặc sửa trong danh mục 30 món; tự tìm recipe cho lựa chọn đó.
+- [x] Recipe list/detail có title/preview/nguồn/license/attribution/nguyên liệu/bước nấu và dữ liệu thời gian/khẩu phần trung thực; query tùy chọn chỉ xếp hạng trong món xác nhận.
+- [x] Escape text, chỉ link HTTP(S) không credential; không render HTML nguồn. Hiển thị AI-authored provenance và null/empty đúng dữ liệu thật.
+- [x] Hủy/bỏ qua response cũ khi đổi ảnh/món hoặc điều hướng, giải phóng object URL; không giữ recipe cũ dưới tên món mới, không lưu ảnh vào storage.
+- [x] Responsive desktop/mobile, focus/keyboard/radio labels/screen reader, reduced motion và không overflow; đây là web, Expo vẫn ở mốc sau, không APK.
+- [x] Chụp/upload so sánh cùng viewport, giữ ảnh nguồn và baseline triển khai được chọn; ghi rõ phần giữ và phần thay vì bỏ chatbot/khác chức năng. Không coi source có sẵn các màn recognition/detail khi chỉ cung cấp một trang.
+- [x] Nginx static + reverse proxy backend theo service name; /api cùng origin, upload/deadline/error JSON/request ID thống nhất. Không dùng Vite cho production, không cache asset cũ hoặc phụ thuộc CDN lúc runtime.
+- [x] Dockerfile frontend nhiều stage và overlay Compose Phase 4 chạy cùng AI thật, chỉ publish frontend; không bake địa chỉ máy thành viên.
+- [x] E2E desktop/mobile với backend/CV/recipes thật và tests giả lập lỗi/race/empty/timeout/escape/đổi ảnh; kiểm tra Nginx lỗi chủ động, font/assets offline và schema sinh lại không lệch.
 
 ### Kết thúc Phase 4
 
-- [ ] Rà file thừa, HTML/CSS/JS không còn dùng, trang chat/cooking chưa triển khai, test tạm, screenshots/coverage/IDE metadata theo [cổng chung](#phase-closeout); giữ tests và baseline có chủ đích.
-- [ ] Rà secrets và mọi giá trị mã/hash trong source, biến frontend env, fixture, commit, build bundle/source maps và image; mọi dữ liệu frontend bundle đều coi là public.
-- [ ] Tạo PR kèm đối chiếu style và kết quả kiểm thử; chờ người dùng review/merge rồi fetch xác nhận trước tích hợp release.
+- [x] Rà HTML/CSS/JS/file/IDE/build output/test/screenshots thừa, giữ tests/baseline có mục đích; không COPY docs/reference/tests vào image.
+- [x] Rà secrets và mọi literal mã/hash/SHA/checksum/digest trong source, lockfile, fixtures, env, tài liệu, PR và static bundle. Không đưa source maps hoặc giá trị xác thực vào image; asset filenames dùng tên ổn định, không gắn mã hash.
+- [ ] Tạo PR/báo cáo kèm bằng chứng đối chiếu thiết kế và test; chờ người dùng review/merge rồi fetch xác nhận trước Phase 5.
 
-Điều kiện ra phase: người dùng mới hoàn thành upload → chọn món → đọc recipe trên giao diện, không cần Swagger, console hoặc lệnh ngoài Docker; tận dụng khung nguồn và đã review khác biệt style, không có chatbot. PR được người dùng merge vào `develop`.
+Điều kiện ra phase: người dùng mới hoàn thành ảnh → Top-3 → chọn/sửa món → recipe list/detail trên giao diện Docker với AI thật, không cần Swagger/console. Giao diện theo nguồn Stitch đúng, không chatbot; người dùng review/merge PR.
 
 ### Mobile bằng Expo — mốc sau MVP web, cùng domain
 

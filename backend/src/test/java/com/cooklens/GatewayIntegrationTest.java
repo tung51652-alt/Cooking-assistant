@@ -176,6 +176,14 @@ class GatewayIntegrationTest {
         mode="missing"; error(get("/api/recipes/missing"),404,"RECIPE_NOT_FOUND"); mode="normal";
         var spec=body(get("/v3/api-docs")); assertEquals("1.0.0",spec.path("info").path("version").asText());
         assertEquals(5,spec.path("paths").size());
+        for (String path:List.of("/api/vision/predict","/api/recipes/search","/api/dishes","/api/recipes/{id}","/api/health")) {
+            var operation=spec.path("paths").path(path).path(path.contains("predict") || path.endsWith("search") ? "post" : "get");
+            assertTrue(operation.path("responses").has("200"),path);
+        }
+        var schemas=spec.path("components").path("schemas");
+        assertTrue(schemas.path("PredictionResponse").path("properties").has("api_version"));
+        assertTrue(schemas.path("SearchRequest").path("properties").has("confirmed_dish"));
+        assertFalse(schemas.path("SearchRequest").path("required").toString().contains("top_k"));
         r=send(request("/api/dishes").header("Origin","http://localhost:5173").GET().build());
         assertEquals("http://localhost:5173",r.headers().firstValue("Access-Control-Allow-Origin").orElseThrow());
         r=send(request("/api/dishes").header("Origin","https://untrusted.example").GET().build());

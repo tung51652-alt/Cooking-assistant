@@ -1,26 +1,53 @@
 # CookLens frontend
 
-Khung React/TypeScript/Vite dựa trên HTML người dùng cung cấp tại `/home/trantung/ict/FrontEndCookLens`. Làm sớm theo yêu cầu người dùng để review khung/style, chưa là nghiệm thu Phase 4 tích hợp. Nhánh `dangvinh23012006-art-patch-1` đã được kiểm tra: chỉ có `.gitkeep` và `modules.xml`, không có CSS/JS/source UI để tận dụng thêm.
+React/TypeScript/Vite cho luồng ảnh → Top-3 → xác nhận/sửa món → công thức. Phase 4 dùng **nguồn đúng** `/home/trantung/ict/stitch_giao_di_n_chatbot_m_th_c`; xem [snapshot và đối chiếu thiết kế](../docs/frontend-reference/stitch/README.md). Nguồn FrontEndCookLens trước đây được giữ như lịch sử Phase 0, không còn là baseline giao diện.
 
-Phạm vi hiện tại là web responsive, dùng trên trình duyệt máy tính và điện thoại. Không tạo APK hoặc project native trong lần này. App điện thoại ở giai đoạn sau sẽ dùng Expo theo quyết định của người dùng; dùng lại public API và những TypeScript types/logic phù hợp, còn giao diện DOM/CSS web cần được chuyển sang component tương thích Expo.
+Web responsive cho máy tính và trình duyệt điện thoại; app Expo ở mốc sau, không APK. Không chatbot, tài khoản, lưu bộ sưu tập hoặc cooking assistant. Panel trợ lý trong nguồn chuyển thành hướng dẫn ba bước đúng chức năng hiện tại.
 
-## Nguồn và lựa chọn giao diện
+## Thiết kế và tổ chức
 
-| HTML tham chiếu | Phần dùng lại | Component |
-| --- | --- | --- |
-| `index.html` | CookLens/navbar, chọn/chụp/xóa ảnh, upload-box/preview-box, IDs input và predict | `src/features/UploadPage.tsx` |
-| `recognition.html` | result-card, mainResult/confidence, topResults, confirmButton | `src/features/RecognitionPage.tsx` |
-| `recipe.html` | recipe-info-grid, ingredients/recipeInfo, steps-card/recipeSteps | `src/features/RecipePage.tsx` |
+Giữ CookLens, nền kem, accent cam, font Epilogue/Plus Jakarta Sans, hai panel upload/preview, card bo góc và footer theo Stitch. Trang nhận diện và công thức được mở rộng từ tokens; nguồn chỉ cung cấp một trang home/chat. Font tự host từ Fontsource, icon Phosphor; bốn notices trong public/notices được đóng gói vào image. Không CDN lúc runtime.
 
-Nguồn không có những CSS/JS được HTML tham chiếu. Người dùng đã cho phép bổ sung CSS/JS từ khung này; palette/font/spacing ở `src/styles.css` là bản mới để review, không tuyên bố giống một bộ CSS gốc chưa có. [PR Phase 0 #6](https://github.com/tung51652-alt/Cooking-assistant/pull/6) lưu snapshot/metadata HTML gốc; frontend này không phụ thuộc việc PR đó đã merge để build.
+Design read: sản phẩm nấu ăn tiếng Việt, ưu tiên bảo toàn thiết kế cung cấp. DESIGN_VARIANCE=3, MOTION_INTENSITY=1, VISUAL_DENSITY=4. Skill design-taste chỉ dùng audit/preservation/accessibility. CSS native, không thêm framework hay motion quảng cáo. Nút camera xanh đậm hơn nguồn để tăng độ tương phản chữ trắng.
 
-Giữ thương hiệu/logo emoji CookLens, nhãn tiếng Việt và URL `/index.html`, `/recognition.html`, `/recipe.html`; `/` cũng mở upload. React điều hướng bằng History API, browser Back/Forward vẫn hoạt động. Khi reload/deep-link, state ảnh không được lưu và màn hình giải thích cách bắt đầu lại. Chưa có link, route, dữ liệu hoặc logic chatbot/cooking assistant.
+- src/features: UploadPage, RecognitionPage, RecipePage.
+- src/lib/api.ts: HTTP client, deadline và validation runtime.
+- src/generated/api.d.ts: schema sinh từ OpenAPI; src/types.ts dùng lại DTO, không định nghĩa contract song song.
+- src/App.tsx: state, điều hướng History API, hủy request cũ và focus khi đổi trang.
+- src/styles.css: tokens, responsive, focus và reduced motion.
 
-Design read: app nấu ăn cho người dùng Việt, ưu tiên giữ khung thay vì đổi thương hiệu. `DESIGN_VARIANCE=3`, `MOTION_INTENSITY=1`, `VISUAL_DENSITY=4`. CSS native nhẹ, palette sáng với accent `#21674a`, system fonts, không font/icon CDN. Card giữ đúng các vùng chức năng của HTML nguồn. Skill design-taste chỉ áp dụng audit/preservation/accessibility; đây là product UI nên không áp các quy tắc hero/marketing hoặc thêm motion/layout quảng cáo.
+Giữ URL /index.html, /recognition.html, /recipe.html và /. Back/Forward hoạt động; reload/deep-link không có state sẽ hướng dẫn bắt đầu lại. Ảnh chỉ ở RAM, object URL được giải phóng; không localStorage/sessionStorage/base64 persistence.
 
-## Chạy và build
+## Chạy Docker với AI thật
 
-Node 22.12+; dùng đúng lockfile:
+Từ root repository, sau khi đã build các image Phase 1–3 và image frontend:
+
+```bash
+docker build -f deploy/docker/Dockerfile.frontend -t cooklens-frontend:phase4 .
+docker compose -p cooklens-phase4-local \
+  -f deploy/compose/recipes.phase2.yml \
+  -f deploy/compose/backend.phase3.yml \
+  -f deploy/compose/frontend.phase4.yml up -d
+```
+
+Mở http://127.0.0.1:5173/. Đây là overlay review Phase 4; hướng dẫn build/stage model của từng service nằm trong README backend/AI. Compose phát hành chỉ cần pull image thuộc Phase 5–6, chưa công bố Docker Hub hoặc release v2.0.0 ở đây.
+
+Nginx phục vụ bundle và proxy /api cùng origin tới backend theo DNS Compose. Chỉ frontend publish loopback; backend/AI/Qdrant ở network internal. Runtime user 10001, read-only, tmpfs, budget 128 MiB/1 CPU. Không COPY source/tests/docs/node_modules vào runtime image. Liveness tại /health/live; readiness toàn stack tại /api/health.
+
+Proxy giới hạn multipart 11 MiB và JSON search 8 KiB, stream body, không retry. Lỗi transport của Nginx trả JSON/request ID; lỗi nghiệp vụ backend được giữ nguyên. Kết nối không lập được trả 503; upstream đã kết nối nhưng phản hồi quá chậm trả 504. Backend và CV tiếp tục kiểm tra kích thước file/deadline/định dạng.
+
+Dừng riêng stack review, giữ volumes:
+
+```bash
+docker compose -p cooklens-phase4-local \
+  -f deploy/compose/recipes.phase2.yml \
+  -f deploy/compose/backend.phase3.yml \
+  -f deploy/compose/frontend.phase4.yml down
+```
+
+## Phát triển
+
+Node 22.12+:
 
 ```bash
 cd frontend
@@ -28,35 +55,30 @@ npm ci
 npm run dev
 ```
 
-Mở `http://127.0.0.1:5173`. Chọn/xem trước/xóa ảnh dùng được ngay. Nhận diện và recipe dùng API thật dưới `/api`; chưa có backend thì UI báo lỗi dịch vụ, không sinh kết quả demo.
+Dev proxy /api về http://127.0.0.1:8080. Có thể copy .env.example thành .env.local và sửa VITE_API_PROXY_TARGET; không đặt token trong VITE_*. npm run build tạo dist; npm run preview chỉ dành kiểm tra build, không là production server.
 
-Dev server proxy `/api` về `http://127.0.0.1:8080`. Khi backend ở địa chỉ khác, copy `.env.example` thành `.env.local` rồi sửa `VITE_API_PROXY_TARGET`; đây là cấu hình dev công khai, không đặt token trong `VITE_*`. Browser vẫn gọi relative `/api`. Backend public contract theo kế hoạch/PR Phase 0 sẽ được nghiệm thu với service thật ở phase sau.
+Sau khi đổi controller/DTO, chạy deploy/scripts/generate_frontend_contract.sh từ root với backend đang chạy, rồi build frontend. Script pin generator và CI kiểm tra kết quả sinh lại. Phase 4 sửa OpenAPI thiếu schema 200/camelCase sai để khớp snake_case wire API v1.0.0 vốn có.
 
-```bash
-npm run build
-npm run preview
-```
+## Ranh giới dữ liệu
 
-Build type-check rồi tạo `dist/`. Production cần static host có SPA fallback về `index.html` cho ba URL và reverse proxy `/api`; Nginx/Docker đóng gói ở phase triển khai, không coi preview server là bản release. Không có ảnh mẫu, model, recipe corpus hoặc key trong frontend bundle.
+Một JPEG/PNG tối đa 10 MiB/25 triệu pixel; kéo-thả/chọn/chụp cùng validation. Camera tùy trình duyệt và có file picker thay thế. Top-3 không tự chọn; người dùng phải xác nhận hoặc sửa từ danh mục API. Query tùy chọn chỉ xếp hạng recipe trong món đã xác nhận. Confidence CV khác điểm cosine retrieval; không gắn nhãn cả hai là xác suất.
 
-## Trạng thái và ranh giới dữ liệu
+Client kiểm tra API version, UUID/header, shape và metadata versions, Top-3/rank/score, danh mục 30 món và recipe đúng món. Thay ảnh/món hoặc điều hướng hủy và bỏ qua response cũ. Text được escape; source links chỉ HTTP(S) không credential. Loading/empty/error/retry có thể thao tác; dữ liệu thời gian/khẩu phần thiếu hiển thị trung thực. Nguồn/license/AI-authored provenance và attribution có trong list/detail.
 
-- Chỉ một JPEG/PNG ≤10 MiB, browser kiểm tra decode/pixel count ≤25 triệu; backend vẫn phải kiểm tra đầy đủ. Kéo-thả/chọn/chụp đều cùng validation; camera có file picker dự phòng tùy thiết bị.
-- Top-3 bắt buộc người dùng chọn/xác nhận, không auto-select hoặc gọi recipe khi chưa chọn. Sửa từ danh mục lấy qua API, không hardcode 30 lớp vào UI.
-- Thay ảnh/hủy ảnh hủy request đang chạy, xóa prediction/selection/recipe cũ và revoke object URL. Đổi món vô hiệu recipe cũ; không dùng localStorage/sessionStorage hoặc lưu ảnh base64.
-- Client kiểm tra shape kết quả, loại recipe sai món đã xác nhận, escape text và chỉ tạo source links HTTP(S). Không hiển thị error body/stack trace tùy ý từ upstream.
-- Loading/empty/error/retry có thể thao tác; quantity/time/servings thiếu được hiển thị trung thực, không bịa giá trị.
-
-## Kiểm tra UI
+## Kiểm chứng
 
 ```bash
+cd frontend
 npx playwright install chromium
 npm run build
 npm run test:e2e
+COOKLENS_REAL_API=1 COOKLENS_BASE_URL=http://127.0.0.1:5173 npm run test:e2e
 ```
 
-E2E chạy build production qua preview server ở desktop 1440×900 và mobile 390×844. Fixtures chỉ nằm trong `tests/` và route interception của Playwright, không được import vào source app. Bao gồm xác nhận thủ công, search/detail, ảnh lỗi/quá lớn, dịch vụ lỗi, thay ảnh khi request đang chạy, sửa món/empty result, deep-link và escape nội dung/source URL.
+20 mocked tests và 6 tests với Docker/CV/E5/Qdrant thật ở desktop 1440×900, mobile 390×844. Bao gồm xác nhận thủ công, sửa món/query, đủ detail/provenance, lỗi/empty/timeout, navigation race, ảnh thay thế, escaping, keyboard, deep-link, không overflow hoặc request CDN. Mobile là emulation, chưa thử camera trên điện thoại thật. Có thể truyền PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH khi máy có Chromium tương thích; không hardcode đường dẫn thành viên.
 
-Nếu máy đã có Chromium tương thích, có thể truyền `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` khi chạy test; không hardcode đường dẫn máy thành viên trong repo. `test-results`, trace và reports được ignore. Bốn ảnh trong `docs/` là baseline mới có chủ đích: upload desktop/mobile, recognition và recipe desktop. Hai ảnh kết quả/recipe dùng API fixture có nhãn kiểm thử, không phải bằng chứng inference/retrieval thật. Đặt `COOKLENS_CAPTURE_BASELINES=1` lúc chạy suite để cập nhật chúng có chủ đích; test mặc định không ghi đè baseline. Không đưa output test hàng loạt vào Git.
+Bốn baseline upload desktop/mobile, recognition desktop, recipe desktop trong docs được chụp bằng API thật. COOKLENS_CAPTURE_BASELINES=1 trong suite thật mới ghi đè chúng; test mặc định không ghi ảnh. Hai stitch-reference screenshots được chụp từ HTML tham chiếu tại cùng viewport để đối chiếu, có dùng CDN của nguồn khi chụp; CDN không có trong app runtime.
 
-Trước PR: build/E2E, rà diff/file thừa/test tạm, secrets/password hashes, lockfile/bundle. File test hồi quy hữu ích được giữ; không ghi giá trị mã/hash kể cả trong lockfile. Khi npm sinh lại integrity metadata, phải loại các giá trị này trước commit và chạy scanner của dự án. Chưa có image runtime để kiểm tra layer trong PR khung này; chờ người dùng merge, không auto-merge.
+Từ root, python3 deploy/scripts/check_frontend_build.py kiểm tra bundle và notices. python3 deploy/scripts/smoke_frontend_container.py kiểm tra image/proxy và cố ý dừng rồi phục hồi backend của project review; không chạy harness fault trên project khác. Báo cáo đầy đủ tại docs/phases/phase-4.md.
+
+Trước PR phải rà file/test tạm, build output, secrets và mọi literal mã/hash bị cấm, cả lockfile/static bundle. Không commit integrity metadata do npm sinh lại, không source maps, asset filenames ổn định. Giữ tests hồi quy có mục đích; không đưa trace/log/test-results vào Git hoặc image.

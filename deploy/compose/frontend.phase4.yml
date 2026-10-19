@@ -1,0 +1,16 @@
+# Overlay on recipes.phase2.yml and backend.phase3.yml.
+services:
+  backend:
+    ports: !reset []
+    networks: !override [recipes]
+  frontend:
+    image: cooklens-frontend:phase4
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks: [recipes, browser]
+    ports: ['127.0.0.1:${FRONTEND_PORT:-5173}:8080']
+    read_only: true
+    tmpfs: ['/tmp:rw,noexec,nosuid,size=64m']
+    cpus: 1
+    mem_limit: 128m

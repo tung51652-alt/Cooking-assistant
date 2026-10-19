@@ -1,6 +1,6 @@
 # Phase 3 — Public gateway Spring Boot
 
-Trạng thái: **triển khai và kiểm thử kỹ thuật hoàn tất, chờ người dùng review/merge PR Phase 3**. Nhánh feature/backend-top3-recipes tách từ develop đã chứa Phase 0–2 và PR sửa audit. Chưa bắt đầu nghiệm thu frontend Phase 4, chưa phát hành application v2.0.0 hoặc push Docker Hub.
+Trạng thái: **đã được người dùng merge qua PR #13; đã fetch xác nhận develop trước Phase 4**. Nhánh feature/backend-top3-recipes tách từ develop đã chứa Phase 0–2 và PR sửa audit. Chưa bắt đầu nghiệm thu frontend Phase 4, chưa phát hành application v2.0.0 hoặc push Docker Hub.
 
 ## Phạm vi và tổ chức
 
@@ -38,4 +38,4 @@ Giữ local develop và CHANGELOG.md chưa track của người dùng; sửa ở
 - [x] OpenAPI/type frontend sinh tự động và Docker/Compose tích hợp.
 - [x] Kiểm thử HTTP/AI thật, failure/recovery và toàn luồng offline.
 - [x] Rà file thừa, test tạm, build output, secrets và mọi literal mã/hash bị cấm.
-- [ ] Người dùng review/merge PR Phase 3; agent fetch xác nhận develop trước Phase 4.
+- [x] Người dùng review/merge PR Phase 3; agent fetch xác nhận develop trước Phase 4.

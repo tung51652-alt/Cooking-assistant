@@ -1,0 +1,15 @@
+{
+  "public_api_version": "1.0.0",
+  "static_nginx_non_root": true,
+  "read_only": true,
+  "only_frontend_published_on_loopback": true,
+  "backend_and_ai_networks_internal": true,
+  "proxy_upload_and_json_limits": true,
+  "proxy_errors_json_with_uuid": true,
+  "upstream_business_errors_preserved": true,
+  "backend_stop_recovery": true,
+  "self_hosted_fonts_and_notices": true,
+  "published_artifacts_policy_checked": true,
+  "frontend_memory_peak_bytes": 8720384,
+  "limitation": "Proxy and static-image smoke; browser flow evidence is recorded separately."
+}

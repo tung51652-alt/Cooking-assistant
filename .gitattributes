@@ -1,5 +1,7 @@
 # Immutable user-supplied HTML references keep original CRLF bytes.
 docs/frontend-reference/*.html -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+# Preserve whitespace in the corrected immutable Stitch source snapshot.
+docs/frontend-reference/stitch/code.html -text whitespace=-blank-at-eol
 
 # Preserve the upstream third-party license verbatim, including its trailing space.
 deploy/artifacts/notices/torchvision-LICENSE.txt -text whitespace=-blank-at-eol

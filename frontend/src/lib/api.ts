@@ -1,24 +1,20 @@
 import type { Dish, Prediction, RecipeDetail, RecipeSummary, RecipeSource } from '../types';
 
 export class ApiError extends Error {}
-
-const record = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === 'object' && !Array.isArray(value);
-const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
-const nullableNumber = (value: unknown) => value === null || (finite(value) && value > 0);
-const nullableString = (value: unknown) => value === null || typeof value === 'string';
-const dish = (value: unknown): value is Dish => record(value)
-  && Number.isInteger(value.class_id) && finite(value.class_id) && value.class_id >= 0
-  && typeof value.normalized_dish === 'string' && /^[a-z][a-z0-9_]*$/.test(value.normalized_dish)
-  && typeof value.display_name === 'string' && value.display_name.length > 0;
-const source = (value: unknown): value is RecipeSource => record(value)
-  && ['name', 'url', 'license', 'attribution'].every(key => typeof value[key] === 'string');
-const recipeBase = (value: unknown) => record(value)
-  && typeof value.id === 'string' && /^[a-z0-9][a-z0-9_-]{0,79}$/.test(value.id)
-  && typeof value.title === 'string' && value.title.trim().length > 0 && typeof value.normalized_dish === 'string'
-  && nullableNumber(value.servings) && nullableNumber(value.prep_time_minutes)
-  && nullableNumber(value.cook_time_minutes) && source(value.source);
-
+const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
+const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+const text = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0;
+const uuid = (v: unknown): v is string => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+const nullableNumber = (v: unknown) => v === null || (finite(v) && v > 0);
+const nullableString = (v: unknown) => v === null || typeof v === 'string';
+const dish = (v: unknown): v is Dish => record(v) && Number.isInteger(v.class_id) && finite(v.class_id)
+  && v.class_id >= 0 && v.class_id < 30 && typeof v.normalized_dish === 'string' && /^[a-z][a-z0-9_]*$/.test(v.normalized_dish) && text(v.display_name);
+const source = (v: unknown): v is RecipeSource => record(v)
+  && ['name', 'url', 'license', 'attribution', 'retrieved_at'].every(key => text(v[key]))
+  && nullableString(v.revision_url) && typeof v.modifications === 'string';
+const recipeBase = (v: unknown) => record(v) && typeof v.id === 'string' && /^[a-z0-9][a-z0-9_-]{0,79}$/.test(v.id)
+  && text(v.title) && text(v.normalized_dish) && v.language === 'vi' && v.cuisine === 'vietnamese'
+  && nullableNumber(v.servings) && nullableNumber(v.prep_time_minutes) && nullableNumber(v.cook_time_minutes) && source(v.source);
 function malformed(): never { throw new ApiError('Dữ liệu trả về chưa đúng định dạng. Vui lòng thử lại sau.'); }
 
 async function request(path: string, signal: AbortSignal, init: RequestInit = {}, timeoutMs = 10_000) {
@@ -28,8 +24,10 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
   signal.addEventListener('abort', abort, { once: true });
   if (signal.aborted) controller.abort();
   const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
+  const headers = new Headers(init.headers);
+  headers.set('X-Request-ID', crypto.randomUUID());
   try {
-    const response = await fetch(`/api${path}`, { ...init, signal: controller.signal });
+    const response = await fetch(`/api${path}`, { ...init, headers, signal: controller.signal });
     if (!response.ok) {
       const messages: Record<number, string> = {
         400: 'Không đọc được ảnh. Hãy chọn ảnh JPG hoặc PNG hợp lệ.',
@@ -45,62 +43,55 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
     if (!response.headers.get('content-type')?.includes('application/json')) malformed();
     const data: unknown = await response.json().catch(() => malformed());
     if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
-    if (!record(data) || data.api_version !== '1.0.0') malformed();
+    if (!record(data) || data.api_version !== '1.0.0' || !uuid(data.request_id)) malformed();
+    if (response.headers.get('X-Request-ID') !== data.request_id) malformed();
     return data;
   } catch (error) {
     if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
     if (timedOut) throw new ApiError('Yêu cầu mất quá nhiều thời gian. Vui lòng thử lại.');
     if (error instanceof ApiError) throw error;
     throw new ApiError('Không kết nối được dịch vụ. Hãy kiểm tra kết nối và thử lại.');
-  } finally {
-    window.clearTimeout(timeout);
-    signal.removeEventListener('abort', abort);
-  }
+  } finally { window.clearTimeout(timeout); signal.removeEventListener('abort', abort); }
 }
-
 export async function predict(file: File, signal: AbortSignal): Promise<Prediction[]> {
-  const body = new FormData();
-  body.append('file', file);
+  const body = new FormData(); body.append('file', file);
   const data = await request('/vision/predict', signal, { method: 'POST', body }, 25_000);
-  if (!Array.isArray(data.predictions) || data.predictions.length !== 3) malformed();
+  if (!text(data.model_version) || !text(data.taxonomy_version) || !Array.isArray(data.predictions) || data.predictions.length !== 3) malformed();
   const result: Prediction[] = [];
-  for (const value of data.predictions) {
-    if (!dish(value) || !record(value) || !finite(value.confidence)
-      || value.confidence < 0 || value.confidence > 1 || value.rank !== result.length + 1) malformed();
-    result.push(value as unknown as Prediction);
+  for (const v of data.predictions) {
+    if (!record(v) || !finite(v.confidence) || v.confidence < 0 || v.confidence > 1 || v.rank !== result.length + 1 || !dish(v)) malformed();
+    result.push(v as Prediction);
   }
-  if (new Set(result.map(item => item.class_id)).size !== 3
-    || result.reduce((sum, item) => sum + item.confidence, 0) > 1.000001
-    || result.some((item, index) => index > 0 && item.confidence > result[index - 1].confidence)) malformed();
+  if (new Set(result.map(p => p.class_id)).size !== 3 || new Set(result.map(p => p.normalized_dish)).size !== 3
+    || result.reduce((sum,p) => sum+p.confidence,0) > 1.000001
+    || result.some((p,i) => i>0 && (p.confidence > result[i-1].confidence || (p.confidence === result[i-1].confidence && p.class_id < result[i-1].class_id)))) malformed();
   return result;
 }
-
 export async function getDishes(signal: AbortSignal): Promise<Dish[]> {
   const data = await request('/dishes', signal);
-  if (!Array.isArray(data.dishes) || data.dishes.length === 0 || !data.dishes.every(dish)) malformed();
+  if (!text(data.taxonomy_version) || !Array.isArray(data.dishes) || data.dishes.length !== 30 || !data.dishes.every(dish)
+    || data.dishes.some((d,i) => d.class_id !== i) || new Set(data.dishes.map(d => d.normalized_dish)).size !== 30) malformed();
   return data.dishes;
 }
-
-export async function searchRecipes(confirmedDish: string, signal: AbortSignal): Promise<RecipeSummary[]> {
-  const data = await request('/recipes/search', signal, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ confirmed_dish: confirmedDish, top_k: 3 }),
-  });
-  if (!Array.isArray(data.recipes) || data.recipes.length > 3
-    || !data.recipes.every(value => recipeBase(value) && record(value)
-      && typeof value.preview === 'string' && value.normalized_dish === confirmedDish)) malformed();
-  return data.recipes as RecipeSummary[];
+export async function searchRecipes(confirmedDish: string, signal: AbortSignal, query = ''): Promise<RecipeSummary[]> {
+  const data = await request('/recipes/search', signal, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmed_dish: confirmedDish, top_k: 3, ...(query.trim() ? { query: query.trim().normalize('NFC') } : {}) }) });
+  if (!text(data.corpus_version) || !text(data.embedding_version) || !text(data.taxonomy_version) || data.confirmed_dish !== confirmedDish
+    || !Array.isArray(data.recipes) || data.recipes.length > 3 || !data.recipes.every((v,i) => recipeBase(v) && record(v)
+      && typeof v.preview === 'string' && [...v.preview].length <= 240 && v.normalized_dish === confirmedDish && v.rank === i+1
+      && finite(v.retrieval_score) && v.retrieval_score >= -1 && v.retrieval_score <= 1)) malformed();
+  const results = data.recipes as RecipeSummary[];
+  if (new Set(results.map(r => r.id)).size !== results.length || results.some((r,i) => i>0 && (r.retrieval_score > results[i-1].retrieval_score
+    || (r.retrieval_score === results[i-1].retrieval_score && r.id < results[i-1].id)))) malformed();
+  return results;
 }
-
 export async function getRecipe(id: string, confirmedDish: string, signal: AbortSignal): Promise<RecipeDetail> {
   const data = await request(`/recipes/${encodeURIComponent(id)}`, signal);
-  const value = data.recipe;
-  if (!record(value) || !recipeBase(value) || value.id !== id || value.normalized_dish !== confirmedDish
-    || !Array.isArray(value.ingredients) || value.ingredients.length === 0
-    || !value.ingredients.every(item => record(item) && typeof item.name === 'string' && item.name.trim().length > 0
-      && nullableNumber(item.quantity) && nullableString(item.unit) && nullableString(item.note))
-    || !Array.isArray(value.instructions) || value.instructions.length === 0
-    || !value.instructions.every((item, index) => record(item) && item.step === index + 1
-      && typeof item.text === 'string' && item.text.trim().length > 0 && nullableNumber(item.duration_minutes))) malformed();
-  return value as unknown as RecipeDetail;
+  const v = data.recipe;
+  if (!text(data.corpus_version) || !record(v) || !recipeBase(v) || v.id !== id || v.normalized_dish !== confirmedDish
+    || !Array.isArray(v.ingredients) || v.ingredients.length === 0 || !v.ingredients.every(item => record(item) && text(item.name)
+      && text(item.normalized_name) && typeof item.optional === 'boolean' && nullableNumber(item.quantity) && nullableString(item.unit) && nullableString(item.note))
+    || !Array.isArray(v.instructions) || v.instructions.length === 0 || !v.instructions.every((item,i) => record(item) && item.step === i+1
+      && text(item.text) && nullableNumber(item.duration_minutes)) || !Array.isArray(v.tags) || !v.tags.every(text) || !text(v.created_at) || !text(v.updated_at)) malformed();
+  return v as RecipeDetail;
 }
