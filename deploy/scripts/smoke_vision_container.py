@@ -44,6 +44,7 @@ base='http://127.0.0.1:8000'
 for route in ['/health/live','/health/ready']:
     with urlopen(base+route,timeout=2) as response:
         assert response.status==200
+assert Path('/opt/cooklens/models/efficientnet_b2_best.pt').stat().st_mode & 0o444 == 0o444
 contents=sys.stdin.buffer.read()
 boundary='cooklens-smoke-boundary'
 body=(('--'+boundary+'\\r\\nContent-Disposition: form-data; name="file"; filename="food.png"\\r\\nContent-Type: image/png\\r\\n\\r\\n').encode()+contents+('\\r\\n--'+boundary+'--\\r\\n').encode())

@@ -36,7 +36,7 @@ docker build -f deploy/docker/Dockerfile.vision -t cooklens-vision:phase1 .
 python3 deploy/scripts/smoke_vision_container.py
 ```
 
-Image chứa đúng runtime, checkpoint, mapping, manifest và notices; chạy non-root, một worker, không có tests/notebook/dataset/frontend. Smoke chạy network `none`, root filesystem read-only, tmpfs cho upload, giới hạn 4 CPU/2 GiB RAM, kiểm tra health và ảnh thật; tự xóa container test. Tag `phase1` chỉ dùng kiểm tra, chưa publish Docker Hub hoặc gọi là application release v2.
+Image chứa đúng runtime, checkpoint, mapping, manifest và notices; checkpoint được copy read-only cho user runtime độc lập với permission file staging; chạy non-root, một worker, không có tests/notebook/dataset/frontend. Smoke chạy network `none`, root filesystem read-only, tmpfs cho upload, giới hạn 4 CPU/2 GiB RAM, kiểm tra health và ảnh thật; tự xóa container test. Tag `phase1` chỉ dùng kiểm tra, chưa publish Docker Hub hoặc gọi là application release v2.
 
 Để mở Swagger bằng image vừa build:
 

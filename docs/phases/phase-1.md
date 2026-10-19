@@ -14,7 +14,7 @@ Trạng thái: **phần triển khai và kiểm thử kỹ thuật đã sẵn s�
 | API | [Fixture nội bộ dùng chung](../contracts/fixtures/vision-predict.json) cho typed-client tests ở backend; `/predict` nội bộ, `/health/live`, `/health/ready`, Swagger upload; model/taxonomy versions. `/health` giữ alias, shape Top-1 cũ được thay thế rõ trong tài liệu |
 | Validation | Giới hạn file/request/pixels/frames, MIME-format match, corrupt/bomb và RGB conversion. Body chunked được giới hạn trước parser; một work slot, quá tải 503, deadline nhận body 15 giây |
 | Lỗi | Code/message/request ID an toàn; không trả/log raw exception, stack hoặc path riêng. Model/mapping hỏng làm startup fail; health ready chỉ sau validation |
-| Docker | Non-root, model/mapping/notice đóng gói, không fixture/tests/notebooks/dataset/frontend/docs/env trong application tree. Smoke offline/read-only; không publish Hub hoặc gắn tag release ứng dụng |
+| Docker | Non-root, model/mapping/notice đóng gói, không fixture/tests/notebooks/dataset/frontend/docs/env trong application tree. Checkpoint được COPY với quyền đọc tường minh, kể cả staging CI ban đầu chỉ có quyền chủ sở hữu. Smoke offline/read-only; không publish Hub hoặc gắn tag release ứng dụng |
 
 ## Kiểm thử thực tế
 
