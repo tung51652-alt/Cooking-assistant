@@ -1,5 +1,6 @@
 """Run against a dedicated Qdrant and the real local model (see ai/rag/README.md)."""
 import copy
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import json
 import os
@@ -101,7 +102,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(self.client.post("/search", json={"confirmed_dish": "pho", "query": "   "}).status_code, 200)
 
     def test_dependency_error_is_safe(self):
-        with patch.object(self.store, "ready", side_effect=httpx.ConnectError("sensitive internal connection context")):
+        with patch.object(self.store, "ready", side_effect=httpx.ConnectError("sensitive internal connection context")), patch.object(self.store, "ready_async", side_effect=httpx.ConnectError("internal health context")):
             response = self.client.post("/search", json={"confirmed_dish": "pho"})
             self.assertEqual((response.status_code, response.json()["code"]), (503, "DEPENDENCY_NOT_READY"))
             self.assertNotIn("sensitive", response.text)
@@ -144,10 +145,19 @@ class RuntimeTests(unittest.TestCase):
             store.close()
 
     def test_wrong_alias_is_not_ready(self):
-        with patch.object(self.store, "aliases", return_value={ALIAS: "unrelated_version"}):
+        with patch.object(self.store, "aliases", return_value={ALIAS: "unrelated_version"}), patch.object(self.store, "ready_async", side_effect=ValueError("Active index version mismatch")):
             self.assertEqual(self.client.get("/health/ready").status_code, 503)
             response = self.client.post("/search", json={"confirmed_dish": "pho"})
             self.assertEqual(response.status_code, 503)
+
+    def test_health_has_a_total_two_second_deadline(self):
+        async def delayed():
+            await asyncio.sleep(10)
+        start = time.monotonic()
+        with patch.object(self.store, "ready_async", side_effect=delayed):
+            response = self.client.get("/health/ready")
+        self.assertEqual(response.status_code, 503)
+        self.assertLess(time.monotonic() - start, 3)
 
     def test_corrupt_vector_bundle_is_rejected(self):
         for mutation in [lambda v: v.update(corpus_version="other_version"),

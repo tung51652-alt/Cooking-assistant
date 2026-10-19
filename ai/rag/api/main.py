@@ -114,10 +114,11 @@ def create_app(bundle=None, encoder=None, store=None):
         return {"status": "live"}
 
     @app.get("/health/ready")
-    def ready():
+    async def ready():
         try:
-            ensure_ready()
-        except Failure:
+            async with asyncio.timeout(2):
+                await store.ready_async()
+        except (TimeoutError, httpx.HTTPError, ValueError, KeyError, TypeError):
             return JSONResponse(status_code=503, content={"status": "not_ready", "code": "DEPENDENCY_NOT_READY"})
         return {"status": "ready", **bundle.versions}
 

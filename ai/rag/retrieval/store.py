@@ -24,15 +24,18 @@ class Store:
     def aliases(self):
         return {a["alias_name"]: a["collection_name"] for a in self.call("GET", "/aliases")["aliases"]}
 
-    def validate_collection(self, *, points=False):
+    def validate_info(self, result):
         bundle = self.bundle
-        collection = bundle.collection
-        result = self.call("GET", f"/collections/{collection}")
         config = result["config"]["params"]["vectors"]
         require(config["size"] == 384 and config["distance"] == "Cosine", "Index configuration mismatch")
         require(result["status"] == "green" and result["points_count"] == len(bundle.points), "Index count/status mismatch")
         required = {"normalized_dish", "language", "cuisine", "corpus_version", "embedding_version", "taxonomy_version"}
         require(required <= set(result["payload_schema"]), "Missing payload indices")
+
+    def validate_collection(self, *, points=False):
+        bundle = self.bundle
+        collection = bundle.collection
+        self.validate_info(self.call("GET", f"/collections/{collection}"))
         if points:
             found, offset = {}, None
             while True:
@@ -53,6 +56,17 @@ class Store:
     def ready(self):
         require(self.aliases().get(ALIAS) == self.bundle.collection, "Active index version mismatch")
         self.validate_collection()
+
+    async def ready_async(self):
+        # Health uses cancellable I/O so the API can enforce its total two-second budget.
+        async with httpx.AsyncClient(base_url=self.client.base_url, timeout=2, trust_env=False) as client:
+            response = await client.get("/aliases")
+            response.raise_for_status()
+            aliases = {a["alias_name"]: a["collection_name"] for a in response.json()["result"]["aliases"]}
+            require(aliases.get(ALIAS) == self.bundle.collection, "Active index version mismatch")
+            response = await client.get(f"/collections/{self.bundle.collection}")
+            response.raise_for_status()
+            self.validate_info(response.json()["result"])
 
     def seed(self):
         bundle = self.bundle

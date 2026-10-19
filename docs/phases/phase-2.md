@@ -22,7 +22,7 @@ Chỉ chạy một init job mỗi lần; kiểm tra alias trước chuyển khô
 ## Bằng chứng kiểm tra
 
 - 6 bài kiểm tra data/taxonomy và 12 bài kiểm tra artifact/policy; validator input manifest vẫn qua.
-- 10 runtime tests với model/Qdrant thật, bao gồm biến thể, metadata filter, tie-break, idempotence, lỗi import, alias sai, validation, deadline dependency, lỗi an toàn và quá tải. Fault injection kiểm tra lỗi riêng, không dùng kết quả giả để tính chất lượng retrieval.
+- 11 runtime tests với model/Qdrant thật, bao gồm biến thể, metadata filter, tie-break, idempotence, lỗi import, alias sai, validation, deadline dependency, lỗi an toàn và quá tải. Fault injection kiểm tra lỗi riêng, không dùng kết quả giả để tính chất lượng retrieval.
 - [Docker offline evidence](evidence/phase-2-recipes-container.json): image CPU 4 thread/2 GiB, non-root/read-only, Qdrant trên mạng internal chặn Internet; seed hai lần, API thật, 100 search; p95 khoảng 96.8 ms, memory peak khoảng 864.2 MiB. Đây là benchmark cục bộ, không bảo đảm trên mọi máy.
 - Compose riêng Phase 2 chạy từ volume mới và seed lại thành công; health/Swagger trả 200. Không expose Qdrant ra host. Mạng browser riêng để mở Swagger local; kiểm thử chặn Internet dùng harness internal riêng như evidence.
 - [Draft evaluation](evidence/phase-2-retrieval-draft.json): 150 query cố định; 90 positive trên 18 món có recipe, 60 empty của 12 món thiếu. Hit@1/Hit@3/MRR hiện bằng 1 trên 90 positive, không lẫn món. **Không coi đây là đạt quality gate:** đa số món chỉ có một ứng viên, query/ground truth do agent soạn và chưa review độc lập. 60 empty không được tính thành hit.
