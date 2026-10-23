@@ -1,0 +1,36 @@
+# Use after compose.release.yaml; artifacts must already be staged before building.
+services:
+  vision:
+    build: {context: ../.., dockerfile: deploy/docker/Dockerfile.vision}
+    develop:
+      watch:
+        - {path: ../../ai/cv/inference, action: rebuild, ignore: [tests/]}
+  recipes:
+    build: {context: ../.., dockerfile: deploy/docker/Dockerfile.recipes}
+    develop:
+      watch:
+        - {path: ../../ai/rag, action: rebuild, ignore: [tests/]}
+  recipe-init:
+    build: {context: ../.., dockerfile: deploy/docker/Dockerfile.recipes}
+  backend:
+    build: {context: ../.., dockerfile: deploy/docker/Dockerfile.backend}
+    develop:
+      watch:
+        - {path: ../../backend/src/main, action: rebuild}
+        - {path: ../../backend/pom.xml, action: rebuild}
+  frontend:
+    build: {context: ../.., dockerfile: deploy/docker/Dockerfile.frontend}
+    develop:
+      watch:
+        - {path: ../../frontend/src, action: rebuild}
+        - {path: ../../frontend/public, action: rebuild}
+  debug:
+    image: nginx:1.30.6-alpine3.24
+    profiles: [debug]
+    user: '10001:10001'
+    read_only: true
+    tmpfs: ['/tmp:rw,noexec,nosuid,size=16m']
+    entrypoint: [nginx, -c, /etc/nginx/debug.conf, -g, 'daemon off;']
+    volumes: ['../nginx/debug.conf:/etc/nginx/debug.conf:ro']
+    networks: [application, browser]
+    ports: ['127.0.0.1:8081:8081', '127.0.0.1:8000:8000', '127.0.0.1:8001:8001', '127.0.0.1:6333:6333']

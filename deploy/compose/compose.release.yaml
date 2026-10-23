@@ -1,0 +1,85 @@
+name: cooklens
+
+x-runtime: &runtime
+  read_only: true
+  tmpfs: ['/tmp:rw,noexec,nosuid,size=64m']
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  restart: unless-stopped
+  networks: [application]
+  logging:
+    driver: json-file
+    options: {max-size: 10m, max-file: '3'}
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.19.2
+    environment:
+      QDRANT__TELEMETRY_DISABLED: 'true'
+    volumes: [recipe-index:/qdrant/storage]
+    networks: [application]
+    restart: unless-stopped
+    cpus: 2
+    mem_limit: 512m
+    healthcheck:
+      test: [CMD-SHELL, 'bash -c "exec 3<>/dev/tcp/127.0.0.1/6333"']
+      interval: 2s
+      timeout: 2s
+      start_period: 10s
+      retries: 30
+
+  recipe-init:
+    <<: *runtime
+    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-recipes:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
+    command: [python, -m, ai.rag.ingestion.seed]
+    environment: {QDRANT_URL: 'http://qdrant:6333'}
+    restart: 'no'
+    cpus: 1
+    mem_limit: 512m
+    depends_on:
+      qdrant: {condition: service_healthy}
+    healthcheck: {disable: true}
+
+  recipes:
+    <<: *runtime
+    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-recipes:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
+    environment: {QDRANT_URL: 'http://qdrant:6333'}
+    cpus: 4
+    mem_limit: 2g
+    depends_on:
+      recipe-init: {condition: service_completed_successfully}
+
+  vision:
+    <<: *runtime
+    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-vision:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
+    cpus: 4
+    mem_limit: 1g
+
+  backend:
+    <<: *runtime
+    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-backend:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
+    environment:
+      VISION_URL: http://vision:8000
+      RECIPES_URL: http://recipes:8001
+    cpus: 2
+    mem_limit: 512m
+    depends_on:
+      vision: {condition: service_healthy}
+      recipes: {condition: service_healthy}
+
+  frontend:
+    <<: *runtime
+    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-frontend:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
+    cpus: 1
+    mem_limit: 128m
+    networks: [application, browser]
+    ports: ['127.0.0.1:${HOST_PORT:-8080}:8080']
+    depends_on:
+      backend: {condition: service_healthy}
+
+networks:
+  application: {internal: true}
+  browser:
+
+volumes:
+  recipe-index:
