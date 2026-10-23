@@ -12,6 +12,7 @@ Nguồn tham chiếu chung cho quyết định kỹ thuật, dữ liệu, thí n
 - [Quyết định runtime/artifact](decisions/mvp-runtime.md): embedding bundle có version, nguồn recipe, nghiệm thu CPU và giới hạn phát hành.
 - [Nguồn Stitch frontend](frontend-reference/stitch/README.md): snapshot chuẩn, tokens và đối chiếu desktop/mobile; snapshot cũ giữ cho lịch sử.
 - [CV](cv/README.md)
+- [Mobile Expo](phases/mobile-expo.md): client native dùng chung API, Expo Go, kiểm thử bundle/contract và phần chờ nghiệm thu trên thiết bị.
 - [LangGraph](langgraph/README.md)
 - [Data & RAG](data/README.md)
 - [Chuẩn kỹ thuật MVP](technical-architecture.md): contract CV–RAG, API, persistence, observability và evaluation gates.
