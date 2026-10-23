@@ -109,5 +109,5 @@ export function normalizeBaseUrl(value: string): string {
       return url.origin + '/api';
     }
   } catch { /* Invalid configuration is reported before making a request. */ }
-  throw new ApiError('??a ch? m?y ch? ph?i l? HTTP(S) v? k?t th?c b?ng /api.');
+  throw new ApiError('Địa chỉ máy chủ phải dùng HTTP(S) và kết thúc bằng /api.');
 }
