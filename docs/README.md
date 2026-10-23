@@ -6,6 +6,8 @@ Nguồn tham chiếu chung cho quyết định kỹ thuật, dữ liệu, thí n
 - [Trạng thái Phase 0](phases/phase-0.md): kết quả audit thật, phần đã làm và đầu vào còn thiếu.
 - [Backend và Phase 3](phases/phase-3.md): public gateway, Swagger, kiểm thử HTTP/AI thật và hợp đồng frontend sinh từ OpenAPI.
 - [Frontend và Phase 4](phases/phase-4.md): nguồn Stitch đúng, giao diện Docker và kiểm thử desktop/mobile với AI thật.
+- [Docker và Phase 5](phases/phase-5.md): Compose độc lập, candidate có version, lifecycle và kiểm tra offline.
+- [Runbook Docker](runbooks/docker.md): build/chạy, dev/debug, volume, nâng/rollback và giới hạn phát hành.
 - [Contract MVP v1](contracts/mvp-v1.md): API public/nội bộ, errors, timeout, upload và quy tắc xếp hạng.
 - [Quyết định runtime/artifact](decisions/mvp-runtime.md): embedding bundle có version, nguồn recipe, nghiệm thu CPU và giới hạn phát hành.
 - [Nguồn Stitch frontend](frontend-reference/stitch/README.md): snapshot chuẩn, tokens và đối chiếu desktop/mobile; snapshot cũ giữ cho lịch sử.

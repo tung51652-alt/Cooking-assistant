@@ -6,9 +6,22 @@ Hiện hỗ trợ 30 món, corpus 33 công thức; mỗi món trả tối đa ba
 
 ## Trạng thái phiên bản
 
-Hướng dẫn này dành cho mã Phase 4 trên nhánh feature/frontend-phase4 và develop sau khi PR được người dùng merge. Các image dưới đây được **build local**. Chưa phát hành v2.0.0 hoặc công bố bộ image Docker Hub dùng để pull; quy trình chỉ chạy Docker trên máy mới sẽ được hoàn tất ở Phase 5–6. Không dùng trantung2006/cooklens:tagname như một image đã phát hành.
+Phase 4 đã merge vào develop. Phase 5 trên feature/docker-release bổ sung Compose độc lập và candidate 2.0.0-rc.1; các image vẫn **build local**. Chưa phát hành v2.0.0 hoặc công bố image Docker Hub dùng để pull; kiểm chứng registry/máy sạch thuộc Phase 6. Không dùng trantung2006/cooklens:tagname như một image đã phát hành.
 
-## Chạy nhanh trên máy đã có image
+## Compose độc lập Phase 5
+
+Sau khi chuẩn bị artifact theo bước 1–2 bên dưới, từ root repo build candidate:
+
+```bash
+docker compose -f deploy/compose/compose.release.yaml \
+  -f deploy/compose/compose.dev.yaml build
+docker pull qdrant/qdrant:v1.19.2
+docker compose -f deploy/compose/compose.release.yaml up -d --wait --wait-timeout 240
+```
+
+Mở **http://127.0.0.1:8080/**. Có thể chép riêng compose.release.yaml ra thư mục ngoài source và chạy với các image đã có; runtime không cần model/Python/Java/Node trên host. Chỉ web được publish, AI/backend/Qdrant ở mạng internal. Xem [runbook Docker](docs/runbooks/docker.md) cho build/dev/debug, volume, di chuyển image, upgrade/rollback và giới hạn offline; [báo cáo Phase 5](docs/phases/phase-5.md) ghi bằng chứng kiểm thử. Mobile Expo dùng cùng gateway, đang triển khai riêng ở [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); Compose release không mở cổng LAN mặc định.
+
+## Stack review Phase 4 trên máy đã có image
 
 Nếu máy đã build đủ bốn image ở bước bên dưới, vào thư mục root repository có mã Phase 4 rồi chạy:
 
@@ -139,4 +152,4 @@ Browser → Nginx frontend → Spring Boot /api → Vision EfficientNet-B2
 | [Dữ liệu công thức](data/recipes/README.md) | Nguồn/license/attribution và AI-authored provenance |
 | [Tài liệu chung](docs/README.md) | CV, data, kiến trúc và roadmap dài hạn |
 
-Trước PR phải rà file/test tạm, build output, secrets và mọi literal mã/hash bị cấm trong code, tài liệu, lockfile và bundle. Không commit trọng số/dataset lớn, key/token, log hay dữ liệu người dùng. Giữ test hồi quy có mục đích. Agent tạo PR, người dùng review/merge từng phase; chưa chuyển Phase 5 khi PR Phase 4 chưa được merge.
+Trước PR phải rà file/test tạm, build output, secrets và mọi literal mã/hash bị cấm trong code, tài liệu, lockfile và bundle. Không commit trọng số/dataset lớn, key/token, log hay dữ liệu người dùng. Giữ test hồi quy có mục đích. Agent tạo PR, người dùng review/merge từng phase; chưa chuyển Phase 6 khi PR Phase 5 chưa được merge.

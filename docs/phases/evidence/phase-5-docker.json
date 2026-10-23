@@ -1,0 +1,55 @@
+{
+  "application_candidate": "2.0.0-rc.1",
+  "public_api_version": "1.0.0",
+  "host": {
+    "logical_cpus": 4,
+    "memory_bytes": 16766414848,
+    "architecture": "x86_64",
+    "os": "linux"
+  },
+  "compose_version": "2.38.2",
+  "standalone_compose_without_source_mounts": true,
+  "fresh_volume_seed": true,
+  "repeat_seed_and_restart_persisted": true,
+  "version_upgrade_and_rollback": true,
+  "invalid_bundle_rejected": true,
+  "catalog_dishes_searched": 30,
+  "dependency_stop_recovery": true,
+  "offline_full_flow_through_frontend": true,
+  "only_frontend_published_on_loopback": true,
+  "cold_start_seconds": 30.018,
+  "seed_seconds": 0.857,
+  "warm_sequential_samples": 10,
+  "vision_median_seconds": 0.089,
+  "vision_max_seconds": 0.183,
+  "search_median_seconds": 0.075,
+  "search_max_seconds": 0.584,
+  "services": {
+    "qdrant": {
+      "image_size_bytes": 200167108,
+      "memory_limit_bytes": 536870912,
+      "memory_peak_bytes": 99844096
+    },
+    "vision": {
+      "image_size_bytes": 1149712902,
+      "memory_limit_bytes": 1073741824,
+      "memory_peak_bytes": 355201024
+    },
+    "recipes": {
+      "image_size_bytes": 1732537265,
+      "memory_limit_bytes": 2147483648,
+      "memory_peak_bytes": 640892928
+    },
+    "backend": {
+      "image_size_bytes": 315548389,
+      "memory_limit_bytes": 536870912,
+      "memory_peak_bytes": 228352000
+    },
+    "frontend": {
+      "image_size_bytes": 68835918,
+      "memory_limit_bytes": 134217728,
+      "memory_peak_bytes": 10657792
+    }
+  },
+  "limitations": "CI CPU integration sample, not minimum hardware or P95 acceptance. Images built locally; clean registry pull is Phase 6. Memory peaks are per-service maxima across sampled container instances, not a simultaneous whole-stack peak."
+}
