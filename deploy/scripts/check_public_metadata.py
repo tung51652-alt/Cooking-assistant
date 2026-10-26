@@ -12,7 +12,7 @@ PATTERNS = {
     "object identifier": re.compile(r"(?i)(?<![0-9a-f])[0-9a-f]{32,}(?![0-9a-f])"),
     "short object identifier": re.compile(r"\b(?=[0-9a-fA-F]{7,12}\b)(?=[0-9a-fA-F]*[a-fA-F])(?=[0-9a-fA-F]*[0-9])[0-9a-fA-F]+\b"),
     "package integrity value": re.compile(r"sha(?:256|384|512)-[A-Za-z0-9+/=]+"),
-    "credential": re.compile(r"(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|sk-(?:proj-|or-v1-)?[A-Za-z0-9_-]{32,}|AKIA[0-9A-Z]{16})"),
+    "credential": re.compile(r"(?:gh[pousr]_[A-Za-z0-9]{30,}|dckr_pat_[A-Za-z0-9_-]{20,}|github_pat_[A-Za-z0-9_]{30,}|sk-(?:proj-|or-v1-)?[A-Za-z0-9_-]{32,}|AKIA[0-9A-Z]{16})"),
     "private key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
     "password verifier": re.compile(r"(?:\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}|\$argon2(?:id|i|d)\$)"),
     "credential URL": re.compile(r"https?://[^\s/:]+:[^\s/@]+@"),

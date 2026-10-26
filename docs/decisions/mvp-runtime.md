@@ -1,6 +1,6 @@
 # Quyết định runtime và đầu vào — Phase 0
 
-Ngày audit: 2026-10-19. Đây là quyết định runtime cho lần giao Top-3 + recipe; benchmark và giới hạn phát hành được ghi riêng trong báo cáo phase. Phase 0–5 hiện đã merge vào `origin/develop`; Docker Hub release và nghiệm thu cuối chưa hoàn tất.
+Ngày audit: 2026-10-19. Đây là quyết định runtime cho lần giao Top-3 + recipe; benchmark và giới hạn phát hành được ghi riêng trong báo cáo phase. Phase 0–5 hiện đã merge vào `origin/develop`; Phase 6 đã có registry/prerelease 2.0.0-rc.2 và pull ẩn danh; nghiệm thu cuối Phase 7 và v2.0.0 chính thức chưa hoàn tất.
 
 ## Stack và embedding
 
@@ -40,11 +40,11 @@ Checkpoint do **Phạm Hoàng Minh** huấn luyện, người dùng xác nhận 
 
 ## Registry và giới hạn phát hành
 
-Chọn Docker Hub làm registry, bốn image ứng dụng và image Qdrant chính thức. Người dùng đã xác nhận namespace `trantung2006`, visibility `public`; manifest ghi tên repository dự kiến. Quyền push và việc tồn tại đủ bốn repository chưa được kiểm tra, chưa có image release; chúng được kiểm tra khi chuẩn bị phát hành, không yêu cầu gửi mật khẩu/token qua chat.
+Chọn Docker Hub làm registry, bốn image ứng dụng và image Qdrant chính thức. Người dùng đã xác nhận namespace `trantung2006`, visibility `public`; manifest ghi tên repository dự kiến. Phase 6 đã kiểm chứng login/push đủ bốn repository public, pull ẩn danh trên runner khác và gói prerelease 2.0.0-rc.2; không yêu cầu gửi mật khẩu/token qua chat. Bằng chứng tại báo cáo Phase 6.
 
 Người dùng đã cho phép dựng CSS/JS từ HTML; frontend đã được tích hợp với API thật và merge qua PR #14. Web hỗ trợ trình duyệt điện thoại. App Expo dùng chung API, không build APK; Expo tích hợp qua PR #17; upload ảnh trên điện thoại thật đã được người dùng xác nhận, nghiệm thu đầy đủ Android/iOS còn mở.
 
-Các quyết định và đầu vào Phase 0 đã được merge; bằng chứng transfer được ghi trong [báo cáo Phase 0](../phases/phase-0.md). Corpus coverage/benchmark được nghiệm thu ở Phase 2. Quyền push registry và pull trên máy sạch vẫn thuộc Phase 6, chưa được xem là đã kiểm chứng.
+Các quyết định và đầu vào Phase 0 đã được merge; bằng chứng transfer được ghi trong [báo cáo Phase 0](../phases/phase-0.md). Corpus coverage/benchmark được nghiệm thu ở Phase 2. Quyền push registry và pull trên runner sạch đã có bằng chứng riêng ở [Phase 6](../phases/phase-6.md); chất lượng/final release còn ở Phase 7.
 
 ## Quy tắc không công bố mã định danh
 

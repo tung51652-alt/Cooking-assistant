@@ -6,9 +6,19 @@ Hiện hỗ trợ 30 món, corpus 33 công thức; mỗi món trả tối đa ba
 
 ## Trạng thái phiên bản
 
-Phase 0–5 đã merge vào `origin/develop`; PR Phase 5 #16 đã được xác nhận merge. Compose hiện dùng image candidate `2.0.0-rc.1`, build trên CI/local; chưa push bộ image ứng dụng lên Docker Hub và chưa phát hành `v2.0.0`. Push/pull registry và kiểm thử máy sạch là Phase 6. Không coi tag ví dụ `trantung2006/cooklens:tagname` là image đã phát hành.
+Phase 0–5 đã merge vào develop; Phase 6 đã phát hành bản ứng viên **2.0.0-rc.2** với bốn image public, có trọng số/model/corpus, và đã kiểm chứng pull ẩn danh trên runner sạch. [Báo cáo Phase 6](docs/phases/phase-6.md). Phase 7 và bản chính thức `v2.0.0` chưa hoàn tất.
 
-## Compose độc lập Phase 5
+## Chạy ngay bằng Docker
+
+Tải [gói CookLens 2.0.0-rc.2](https://github.com/tung51652-alt/Cooking-assistant/releases/download/v2.0.0-rc.2/cooklens-2.0.0-rc.2.tar.gz), giải nén, mở terminal trong thư mục đó rồi chạy:
+
+```sh
+docker compose -f compose.release.yaml up -d --pull always --wait --wait-timeout 240
+```
+
+Mở **http://localhost:8080/**. Chỉ cần Docker Engine/Desktop chạy Linux containers với Compose; bộ hiện kiểm chứng Linux amd64/CPU. Không cần source, tải trọng số, seed thủ công hoặc cài Python/Java/Node. Public pull không cần đăng nhập. Xem [runbook registry](docs/runbooks/registry.md) cho readiness, logs, offline, upgrade và rollback.
+
+## Developer build candidate local
 
 Sau khi chuẩn bị artifact theo bước 1–2 bên dưới, từ root repo build candidate:
 
@@ -16,10 +26,11 @@ Sau khi chuẩn bị artifact theo bước 1–2 bên dưới, từ root repo bu
 docker compose -f deploy/compose/compose.release.yaml \
   -f deploy/compose/compose.dev.yaml build
 docker pull qdrant/qdrant:v1.19.2
-docker compose -f deploy/compose/compose.release.yaml up -d --wait --wait-timeout 240
+docker compose -f deploy/compose/compose.release.yaml \
+  -f deploy/compose/compose.dev.yaml up -d --wait --wait-timeout 240
 ```
 
-Mở **http://127.0.0.1:8080/**. Có thể chép riêng compose.release.yaml ra thư mục ngoài source và chạy với các image đã có; runtime không cần model/Python/Java/Node trên host. Chỉ web được publish, AI/backend/Qdrant ở mạng internal. Xem [runbook Docker](docs/runbooks/docker.md) cho build/dev/debug, volume, di chuyển image, upgrade/rollback và giới hạn offline; [báo cáo Phase 5](docs/phases/phase-5.md) ghi bằng chứng kiểm thử. Mobile Expo dùng cùng gateway, tích hợp qua [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); Compose release không mở cổng LAN mặc định.
+Mở **http://127.0.0.1:8080/**. Source release Compose mặc định dùng image public 2.0.0-rc.2; dev overlay dùng image local 2.0.0-rc.1. Có thể chép riêng release Compose ra thư mục ngoài source và pull/chạy; runtime không cần model/Python/Java/Node trên host. Chỉ web được publish, AI/backend/Qdrant ở mạng internal. Xem [runbook Docker](docs/runbooks/docker.md) cho build/dev/debug, volume, di chuyển image, upgrade/rollback và giới hạn offline; [báo cáo Phase 5](docs/phases/phase-5.md) ghi bằng chứng kiểm thử. Mobile Expo dùng cùng gateway, tích hợp qua [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); Compose release không mở cổng LAN mặc định.
 
 ## Stack review Phase 4 trên máy đã có image
 
@@ -152,4 +163,4 @@ Browser → Nginx frontend → Spring Boot /api → Vision EfficientNet-B2
 | [Dữ liệu công thức](data/recipes/README.md) | Nguồn/license/attribution và AI-authored provenance |
 | [Tài liệu chung](docs/README.md) | CV, data, kiến trúc và roadmap dài hạn |
 
-Trước PR phải rà file/test tạm, build output, secrets và mọi literal mã/hash bị cấm trong code, tài liệu, lockfile và bundle. Không commit trọng số/dataset lớn, key/token, log hay dữ liệu người dùng. Giữ test hồi quy có mục đích. Agent tạo PR, người dùng review/merge từng phase; Phase 4 và Phase 5 đã merge; phát hành Docker Hub và nghiệm thu release vẫn thuộc Phase 6–7. Riêng PR mobile #17, người dùng đã yêu cầu agent xử lý conflict và merge vào develop sau khi kiểm tra đạt.
+Trước PR phải rà file/test tạm, build output, secrets và mọi literal mã/hash bị cấm trong code, tài liệu, lockfile và bundle. Không commit trọng số/dataset lớn, key/token, log hay dữ liệu người dùng. Giữ test hồi quy có mục đích. Agent tạo PR, người dùng review/merge từng phase; Phase 4/5 và Expo #17 đã merge; Phase 6 registry có bằng chứng ở PR #19 và được người dùng trực tiếp yêu cầu agent merge vào develop sau khi gates đạt. Nghiệm thu chất lượng và phát hành chính thức v2.0.0 thuộc Phase 7.

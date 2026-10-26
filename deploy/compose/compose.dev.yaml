@@ -1,24 +1,29 @@
 # Use after compose.release.yaml; artifacts must already be staged before building.
 services:
   vision:
+    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-vision:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
     build: {context: ../.., dockerfile: deploy/docker/Dockerfile.vision}
     develop:
       watch:
         - {path: ../../ai/cv/inference, action: rebuild, ignore: [tests/]}
   recipes:
+    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-recipes:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
     build: {context: ../.., dockerfile: deploy/docker/Dockerfile.recipes}
     develop:
       watch:
         - {path: ../../ai/rag, action: rebuild, ignore: [tests/]}
   recipe-init:
+    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-recipes:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
     build: {context: ../.., dockerfile: deploy/docker/Dockerfile.recipes}
   backend:
+    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-backend:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
     build: {context: ../.., dockerfile: deploy/docker/Dockerfile.backend}
     develop:
       watch:
         - {path: ../../backend/src/main, action: rebuild}
         - {path: ../../backend/pom.xml, action: rebuild}
   frontend:
+    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-frontend:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
     build: {context: ../.., dockerfile: deploy/docker/Dockerfile.frontend}
     develop:
       watch:

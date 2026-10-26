@@ -1,0 +1,22 @@
+{
+  "application_candidate": "2.0.0-rc.2",
+  "platform": "linux/amd64",
+  "public_api_version": "1.0.0",
+  "taxonomy_version": "1.0.0",
+  "model_version": "efficientnet-b2-30vnfoods-2026-09-30",
+  "corpus_version": "cooklens-recipes-v1",
+  "embedding_version": "multilingual-e5-small-v1",
+  "images": {
+    "backend": "trantung2006/cooklens-backend:2.0.0-rc.2",
+    "frontend": "trantung2006/cooklens-frontend:2.0.0-rc.2",
+    "qdrant": "qdrant/qdrant:v1.19.2",
+    "recipe-init": "trantung2006/cooklens-recipes:2.0.0-rc.2",
+    "recipes": "trantung2006/cooklens-recipes:2.0.0-rc.2",
+    "vision": "trantung2006/cooklens-vision:2.0.0-rc.2"
+  },
+  "registry_published": true,
+  "release_acceptance_complete": false,
+  "images_included": false,
+  "registry_pull_verified": true,
+  "source_release_tag": "v2.0.0-rc.2"
+}

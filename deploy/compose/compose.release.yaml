@@ -30,7 +30,7 @@ services:
 
   recipe-init:
     <<: *runtime
-    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-recipes:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
+    image: ${COOKLENS_IMAGE_PREFIX:-trantung2006/cooklens}-recipes:${COOKLENS_IMAGE_TAG:-2.0.0-rc.2}
     command: [python, -m, ai.rag.ingestion.seed]
     environment: {QDRANT_URL: 'http://qdrant:6333'}
     restart: 'no'
@@ -42,7 +42,7 @@ services:
 
   recipes:
     <<: *runtime
-    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-recipes:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
+    image: ${COOKLENS_IMAGE_PREFIX:-trantung2006/cooklens}-recipes:${COOKLENS_IMAGE_TAG:-2.0.0-rc.2}
     environment: {QDRANT_URL: 'http://qdrant:6333'}
     cpus: 4
     mem_limit: 2g
@@ -51,13 +51,13 @@ services:
 
   vision:
     <<: *runtime
-    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-vision:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
+    image: ${COOKLENS_IMAGE_PREFIX:-trantung2006/cooklens}-vision:${COOKLENS_IMAGE_TAG:-2.0.0-rc.2}
     cpus: 4
     mem_limit: 1g
 
   backend:
     <<: *runtime
-    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-backend:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
+    image: ${COOKLENS_IMAGE_PREFIX:-trantung2006/cooklens}-backend:${COOKLENS_IMAGE_TAG:-2.0.0-rc.2}
     environment:
       VISION_URL: http://vision:8000
       RECIPES_URL: http://recipes:8001
@@ -69,7 +69,7 @@ services:
 
   frontend:
     <<: *runtime
-    image: ${COOKLENS_IMAGE_PREFIX:-cooklens}-frontend:${COOKLENS_IMAGE_TAG:-2.0.0-rc.1}
+    image: ${COOKLENS_IMAGE_PREFIX:-trantung2006/cooklens}-frontend:${COOKLENS_IMAGE_TAG:-2.0.0-rc.2}
     cpus: 1
     mem_limit: 128m
     networks: [application, browser]

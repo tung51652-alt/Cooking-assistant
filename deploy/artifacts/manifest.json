@@ -151,7 +151,7 @@
     "platforms": [
       "linux/amd64"
     ],
-    "status": "namespace_and_visibility_confirmed_push_access_not_verified",
+    "status": "public_namespace_declared_publication_recorded_in_release_metadata",
     "planned_repositories": [
       "trantung2006/cooklens-vision",
       "trantung2006/cooklens-recipes",

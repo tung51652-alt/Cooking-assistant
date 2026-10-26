@@ -2,7 +2,7 @@
 
 Ngày: 2026-10-19. Phase 0 đã merge và được xác nhận trên `origin/develop`. Hai nhánh cùng phase: `feature/data-recipes` chỉ nhập/enrich taxonomy từ nhánh data hiện có; `minh/cv` được đồng bộ develop và dùng đúng phần mapping đó. Không kéo web-search prototype vào runtime.
 
-Trạng thái: **đã hoàn tất và được merge vào `origin/develop` qua PR mapping #8 và CV #9**. Phase 2–5 cũng đã merge; Phase 6–7 và application release chưa hoàn tất.
+Trạng thái: **đã hoàn tất và được merge vào `origin/develop` qua PR mapping #8 và CV #9**. Phase 2–5 cũng đã merge; Phase 6 registry/prerelease 2.0.0-rc.2 đã có bằng chứng; Phase 7 và application release v2.0.0 chưa hoàn tất.
 
 ## Thay đổi và bằng chứng
 
