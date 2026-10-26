@@ -23,7 +23,7 @@ Các trang nguồn khác: `chat.html` và `cooking.html` đã được nhận di
 - `recipe.html` tham chiếu `../css/style.css`, `../css/recipe.css`.
 - Không tìm thấy các file trên dưới source root hoặc các thư mục `css/`, `js/` ở thư mục cha. Header/logo cũng đang có hai biến thể emoji khác nhau giữa trang home và trang con; Phase 4 cần thống nhất dựa trên bản thiết kế được review.
 
-Người dùng đã xác nhận dựng frontend từ HTML đã gửi và cho phép bổ sung CSS/JS còn thiếu, tận dụng bố cục CookLens, chưa có chatbot. Đây là quyết định xử lý thiếu assets ở Phase 0; không còn chờ CSS gốc để bắt đầu khung UI. Khung độc lập đã được merge qua PR #7; bốn baseline được chọn nằm trong `frontend/docs/`. Phase 4 sau đó tích hợp UI với API thật. Web responsive chạy trên điện thoại; app Expo đang được review riêng ở PR #17, chưa merge và không build APK.
+Người dùng đã xác nhận dựng frontend từ HTML đã gửi và cho phép bổ sung CSS/JS còn thiếu, tận dụng bố cục CookLens, chưa có chatbot. Đây là quyết định xử lý thiếu assets ở Phase 0; không còn chờ CSS gốc để bắt đầu khung UI. Khung độc lập đã được merge qua PR #7; bốn baseline được chọn nằm trong `frontend/docs/`. Phase 4 sau đó tích hợp UI với API thật. Web responsive chạy trên điện thoại; app Expo được tích hợp qua PR #17, đã có smoke upload ảnh trên điện thoại thật, không build APK. Nghiệm thu Android/iOS đầy đủ ghi ở báo cáo Expo.
 
 Do bản nguồn không có CSS/JS, không thể tuyên bố màu/font/spacing dựng mới giống CSS gốc chưa được cung cấp. Giữ cấu trúc/nội dung/tên lớp, bổ sung CSS nhẹ và chụp baseline mới ở 1440×900 và 390×844 để người dùng duyệt; nếu sau này có assets gốc, đối chiếu và cập nhật theo chúng. Snapshot HTML phía trên vẫn bất biến, không sửa để khớp bản triển khai mới.
 

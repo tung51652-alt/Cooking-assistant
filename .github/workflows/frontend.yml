@@ -1,10 +1,10 @@
 name: Frontend design and real API
 on:
   pull_request:
-    paths: ['frontend/**', 'backend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', '.dockerignore', '.github/workflows/frontend.yml']
+    paths: ['frontend/**', 'packages/cooklens-api/**', 'backend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', '.dockerignore', '.github/workflows/frontend.yml']
   push:
     branches: [develop, main]
-    paths: ['frontend/**', 'backend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', '.dockerignore', '.github/workflows/frontend.yml']
+    paths: ['frontend/**', 'packages/cooklens-api/**', 'backend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', '.dockerignore', '.github/workflows/frontend.yml']
   workflow_dispatch:
 permissions:
   contents: read

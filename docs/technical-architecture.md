@@ -6,7 +6,7 @@ Tài liệu này mô tả runtime hiện có và hướng mở rộng CookLens. 
 
 Phạm vi hiện có là **Top-3 từ ảnh → xác nhận món → tìm tối đa 3 recipe → chi tiết trên frontend**, cùng Compose độc lập Phase 5. Phase 0–5 đã merge vào `origin/develop`; Docker Hub release thuộc Phase 6, nghiệm thu cuối thuộc Phase 7. [Contract v1](contracts/mvp-v1.md) chốt endpoint, error code, giới hạn byte/pixel, confirmation, timeout và version; [quyết định runtime](decisions/mvp-runtime.md) chốt stack/embedding/gates.
 
-Runtime không có chat/LangGraph, PostgreSQL/JPA hoặc persistence hội thoại. Frontend React/Vite tái sử dụng [HTML CookLens đã audit](frontend-reference/README.md), qua Nginx gọi Spring backend; backend gọi vision/recipes bằng HTTP. Qdrant + job init phục vụ corpus có version. Không cần LLM/key để tra recipe. App Expo đang ở PR #17, dùng chung public API; chưa merge và chưa nghiệm thu thiết bị thật.
+Runtime không có chat/LangGraph, PostgreSQL/JPA hoặc persistence hội thoại. Frontend React/Vite tái sử dụng [HTML CookLens đã audit](frontend-reference/README.md), qua Nginx gọi Spring backend; backend gọi vision/recipes bằng HTTP. Qdrant + job init phục vụ corpus có version. Không cần LLM/key để tra recipe. App Expo tích hợp qua PR #17, dùng chung public API; người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26. Kiểm thử native đầy đủ Android/iOS còn mở theo báo cáo Expo.
 
 ## Ranh giới trách nhiệm
 
@@ -16,7 +16,7 @@ Runtime không có chat/LangGraph, PostgreSQL/JPA hoặc persistence hội tho�
 | Retrieval/RAG | Chọn recipe phù hợp, có metadata và nguồn | Thay thế database bằng LLM hoặc truy xuất chỉ bằng embedding |
 | LangGraph | Chưa có trong runtime; hướng mở rộng cho chat/state | Là dependency của luồng tra recipe hiện tại |
 | Backend | Spring Boot API, validation, timeout, logging | Lưu tài khoản/lịch sử trong MVP; huấn luyện model hoặc render UI |
-| Frontend | Web upload, xác nhận món, recipe; Expo đang ở PR riêng | Chat/step mode; gọi trực tiếp model, Qdrant hoặc LLM provider |
+| Frontend | Web upload, xác nhận món, recipe; Expo dùng chung public API | Chat/step mode; gọi trực tiếp model, Qdrant hoặc LLM provider |
 
 ## Taxonomy bắt buộc: CV → Recipe
 

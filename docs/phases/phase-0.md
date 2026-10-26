@@ -35,7 +35,7 @@ Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, đã đồng bộ `origin/de
 | Phase 5 | Compose độc lập/offline và đo tài nguyên đã merge; bằng chứng ở [Phase 5](phase-5.md) |
 | Phase 6–7 | Chưa hoàn tất: phát hành/pull Docker Hub, rồi nghiệm thu bộ release cuối |
 
-App Expo là client riêng, đang ở PR #17; PR này chưa merge và kiểm thử trên thiết bị thật chưa hoàn tất.
+App Expo là client riêng, tích hợp qua PR #17 theo yêu cầu merge của người dùng. Ngày 2026-10-26 người dùng xác nhận upload ảnh trên điện thoại thật hoạt động; kiểm thử native đầy đủ còn mở trong báo cáo Expo.
 
 Các việc trên không bị đánh dấu đã hoàn thành trong Phase 0. Quyền public checkpoint được ghi theo xác nhận của người dùng; không gán license torchvision cho dataset/checkpoint hoặc công bố đã audit độc lập toàn bộ dataset.
 

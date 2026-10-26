@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "CookLens",
+    "slug": "cooklens-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "CookLens cần camera để chụp ảnh món ăn bạn muốn nhận diện.",
+          "photosPermission": "CookLens cần chọn ảnh món ăn từ thư viện của bạn.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}

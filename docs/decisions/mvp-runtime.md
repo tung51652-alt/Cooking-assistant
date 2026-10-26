@@ -42,7 +42,7 @@ Checkpoint do **Phạm Hoàng Minh** huấn luyện, người dùng xác nhận 
 
 Chọn Docker Hub làm registry, bốn image ứng dụng và image Qdrant chính thức. Người dùng đã xác nhận namespace `trantung2006`, visibility `public`; manifest ghi tên repository dự kiến. Quyền push và việc tồn tại đủ bốn repository chưa được kiểm tra, chưa có image release; chúng được kiểm tra khi chuẩn bị phát hành, không yêu cầu gửi mật khẩu/token qua chat.
 
-Người dùng đã cho phép dựng CSS/JS từ HTML; frontend đã được tích hợp với API thật và merge qua PR #14. Web hỗ trợ trình duyệt điện thoại. App Expo dùng chung API, không build APK; PR #17 đang mở và chưa nghiệm thu thiết bị thật.
+Người dùng đã cho phép dựng CSS/JS từ HTML; frontend đã được tích hợp với API thật và merge qua PR #14. Web hỗ trợ trình duyệt điện thoại. App Expo dùng chung API, không build APK; Expo tích hợp qua PR #17; upload ảnh trên điện thoại thật đã được người dùng xác nhận, nghiệm thu đầy đủ Android/iOS còn mở.
 
 Các quyết định và đầu vào Phase 0 đã được merge; bằng chứng transfer được ghi trong [báo cáo Phase 0](../phases/phase-0.md). Corpus coverage/benchmark được nghiệm thu ở Phase 2. Quyền push registry và pull trên máy sạch vẫn thuộc Phase 6, chưa được xem là đã kiểm chứng.
 
