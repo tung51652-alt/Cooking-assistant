@@ -2,6 +2,8 @@
 
 Ngày kiểm tra: 2026-10-26. Phạm vi lượt này chỉ gồm **bước 1: tạo nhánh** và **bước 2: rà đầu vào phát hành**. Chưa triển khai workflow publish, tạo repository registry, cấu hình secret, push image hoặc phát hành ứng dụng.
 
+Đây là snapshot trước thay đổi candidate; tiến độ CI tiếp theo được ghi tại [báo cáo candidate](phase-6-candidate.md).
+
 ## 1. Nhánh và nền tích hợp
 
 - Nhánh làm việc: `codex/phase6-release-ci`, tạo từ `origin/develop` sau khi fetch.

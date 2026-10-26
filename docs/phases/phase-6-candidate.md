@@ -17,10 +17,23 @@ Local dùng Python 3.12.14 đi kèm công cụ, không cài Docker hoặc môi t
 
 - 22 test deploy đạt, gồm 6 test mới cho đóng gói, từ chối cấu hình không an toàn/không tương thích, giữ file người dùng, cô lập project và cách báo P95.
 - 7 test data đã chạy đạt; manifest và validator full coverage đạt 33 recipe/30 món.
-- Scanner tracked source và các file mới, whitespace, Python syntax và liên kết tài liệu được kiểm tra trước push.
-- Chưa có Docker trên host local; chưa chạy lại Java/browser/Docker runtime tại host. Kết quả CI của thay đổi mới còn chờ, sẽ ghi bổ sung sau khi workflow chạy.
+- Scanner tracked source và các file mới, whitespace, Python syntax và liên kết tài liệu đã đạt trước push.
+- Chưa có Docker trên host local; Java/browser/Docker runtime được chạy trên CI.
 
-Không dùng kết quả CI Phase 5 cũ làm bằng chứng rằng workflow mới đã pass. [Preflight đầu vào](phase-6-preflight.md) lưu kết quả bước 1–2 trước thay đổi candidate.
+[CI candidate của thay đổi mới](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/40286531479) đã pass cả `source-checks` và `standalone-and-offline`. Job source chạy Java tests, frontend build/bundle scanner và Playwright; job runtime build đủ image, kiểm tra Compose trong gói, lifecycle/offline và 100 mẫu warm/API. Artifact `cooklens-candidate` đã được tạo thành công.
+
+Đã tải artifact từ CI, đối chiếu image/version giữa `candidate.json` và `verification.json`, kiểm tra các gate lifecycle/latency và scanner metadata trước khi lưu [report được chọn](evidence/phase-6-candidate.json). Không dùng kết quả Phase 5 cũ thay bằng chứng này. [Preflight đầu vào](phase-6-preflight.md) lưu snapshot bước 1–2 trước thay đổi candidate.
+
+| Số đo candidate | Kết quả |
+| --- | --- |
+| Máy CI | Linux x86_64, 4 logical CPU, khoảng 15,6 GiB RAM, Compose 2.38.2 |
+| Cold start, không gồm build/pull | 24,409 giây |
+| Init | 0,746 giây |
+| Warm samples/API | 100, concurrency 1 |
+| P95 vision | 0,0773 giây; mục tiêu ≤10 giây |
+| P95 search | 0,0815 giây; mục tiêu ≤3 giây |
+
+Đây là số đo trên fixture smoke và cấu hình runner được ghi trong report, không phải benchmark accuracy hoặc cấu hình máy tối thiểu. Peak RAM trong report là cực đại theo từng service qua các container instance, không phải peak đồng thời toàn stack. Registry pull và nghiệm thu điện thoại vẫn chưa được kiểm chứng.
 
 ## Cách chạy trên máy CI/developer có Docker
 
@@ -39,7 +52,7 @@ Trước build phải stage checkpoint/embedding và dựng recipe vector bundle
 | Phạm vi | Nội dung |
 | --- | --- |
 | files | Chỉ workflow, harness, script đóng gói, tests cần thiết và tài liệu. Không đưa model/staging, bundle mẫu, cache hoặc output CI vào Git. |
-| tests | Unit checks local đã đạt; kiểm thử build/browser/runtime của thay đổi mới phải xác nhận bằng CI trước bàn giao PR sẵn sàng merge. |
+| tests | 29 test local đạt. CI source-checks và standalone/offline của thay đổi mới đã pass; kiểm tra PR tích hợp được theo dõi riêng trước bàn giao review. |
 | secrets/hashes | Scanner không in giá trị; kiểm tra source/file mới, commit sẽ push và nội dung bundle. Không xuất raw Docker inspect/history hoặc mã xác thực vào artifact. |
 | build/image | Runtime image không đổi business logic; CI build và test candidate. Quyền push registry, pull trên runner sạch và audit bộ image phát hành vẫn hoãn. |
 
