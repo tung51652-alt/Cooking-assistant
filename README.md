@@ -1,12 +1,12 @@
 # CookLens
 
-Đưa ảnh một món ăn Việt vào, xem **Top-3 dự đoán**, chọn hoặc sửa món rồi tìm công thức và xem nguyên liệu/bước nấu/nguồn. Phiên bản Phase 4 có frontend responsive theo nguồn Stitch, Spring Boot gateway, CV EfficientNet-B2 và recipe retrieval E5/Qdrant thật.
+Đưa ảnh một món ăn Việt vào, xem **Top-3 dự đoán**, chọn hoặc sửa món rồi tìm công thức và xem nguyên liệu/bước nấu/nguồn. Bản hiện có trên `develop` gồm frontend responsive theo nguồn Stitch, Spring Boot gateway, CV EfficientNet-B2, recipe retrieval E5/Qdrant thật và Compose độc lập Phase 5.
 
-Hiện hỗ trợ 30 món, corpus 33 công thức; mỗi món trả tối đa ba công thức có sẵn, không tự tạo thêm kết quả để đủ ba. Một số công thức được AI biên soạn và có nhãn nguồn rõ ràng. Ảnh dùng để nhận diện món, không suy ra nguyên liệu trực tiếp từ pixel. Chưa có chatbot, tài khoản/lịch sử hoặc cooking assistant. Mobile hiện là web responsive; app Expo ở mốc sau, không APK.
+Hiện hỗ trợ 30 món, corpus 33 công thức; mỗi món trả tối đa ba công thức có sẵn, không tự tạo thêm kết quả để đủ ba. Một số công thức được AI biên soạn và có nhãn nguồn rõ ràng. Ảnh dùng để nhận diện món, không suy ra nguyên liệu trực tiếp từ pixel. Chưa có chatbot, tài khoản/lịch sử hoặc cooking assistant. Web responsive dùng được trên trình duyệt điện thoại. App Expo đang được review ở PR #17; không làm APK.
 
 ## Trạng thái phiên bản
 
-Phase 4 đã merge vào develop. Phase 5 trên feature/docker-release bổ sung Compose độc lập và candidate 2.0.0-rc.1; các image vẫn **build local**. Chưa phát hành v2.0.0 hoặc công bố image Docker Hub dùng để pull; kiểm chứng registry/máy sạch thuộc Phase 6. Không dùng trantung2006/cooklens:tagname như một image đã phát hành.
+Phase 0–5 đã merge vào `origin/develop`; PR Phase 5 #16 đã được xác nhận merge. Compose hiện dùng image candidate `2.0.0-rc.1`, build trên CI/local; chưa push bộ image ứng dụng lên Docker Hub và chưa phát hành `v2.0.0`. Push/pull registry và kiểm thử máy sạch là Phase 6. Không coi tag ví dụ `trantung2006/cooklens:tagname` là image đã phát hành.
 
 ## Compose độc lập Phase 5
 

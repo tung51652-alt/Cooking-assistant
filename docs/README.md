@@ -1,8 +1,8 @@
 # Tài liệu CookLens
 
-Nguồn tham chiếu chung cho quyết định kỹ thuật, dữ liệu, thí nghiệm và kết quả đánh giá.
+Nguồn tham chiếu chung cho quyết định kỹ thuật, dữ liệu, thí nghiệm và kết quả đánh giá. Phase 0–5 đã có trên `origin/develop`; Phase 6–7 chưa hoàn tất. PR Expo #17 đang mở riêng, chưa được tính là đã merge hoặc đã nghiệm thu thiết bị.
 
-- [Kế hoạch MVP Top-3 món, công thức và Docker](plans/top3-recipes-docker-mvp.md): nhánh tái sử dụng, frontend theo HTML CookLens có sẵn, kiến trúc service, checklist file/test/secrets cuối phase, PR chờ người dùng merge và image kèm trọng số.
+- [Kế hoạch MVP Top-3 món, công thức và Docker](plans/top3-recipes-docker-mvp.md): trạng thái từng phase, kiến trúc service, checklist file/test/secrets và phát hành.
 - [Trạng thái Phase 0](phases/phase-0.md): kết quả audit thật, phần đã làm và đầu vào còn thiếu.
 - [Backend và Phase 3](phases/phase-3.md): public gateway, Swagger, kiểm thử HTTP/AI thật và hợp đồng frontend sinh từ OpenAPI.
 - [Frontend và Phase 4](phases/phase-4.md): nguồn Stitch đúng, giao diện Docker và kiểm thử desktop/mobile với AI thật.

@@ -1,10 +1,10 @@
 # Cấu trúc repository CookLens
 
-Milestone hiện tại theo [kế hoạch Top-3/recipe](plans/top3-recipes-docker-mvp.md), [contract v1](contracts/mvp-v1.md) và [quyết định runtime](decisions/mvp-runtime.md). Sơ đồ dưới là định hướng dài hạn; frontend lần này dùng React/TypeScript/Vite tái sử dụng HTML CookLens, PostgreSQL và LangGraph/chat chưa được khởi tạo. Snapshot HTML tại `docs/frontend-reference/` chỉ là tài liệu, không là source production thứ hai.
+Trạng thái hiện tại theo [kế hoạch Top-3/recipe](plans/top3-recipes-docker-mvp.md), [contract v1](contracts/mvp-v1.md) và [quyết định runtime](decisions/mvp-runtime.md): Phase 0–5 đã merge, Phase 6–7 chưa hoàn tất. Sơ đồ bên dưới là bản đồ khái niệm, không phải danh sách đầy đủ file; thành phần ghi rõ "dự kiến" chưa thuộc runtime. Frontend production là React/TypeScript/Vite. PostgreSQL và LangGraph/chat chưa được khởi tạo. Snapshot HTML tại `docs/frontend-reference/` chỉ là tài liệu, không là source production thứ hai.
 
 ## Nguyên tắc
 
-Repository được tổ chức theo sáu miền trách nhiệm để mọi thành viên biết mã, dữ liệu, hạ tầng và tài liệu thuộc về đâu. Thư mục cấp cao nhất chỉ gồm `ai`, `data`, `backend`, `frontend`, `deploy`, `docs` (ngoài file cấu hình gốc như `README.md`).
+Repository chia mã theo service, dữ liệu, client, triển khai và tài liệu. `mobile/` cùng `packages/` hiện có ở PR Expo #17, chưa nằm trong `develop`.
 
 ```text
 .
@@ -15,53 +15,48 @@ Repository được tổ chức theo sáu miền trách nhiệm để mọi thà
 │   │   └── experiments/       # Config/metadata experiment; không chứa weights lớn
 │   ├── rag/
 │   │   ├── ingestion/         # Nạp recipe đã chuẩn hóa vào vector DB
-│   │   ├── preprocessing/     # Chunking, text construction, metadata mapping
-│   │   ├── embeddings/        # Embedding adapters và batch jobs
-│   │   ├── retrieval/         # Retriever, filter, reranker
+│   │   ├── embeddings/        # Local embedding adapter
+│   │   ├── retrieval/         # Vector search, metadata filter, stable ranking
 │   │   └── evaluation/        # Hit@K, MRR, groundedness evaluation
-│   ├── agents/
-│   │   ├── nodes/             # LangGraph nodes
-│   │   ├── tools/             # Recipe search, đổi đơn vị, tính khẩu phần
-│   │   ├── prompts/           # Prompt có version
-│   │   ├── graph.py           # Graph assembly
-│   │   └── state.py           # CookingState và schema state
-│   └── evaluation/            # Test/evaluation dùng chung cho CV, RAG, agent
+│   ├── agents/                # Dự kiến cho milestone chat, chưa có runtime
+│   └── evaluation/            # Dự kiến cho đánh giá liên service
 ├── data/
-│   ├── raw/                   # Bản gốc bất biến + source manifest
-│   ├── interim/               # Dữ liệu sau cleaning, trước validation
-│   ├── processed/             # Dữ liệu đạt schema validation
-│   ├── recipes/               # Recipe JSON chuẩn cho MVP
-│   └── README.md              # Data contract và cách lấy dữ liệu (sẽ thêm)
+│   ├── raw/                   # Source manifest; không chứa bộ ảnh lớn
+│   ├── interim/               # Báo cáo audit dữ liệu
+│   ├── processed/             # Taxonomy và split manifest
+│   ├── recipes/               # Corpus recipe, provenance, validator
+│   └── tests/                 # Test corpus và taxonomy
 ├── backend/
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/com/cooklens/
-│   │   │   │   ├── controller/ # REST controllers: vision, recipes, chat, health
-│   │   │   │   ├── service/    # Điều phối use case và transaction boundary
-│   │   │   │   ├── client/     # HTTP clients gọi các dịch vụ trong ai/
-│   │   │   │   ├── dto/        # Request/response records và ApiResponse
-│   │   │   │   ├── domain/     # JPA entities chỉ cho dữ liệu ứng dụng
-│   │   │   │   ├── repository/ # Spring Data JPA repositories
-│   │   │   │   ├── config/     # Security, OpenAPI, HTTP client, observability
+│   │   │   │   ├── controller/ # Public REST API
+│   │   │   │   ├── service/    # Điều phối Top-3/recipe
+│   │   │   │   ├── client/     # HTTP clients gọi AI services
+│   │   │   │   ├── dto/        # Request/response records
+│   │   │   │   ├── config/     # Health, request guard, web config
 │   │   │   │   └── exception/  # ControllerAdvice và error contract
 │   │   │   └── resources/application.yml
 │   │   └── test/java/com/cooklens/ # JUnit unit/integration tests
-│   └── pom.xml                # Maven build và dependency lock
+│   └── pom.xml                # Maven build và dependency declarations
 ├── frontend/
 │   ├── src/
-│   │   ├── app/               # Next.js routes/pages
-│   │   ├── components/        # UI tái sử dụng
-│   │   ├── features/          # upload, recipe, chat, cooking mode
-│   │   ├── lib/               # API client, utility
-│   │   └── types/             # Shared frontend types
-│   ├── public/
-│   └── package.json
+│   │   ├── App.tsx            # Web view state
+│   │   ├── features/          # Upload, recognition, recipe detail
+│   │   ├── lib/               # API client
+│   │   ├── generated/         # OpenAPI TypeScript contract
+│   │   └── styles.css
+│   ├── public/                # Fonts, icons, notices
+│   └── package.json           # Vite/React/TypeScript
 ├── deploy/
 │   ├── docker/                # Dockerfile từng service
-│   ├── compose/               # local/staging compose files
-│   ├── ci/                    # CI workflow/templates nếu không để .github/
-│   ├── scripts/               # migrate, seed, release scripts
+│   ├── compose/               # Compose release và overlay dev/review
+│   ├── scripts/               # Artifact, validation, smoke scripts
+│   ├── tests/                 # Deploy/release regression tests
 │   └── env/                   # Chỉ .env.example, tuyệt đối không secret
+├── .github/workflows/         # CI workflows
+├── mobile/                    # Expo app trên PR #17, chưa merge vào develop
+├── packages/                  # Shared API client/contract trên PR #17
 └── docs/
     ├── cv/                    # Dataset, model, train results
     ├── data/                  # Data/RAG schema và nguồn dữ liệu
@@ -74,9 +69,9 @@ Repository được tổ chức theo sáu miền trách nhiệm để mọi thà
 
 | Thư mục | Sở hữu / mục đích | Không đặt ở đây |
 | --- | --- | --- |
-| `ai/` | Logic ML/LLM, training, inference, retrieval, agent evaluation | Raw data, API routes, Docker secrets, model weights lớn |
+| `ai/` | CV inference, embedding/retrieval/ingestion; chat agent còn dự kiến | Raw data không kiểm soát, API routes, Docker secrets, model weights lớn |
 | `data/` | Dataset manifest, pipeline artifacts và recipe đã chuẩn hóa | Source code ứng dụng, credentials, dữ liệu không rõ quyền |
-| `backend/` | API contract, business orchestration, persistence adapters | Train notebook hoặc UI React |
+| `backend/` | Public API contract và orchestration; hiện không lưu tài khoản/lịch sử | Train notebook hoặc UI React |
 | `frontend/` | Trải nghiệm web/PWA và client API | Khóa API, logic training/model |
 | `deploy/` | Cách chạy, build, deploy, CI/CD | `.env` thật, dữ liệu hoặc weights |
 | `docs/` | Quyết định, schema, runbook, kết quả được đọc bởi con người | Dữ liệu gốc hay output lớn |

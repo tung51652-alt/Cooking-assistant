@@ -1,6 +1,6 @@
 # Phase 3 — Public gateway Spring Boot
 
-Trạng thái: **đã được người dùng merge qua PR #13; đã fetch xác nhận develop trước Phase 4**. Nhánh feature/backend-top3-recipes tách từ develop đã chứa Phase 0–2 và PR sửa audit. Chưa bắt đầu nghiệm thu frontend Phase 4, chưa phát hành application v2.0.0 hoặc push Docker Hub.
+Trạng thái: **đã được người dùng merge qua PR #13 và xác nhận trên `origin/develop`**. Phase 4–5 cũng đã merge. Chưa phát hành application `v2.0.0` hoặc push bộ image ứng dụng lên Docker Hub.
 
 ## Phạm vi và tổ chức
 
@@ -16,7 +16,7 @@ HTTP connect hai giây, deadline vision 15 giây/recipes năm giây; response t�
 
 Servlet nonblocking guard giữ tối đa bốn request nghiệp vụ từ lúc nhận body đến hết response. Upload tối đa 11 MiB request/10 MiB file; JSON 8 KiB, kể cả không có Content-Length. Deadline tổng nhận body 15 giây cho upload/năm giây cho JSON. Body/file ở RAM, không tạo file tạm. Multipart chỉ nhận đúng một file JPEG/PNG; decode/pixel/frame/bomb checks tiếp tục do CV thực hiện. Ngắt kết nối/over-limit/timeout đều trả slot. Tomcat connection/accept queue hữu hạn; health không giữ slot AI.
 
-Readiness gọi hai AI song song, kiểm tra version, deadline dưới hai giây và cache dependency state một giây, không cache request ID. Liveness chỉ kiểm tra process. Chỉ expose Actuator health; CORS mặc định trống, dev dùng allowlist cụ thể, release cùng origin qua proxy ở Phase 5.
+Readiness gọi hai AI song song, kiểm tra version, deadline dưới hai giây và cache dependency state một giây, không cache request ID. Liveness chỉ kiểm tra process. Chỉ expose Actuator health; CORS mặc định trống, dev dùng allowlist cụ thể, release cùng origin qua Nginx trong Compose Phase 5.
 
 Docker nhiều stage loại Maven/JDK/test source khỏi runtime; user 10001, read-only/tmpfs, budget 512 MiB/2 CPU. Probe dùng JDK HttpClient, không tạo Spring process thứ hai. Overlay Compose dùng recipes/init/Qdrant Phase 2, chỉ publish backend loopback. AI/Qdrant chỉ ở network internal. Backend có browser bridge để Docker publish cổng; smoke tháo bridge, chạy lại toàn luồng từ container AI rồi tạo lại backend để phục hồi Swagger. Không tuyên bố network có bridge là bị chặn Internet.
 

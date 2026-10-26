@@ -2,7 +2,7 @@
 
 Ngày: 2026-10-19. Phase 0 đã merge và được xác nhận trên `origin/develop`. Hai nhánh cùng phase: `feature/data-recipes` chỉ nhập/enrich taxonomy từ nhánh data hiện có; `minh/cv` được đồng bộ develop và dùng đúng phần mapping đó. Không kéo web-search prototype vào runtime.
 
-Trạng thái: **phần triển khai và kiểm thử kỹ thuật đã sẵn sàng review; chờ người dùng merge mapping trước, CV sau**. Chưa bắt đầu Phase 2 hoặc phát hành CookLens v2.
+Trạng thái: **đã hoàn tất và được merge vào `origin/develop` qua PR mapping #8 và CV #9**. Phase 2–5 cũng đã merge; Phase 6–7 và application release chưa hoàn tất.
 
 ## Thay đổi và bằng chứng
 
@@ -37,6 +37,6 @@ Không dùng latency T4 trong báo cáo cũ làm cam kết CPU. Số đo CPU hi�
 - [x] Chạy scanner toàn tracked text files, không có giá trị mã/hash hoặc credentials bị phát hiện. Không thêm ngoại lệ cho checksum, revision hoặc lockfile. Không viết lại lịch sử nhánh chia sẻ.
 - [x] Rà build context/COPY, runtime application tree và offline non-root/read-only smoke. Platform/dependency metadata do công cụ bên ngoài tạo không được sao chép vào docs/source.
 - [x] Kiểm tra Markdown links/fences, JSON/Python/YAML, diff whitespace và tests phù hợp. Không chạy lại frontend E2E vì không đổi UI.
-- [ ] Người dùng merge PR #8 (mapping), sau đó PR CV; agent fetch xác nhận develop trước Phase 2.
+- [x] Người dùng merge PR mapping #8 rồi PR CV #9; `origin/develop` đã được đồng bộ trước Phase 2.
 
 Hướng dẫn chạy/API: [vision README](../../ai/cv/inference/README.md). Source mapping: [data README](../../data/processed/README.md). Các service tiếp theo dùng cùng file taxonomy/version, không hardcode lại class list.

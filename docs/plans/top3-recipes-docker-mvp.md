@@ -1,10 +1,10 @@
 # Kế hoạch MVP: ảnh → Top-3 món → công thức → Docker
 
-Ngày lập và cập nhật: 2026-10-19. Nhánh đích của PR tài liệu và các phase: `develop`.
+Ngày lập: 2026-10-19. Cập nhật trạng thái gần nhất: 2026-10-26. Nhánh đích của PR tài liệu và các phase: `develop`.
 
 Đây là kế hoạch triển khai, chưa phải danh sách tính năng đã hoàn thành. Các ô checklist chỉ được đánh dấu khi có mã, kiểm thử và bằng chứng tương ứng. Hiện trạng nhánh được xác định sau `git fetch origin` cùng ngày.
 
-Trạng thái đã đối chiếu mã, báo cáo CI và GitHub PR: Phase 0–4 đã tích hợp vào `develop`; phần triển khai/CI Phase 5 nằm ở [PR #16](https://github.com/tung51652-alt/Cooking-assistant/pull/16), Expo ở [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17). Hai PR đang mở, sẵn sàng review và CI đã pass; chưa merge. Checklist này được đồng bộ trên cả hai nhánh PR để phân biệt công việc đã làm với phần còn chờ thiết bị, người review và phát hành. Ô đã tick không đồng nghĩa toàn bộ mã đã nằm trong `develop` hoặc đã phát hành.
+Trạng thái đã đối chiếu với mã và GitHub: Phase 0–5 đã merge vào `origin/develop`, gồm Phase 5 qua [PR #16](https://github.com/tung51652-alt/Cooking-assistant/pull/16). Phase 6–7 chưa hoàn tất; chưa phát hành `v2.0.0` hoặc push image ứng dụng lên Docker Hub. PR Expo [#17](https://github.com/tung51652-alt/Cooking-assistant/pull/17) vẫn mở riêng; thiết bị thật chưa nghiệm thu. Checklist đã tick mô tả công việc/bằng chứng đã đạt, không đồng nghĩa với phát hành toàn sản phẩm.
 
 Bản hoàn thành toàn bộ Phase 0–7 của kế hoạch này là **CookLens phiên bản 2**, tag phát hành ứng dụng `v2.0.0`. Chỉ công bố khi luồng ảnh → Top-3 → xác nhận món → công thức chạy với service thật, đủ Docker images/Compose và đạt nghiệm thu Phase 7. Các phase và PR trung gian không được gọi là release v2 hoàn chỉnh. Version public API, taxonomy và artifact model được quản lý riêng; release trọng số `vision-model-v1` hiện có không phải phiên bản ứng dụng v1 hoặc v2.
 
@@ -186,7 +186,7 @@ Nguyên tắc phối hợp: CV và recipe thống nhất mapping trước khi vi
 
 Nhánh: chỉnh sửa `minh/cv` sau khi cập nhật từ `develop`; đồng thời chuẩn bị `feature/data-recipes` bằng phần thay đổi data riêng. Hai PR ghi rõ thứ tự phụ thuộc mapping.
 
-Trạng thái: phần triển khai kỹ thuật sẵn sàng review, kiểm thử bằng checkpoint thật và image CPU; chờ merge các PR theo thứ tự mapping → CV. Xem [báo cáo Phase 1](../phases/phase-1.md) và giới hạn kiểm chứng accuracy.
+Trạng thái: đã hoàn tất và merge mapping #8 rồi CV #9; Phase 2–5 cũng đã merge. Xem [báo cáo Phase 1](../phases/phase-1.md) và giới hạn kiểm chứng accuracy.
 
 Nguyên tắc phối hợp: CV sở hữu prediction; mapping là artifact dùng chung, không tự viết lại class list trong frontend/backend. Mọi service kiểm tra `taxonomy_version` tương thích.
 
@@ -294,7 +294,7 @@ Nguyên tắc phối hợp: frontend chỉ gọi public /api cùng origin, dùng
 
 - [x] Rà HTML/CSS/JS/file/IDE/build output/test/screenshots thừa, giữ tests/baseline có mục đích; không COPY docs/reference/tests vào image.
 - [x] Rà secrets và mọi literal mã/hash/SHA/checksum/digest trong source, lockfile, fixtures, env, tài liệu, PR và static bundle. Không đưa source maps hoặc giá trị xác thực vào image; asset filenames dùng tên ổn định, không gắn mã hash.
-- [x] Tạo PR/báo cáo kèm bằng chứng đối chiếu thiết kế và test; chờ người dùng review/merge rồi fetch xác nhận trước Phase 5.
+- [x] Tạo PR/báo cáo kèm bằng chứng đối chiếu thiết kế và test; người dùng đã merge PR #14 và `origin/develop` được xác nhận trước Phase 5.
 
 Điều kiện ra phase: người dùng mới hoàn thành ảnh → Top-3 → chọn/sửa món → recipe list/detail trên giao diện Docker với AI thật, không cần Swagger/console. Giao diện theo nguồn Stitch đúng, không chatbot; người dùng review/merge PR.
 
@@ -306,10 +306,10 @@ Nguyên tắc chung:
 
 - **Tổ chức mã:** `mobile/` chứa Expo/React Native trên nhánh `feature/mobile-expo` từ `develop` đã tích hợp. `packages/cooklens-api` chứa types/validation/transport thuần dùng thật ở cả hai client; schema vẫn sinh từ OpenAPI, không chép taxonomy. Adapter upload/navigation riêng từng nền tảng; giữ màu sắc, typography và cấu trúc luồng với component native.
 - **Cùng backend:** dùng public API version hiện có, cùng `normalized_dish`, schema lỗi và ý nghĩa confidence/retrieval score; không gọi thẳng vision, recipes hoặc Qdrant. Model, corpus và trọng số vẫn ở Docker trên máy chủ; điện thoại không tải model hoặc chạy inference cục bộ. “Offline sau khi pull image” là khả năng của stack server; điện thoại vẫn cần kết nối tới server đó.
-- **Địa chỉ truy cập:** web tiếp tục gọi `/api` cùng origin; Expo cần base URL tuyệt đối tới public gateway `/api`. Điện thoại thật dùng IP LAN của máy chạy Docker hoặc URL HTTPS truy cập được; `127.0.0.1` trên điện thoại là chính điện thoại. Giữ Compose mặc định bind loopback, chỉ thêm cấu hình LAN dev tường minh khi đến mốc Expo; chỉ mở gateway, không mở các service nội bộ. QR/Metro kết nối được chưa chứng minh API truy cập được.
-- **Cách chạy:** ưu tiên thử trên điện thoại bằng Expo Go nếu bộ SDK/dependency đã chọn tương thích; kiểm tra lại tài liệu Expo ở lúc triển khai. Không thêm pipeline APK/AAB, EAS Build hoặc phát hành store trong phạm vi này. Nếu có dependency buộc dùng development build, phải rà lại lựa chọn thư viện và cập nhật phương án với người dùng trước khi đổi cách chạy đã thống nhất.
+- **Địa chỉ truy cập:** web tiếp tục gọi `/api` cùng origin; Expo cần base URL tuyệt đối tới public gateway `/api`. Điện thoại thật dùng IP LAN của máy chạy Docker hoặc URL HTTPS truy cập được; `127.0.0.1` trên điện thoại là chính điện thoại. Compose mặc định bind loopback; PR Expo bổ sung cấu hình LAN dev tường minh và chỉ mở gateway, không mở service nội bộ. QR/Metro kết nối được chưa chứng minh API truy cập được.
+- **Cách chạy:** PR Expo chọn Expo Go với SDK/dependency tương thích. Không thêm pipeline APK/AAB, EAS Build hoặc phát hành store trong phạm vi này. Nếu có dependency buộc dùng development build, phải rà lại lựa chọn thư viện và cập nhật phương án với người dùng trước khi đổi cách chạy đã thống nhất.
 - **Ảnh và state:** xin quyền camera/thư viện đúng lúc, xử lý từ chối/hủy chọn và có lựa chọn thay thế. Chuyển ảnh điện thoại sang JPEG/PNG khi cần, giữ đúng orientation và giới hạn upload của API; không mở rộng định dạng phía server ngầm. Dùng multipart qua adapter native; đổi ảnh/món, điều hướng Back, retry hoặc app quay lại foreground không được làm response cũ ghi đè kết quả mới.
-- **Cấu hình:** base URL là cấu hình public; không đưa secret vào `EXPO_PUBLIC_*`, bundle hoặc QR/logs. Quy tắc biến môi trường theo [Expo environment variables](https://docs.expo.dev/guides/environment-variables/); cách chạy trên thiết bị theo [Expo start developing](https://docs.expo.dev/get-started/start-developing/). SDK 58 và dependency tương thích được pin khi triển khai.
+- **Cấu hình:** base URL là cấu hình public; không đưa secret vào `EXPO_PUBLIC_*`, bundle hoặc QR/logs. Quy tắc biến môi trường theo [Expo environment variables](https://docs.expo.dev/guides/environment-variables/); cách chạy trên thiết bị theo [Expo start developing](https://docs.expo.dev/get-started/start-developing/). PR #17 pin Expo SDK 58 và dependency tương thích; cần kiểm tra lại tương thích khi nâng SDK.
 
 Checklist khi bắt đầu và nghiệm thu mốc Expo:
 
@@ -363,15 +363,15 @@ Compose phải dùng `healthcheck` cùng `depends_on` condition phù hợp. Cont
 - [x] Rà file thừa, test scripts, bundle thử, logs và build contexts theo [cổng chung](#phase-closeout); test data không cần thiết nằm ngoài các image production.
 - [x] Rà secrets/mã/hash trong nội dung dự án, Compose/env, scripts, report CI và history layer do dự án tạo; scanner không nới policy. Metadata upstream do Docker quản lý không sao chép vào nội dung dự án; không tuyên bố audit toàn bộ binary/layer bên thứ ba.
 - [x] Tạo PR #16 kèm bằng chứng CI volume mới/Compose ngoài source; cold pull registry còn ở Phase 6.
-- [ ] Người dùng review/merge PR Phase 5; fetch xác nhận trước publish phiên bản phụ thuộc. Không tự merge hoặc bật auto-merge.
+- [x] Người dùng review/merge PR Phase 5 #16; đã fetch xác nhận trên `origin/develop` trước khi chuẩn bị Phase 6. Không tự merge hoặc bật auto-merge.
 
-Điều kiện ra phase: chạy được trên máy sạch chỉ có Docker Engine/Desktop với Compose, cấu hình mặc định và Internet để pull; không còn bước lấy model/seed bằng tay; PR được người dùng merge vào `develop`.
+Điều kiện kỹ thuật đã đạt trên CI cho image candidate và Compose ngoài source. Điều kiện pull bộ phát hành từ registry trên máy sạch thuộc Phase 6, không tuyên bố đã đạt ở Phase 5.
 
 Đối chiếu phần còn lại: cơ chế runbook, restart và rollback đã có bằng chứng ở candidate Phase 5; các checklist Phase 6–7 vẫn chưa tick vì chưa phát hành/pull bộ image từ registry hoặc nghiệm thu trên chính bộ release. Không dùng smoke candidate thay nghiệm thu release.
 
 ## 10. Phase 6 — Phát hành Docker Hub và runbook
 
-Nhánh: tiếp tục `feature/docker-release`, thêm CI trên `feature/release-ci` nếu cần PR độc lập.
+Nhánh: tạo nhánh Phase 6 từ `develop` đã có PR #16; có thể dùng `feature/release-ci` nếu cần tách CI/release thành PR độc lập.
 
 Docker Hub được chọn làm registry cho lần phát hành này. Docker không bắt buộc dùng Docker Hub: có thể dùng registry khác hoặc `docker save/load`; nhưng muốn người dùng pull bản build sẵn, nhóm cần công bố image trong một registry truy cập được. Không tự đặt tên tài khoản như thể repository đã tồn tại.
 

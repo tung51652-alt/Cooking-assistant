@@ -1,12 +1,12 @@
 # Phase 4 — Frontend Stitch và API thật
 
-Trạng thái: triển khai và kiểm thử kỹ thuật hoàn tất trên feature/frontend-phase4, chờ người dùng review/merge. Develop đã chứa PR Phase 3 #13 trước khi tách nhánh. Chưa phát hành v2.0.0 hoặc push bộ image Docker Hub; Compose release/pull thuộc Phase 5–6.
+Trạng thái: **đã được người dùng merge qua PR #14 và xác nhận trên `origin/develop`**. Phase 5 #16 cũng đã merge. Chưa phát hành `v2.0.0` hoặc push/pull image ứng dụng Docker Hub; việc đó thuộc Phase 6.
 
 ## Nguồn và thiết kế
 
 Người dùng sửa nguồn thành /home/trantung/ict/stitch_giao_di_n_chatbot_m_th_c. Giữ code.html và screen.png byte-for-byte trong [snapshot chuẩn](../frontend-reference/stitch/README.md). Snapshot FrontEndCookLens cũ vẫn bất biến để audit Phase 0, được đánh dấu đã thay thế. Không copy demo/chat vào runtime.
 
-Frontend giữ nền kem, cam, typography Epilogue/Plus Jakarta Sans, hai panel, card bo góc và footer. Font/icon self-host có OFL/MIT notices. Nút camera xanh đậm hơn nguồn để tăng tương phản. Navigation chỉ giữ chức năng thật; panel chat trở thành hướng dẫn ba bước. Recognition/list/detail mở rộng theo tokens vì nguồn chỉ có home/chat. Không chatbot/accounts/saved/cook mode, không APK; Expo giữ cho mốc sau.
+Frontend giữ nền kem, cam, typography Epilogue/Plus Jakarta Sans, hai panel, card bo góc và footer. Font/icon self-host có OFL/MIT notices. Nút camera xanh đậm hơn nguồn để tăng tương phản. Navigation chỉ giữ chức năng thật; panel chat trở thành hướng dẫn ba bước. Recognition/list/detail mở rộng theo tokens vì nguồn chỉ có home/chat. Không chatbot/accounts/saved/cook mode hoặc APK. App Expo được triển khai riêng ở PR #17.
 
 Nguồn và app được chụp ở viewport desktop 1440×900 và mobile 390×844. Hai ảnh tham chiếu chụp viewport-only từ HTML nguồn dùng CDN; bốn baseline app full-page được chụp với API thật, fonts local. Screen PNG gốc có viewport/DPR chưa biết, giữ để tham khảo; không tuyên bố pixel-perfect. Đã xem ảnh upload/recognition/detail và kiểm tra responsive trong browser. Design read: DESIGN_VARIANCE=3, MOTION_INTENSITY=1, VISUAL_DENSITY=4; skill design-taste chỉ áp dụng audit/preservation/accessibility cho product UI.
 
@@ -24,7 +24,7 @@ Image frontend nhiều stage Node → Nginx, user 10001, read-only/tmpfs, budget
 
 Overlay Phase 4 gộp các Compose Phase 2/3, chỉ publish frontend loopback 5173; backend/AI/Qdrant internal. Nginx proxy /api qua DNS service, giới hạn JSON/upload, stream body, không retry, typed error JSON và request ID. Không thay lỗi nghiệp vụ upstream bằng HTML. Kết nối không lập được trả 503, timeout sau kết nối trả 504. Không coi browser bridge của frontend là network bị chặn Internet; app không phụ thuộc external requests, còn service AI/backend chỉ trên internal network.
 
-[Evidence container](evidence/phase-4-frontend-container.json) kiểm tra user/read-only, ports/networks, nginx -t, artifact policy, 8 KiB JSON/11 MiB multipart early rejection, envelope/UUID, giữ 422 nghiệp vụ, dừng/phục hồi backend và trang static vẫn mở khi backend dừng. Frontend memory peak khoảng 8,3 MiB trong riêng lượt smoke sau khi recreate; không phải benchmark browser/concurrency hoặc toàn stack. Giữ budget 128 MiB; Phase 5/7 tiếp tục nghiệm thu tài nguyên.
+[Evidence container](evidence/phase-4-frontend-container.json) kiểm tra user/read-only, ports/networks, nginx -t, artifact policy, 8 KiB JSON/11 MiB multipart early rejection, envelope/UUID, giữ 422 nghiệp vụ, dừng/phục hồi backend và trang static vẫn mở khi backend dừng. Frontend memory peak khoảng 8,3 MiB trong riêng lượt smoke sau khi recreate; không phải benchmark browser/concurrency hoặc toàn stack. Giữ budget 128 MiB; Phase 7 tiếp tục nghiệm thu tài nguyên.
 
 ## Kiểm chứng và giới hạn
 
@@ -44,4 +44,4 @@ Scanner kiểm tra source/docs/lockfile/notices và static bundle; không litera
 - [x] API/DTO thật, xác nhận thủ công, query/detail/provenance và cancellation.
 - [x] Docker/proxy và test desktop/mobile với AI thật.
 - [x] Rà metadata/whitespace và file/test tạm trước PR; 13 deploy tests và 7 data tests cũng qua.
-- [ ] Người dùng review/merge PR Phase 4; fetch develop trước Phase 5.
+- [x] Người dùng review/merge PR Phase 4 #14; đã xác nhận trên `origin/develop` trước Phase 5.
