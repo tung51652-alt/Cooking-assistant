@@ -24,7 +24,7 @@ VISION_URL=http://127.0.0.1:8000 RECIPES_URL=http://127.0.0.1:8001 \
 
 Swagger: http://127.0.0.1:8080/swagger-ui/index.html. OpenAPI sinh từ controller/DTO tại `/v3/api-docs`; không duy trì YAML riêng. Routes `/api/vision/predict`, `/api/dishes`, `/api/recipes/search`, `/api/recipes/{id}`, `/api/health`. Frontend vẫn dùng `/api` relative; Phase 4 nối và nghiệm thu UI.
 
-Release dùng cùng origin; mặc định CORS trống. Nếu chạy Vite khác origin, đặt `CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173`. Không wildcard/credentials. Không tin Forwarded headers từ caller; reverse proxy chính thức thuộc Phase 5.
+Release dùng cùng origin; mặc định CORS trống. Nếu chạy Vite khác origin, đặt `CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173`. Không wildcard/credentials. Không tin Forwarded headers từ caller; reverse proxy Nginx được cấu hình trong Compose Phase 5.
 
 ## Docker tích hợp
 
@@ -62,4 +62,4 @@ Guard giữ tối đa bốn request nghiệp vụ, gồm thời gian nhận body
 
 JUnit dùng cổng HTTP thật và dependency server giả lập để kiểm tra lỗi, version, deadline, response quá lớn, request ID, strict JSON, upload chunked, ngắt kết nối, quá tải, nguồn URL và readiness. Fixture prediction dùng chung với Phase 1; corpus test lấy trực tiếp file Phase 2, không chép một bản dữ liệu khác. Smoke Compose riêng kiểm chứng CV thật → chọn ứng viên thứ hai → tìm/detail, đủ 30 món, dừng/khởi động AI, AI network internal, một lượt toàn luồng khi tháo browser bridge của backend, non-root/read-only và probe. Fault injection không được tính vào metric retrieval.
 
-Type frontend được sinh tự động từ OpenAPI; UI hiện chưa được chuyển sang import type mới hoặc nghiệm thu với backend thật trong Phase 3. Không tạo app mobile/APK; định hướng Expo giữ nguyên.
+Trong Phase 3, type frontend được sinh tự động từ OpenAPI; UI tích hợp và nghiệm thu với backend thật ở Phase 4. App Expo là client riêng, hiện đang ở PR #17; không tạo APK.

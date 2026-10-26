@@ -49,3 +49,51 @@ test('network and unavailable errors produce user-facing messages', async t => {
   globalThis.fetch = async () => response({}, 503);
   await assert.rejects(api.getDishes(new AbortController().signal), /chưa sẵn sàng/);
 });
+
+// React Native preserves URI parts; Node's FormData converts them to strings.
+class NativeBody extends FormData {
+  constructor(parts) { super(); this.parts = parts; }
+  getAll(name) { return name === 'file' ? this.parts : super.getAll(name); }
+}
+const predictionResponse = () => response({
+  model_version: 'test-model', taxonomy_version: taxonomy.taxonomy_version,
+  predictions: taxonomy.labels.slice(0, 3).map((label, index) => ({ ...label, rank: index + 1, confidence: .5 - index * .2 })),
+});
+
+test('native image transport preserves file, request ID and response validation; other requests use fetch', async t => {
+  const file = { uri: 'file:///cache/food.jpg', name: 'food.jpg', type: 'image/jpeg' };
+  const uploader = t.mock.fn(async (url, part, id, signal) => {
+    assert.equal(url, 'http://localhost:8080/api/vision/predict');
+    assert.equal(part, file);
+    assert.equal(id, requestId());
+    assert.equal(signal.aborted, false);
+    return predictionResponse();
+  });
+  const fetch = t.mock.method(globalThis, 'fetch', async () => response({ taxonomy_version: '1.0.0', dishes: taxonomy.labels }));
+  const nativeApi = createApi('http://localhost:8080/api', requestId, uploader);
+  assert.equal((await nativeApi.predict(new NativeBody([file]), new AbortController().signal)).length, 3);
+  assert.equal(fetch.mock.callCount(), 0);
+  assert.equal((await nativeApi.getDishes(new AbortController().signal)).length, 30);
+  assert.equal(fetch.mock.callCount(), 1);
+  assert.equal(uploader.mock.callCount(), 1);
+});
+
+test('native image cancellation reaches the uploader and rejects a late success', async () => {
+  const controller = new AbortController();
+  const nativeApi = createApi('http://localhost:8080/api', requestId, async (_url, _file, _id, signal) => {
+    controller.abort();
+    assert.equal(signal.aborted, true);
+    return predictionResponse();
+  });
+  await assert.rejects(nativeApi.predict(new NativeBody([{ uri: 'file:///cache/food.jpg' }]), controller.signal), error => error.name === 'AbortError');
+});
+
+test('native image upload maps HTTP failures and rejects invalid URI parts before upload', async t => {
+  const uploader = t.mock.fn(async () => response({}, 503));
+  const nativeApi = createApi('http://localhost:8080/api', requestId, uploader);
+  await assert.rejects(nativeApi.predict(new NativeBody([{ uri: 'file:///cache/food.jpg' }]), new AbortController().signal), /chưa sẵn sàng/);
+  for (const parts of [[], [{ uri: '' }], [{ uri: 1 }], [{ uri: 'file:///cache/food.jpg' }, { uri: 'file:///cache/other.jpg' }]]) {
+    await assert.rejects(nativeApi.predict(new NativeBody(parts), new AbortController().signal), /đúng định dạng/);
+  }
+  assert.equal(uploader.mock.callCount(), 1);
+});

@@ -31,4 +31,6 @@ jobs:
         env:
           CI: '1'
           EXPO_PUBLIC_API_BASE_URL: http://127.0.0.1:8080/api
-        run: npm --prefix mobile run export
+        run: |
+          npm --prefix mobile run export > "$RUNNER_TEMP/cooklens-mobile-export.log" 2>&1
+          echo 'Android and iOS bundles built; native outputs are not published.'

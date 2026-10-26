@@ -36,7 +36,7 @@ Quét QR bằng Expo Go trên Android hoặc ứng dụng Camera/Expo Go trên i
 
 1. Chụp hoặc chọn một ảnh món ăn. Camera hỏi quyền khi bấm; từ chối/hủy không xóa ảnh đã chọn, thư viện là lựa chọn thay thế. System photo picker chỉ cấp quyền ảnh được chọn, không yêu cầu truy cập toàn bộ thư viện.
 2. App dùng native decoder để xử lý orientation, chuẩn hóa ảnh sang JPEG, kiểm tra không quá 25 triệu pixel và file upload không quá 10 MiB. Không tự xoay lại ảnh dựa trên suy đoán. HEIC được chuyển qua image manipulator, không nới định dạng server.
-3. Bấm Nhận diện món; app không tự chọn dự đoán đầu. Chọn một trong Top-3 hoặc mở danh mục 30 món từ API, rồi bấm Xác nhận.
+3. Bấm Nhận diện món; app gửi ảnh JPEG từ cache trên điện thoại bằng uploader native Expo FileSystem, field multipart là `file`, giữ timeout/cancellation và request ID của client dùng chung. App không tự chọn dự đoán đầu. Chọn một trong Top-3 hoặc mở danh mục 30 món từ API, rồi bấm Xác nhận.
 4. Tìm công thức theo món đã xác nhận; query tùy chọn chỉ xếp hạng trong món đó. Xem nguyên liệu/định lượng/bước nấu/nguồn/license và ghi chú AI-authored. Giá trị thiếu được hiển thị trung thực.
 5. Thử đổi ảnh, đổi món, Back và rời/quay lại ứng dụng. HTTP đang chạy bị hủy khi rời app hoặc đổi luồng; response đến muộn không được ghi đè lựa chọn mới. Khi mất mạng có lỗi và nút thử lại; không tự gửi lại ảnh khi về foreground.
 
@@ -52,4 +52,4 @@ npm run export
 
 Lệnh export chỉ kiểm chứng bundling Android/iOS, không phát hành bundle hoặc native app. Output `dist`, Metro cache và metadata tự sinh không commit/upload làm release. Font Epilogue/Plus Jakarta Sans được đóng gói local; giấy phép tại `notices/`.
 
-Từ root repo, kiểm tra client dùng chung: `node --experimental-strip-types --test packages/cooklens-api/client.test.mjs`. Web vẫn có bộ Playwright desktop/mobile riêng. Các kiểm tra build/contract không thay thế camera, permission, gesture/Back, safe area hoặc screen reader trên thiết bị thật. Xem [báo cáo Expo](../docs/phases/mobile-expo.md); Android/iOS thật còn chờ người dùng chạy nghiệm thu, không đánh dấu pass từ web emulation.
+Từ root repo, kiểm tra client dùng chung: `node --experimental-strip-types --test packages/cooklens-api/client.test.mjs`. Web vẫn có bộ Playwright desktop/mobile riêng. Các kiểm tra build/contract không thay thế camera, permission, gesture/Back, safe area hoặc screen reader trên thiết bị thật. Xem [báo cáo Expo](../docs/phases/mobile-expo.md); Người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26; kiểm thử đầy đủ Android/iOS, quyền camera, HEIC, Back và accessibility còn mở, không đánh dấu pass từ web emulation.

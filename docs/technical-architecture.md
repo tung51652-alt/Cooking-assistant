@@ -1,12 +1,12 @@
 # Chuẩn kỹ thuật MVP
 
-Tài liệu này là chuẩn kỹ thuật chung cho CookLens. Nó ưu tiên tính đúng đắn của luồng **ảnh → món xác nhận → recipe có nguồn → hướng dẫn có state**, không tối ưu hóa cho mô hình hay agent phức tạp nhất.
+Tài liệu này mô tả runtime hiện có và hướng mở rộng CookLens. MVP ưu tiên luồng **ảnh → món xác nhận → recipe có nguồn**; state hội thoại/hướng dẫn tương tác là phần tương lai, không thuộc runtime hiện tại.
 
-## Milestone đang triển khai
+## Milestone hiện có trên develop
 
-Phạm vi v1 hiện tại là **Top-3 từ ảnh → xác nhận món → tìm tối đa 3 recipe → chi tiết trên frontend**. [Contract v1](contracts/mvp-v1.md) chốt endpoint, error code, giới hạn byte/pixel, confirmation, timeout và version; [quyết định runtime](decisions/mvp-runtime.md) chốt stack/embedding/gates. Các định nghĩa cụ thể ở contract v1 áp dụng cho lần giao này; bảng khái quát bên dưới mô tả kiến trúc dài hạn.
+Phạm vi hiện có là **Top-3 từ ảnh → xác nhận món → tìm tối đa 3 recipe → chi tiết trên frontend**, cùng Compose độc lập Phase 5. Phase 0–5 đã merge vào `origin/develop`; Docker Hub release thuộc Phase 6, nghiệm thu cuối thuộc Phase 7. [Contract v1](contracts/mvp-v1.md) chốt endpoint, error code, giới hạn byte/pixel, confirmation, timeout và version; [quyết định runtime](decisions/mvp-runtime.md) chốt stack/embedding/gates.
 
-Chưa có chat/LangGraph, PostgreSQL/JPA hoặc persistence hội thoại trong runtime của lần giao. Frontend React/Vite tái sử dụng [HTML CookLens đã audit](frontend-reference/README.md), qua Nginx gọi Spring backend; backend gọi vision/recipes bằng HTTP. Qdrant + job init phục vụ corpus có version. Không cần LLM/key để tra recipe. Mã source/API/Docker runtime sẽ được tích hợp ở các phase sau, không được hiểu là đã triển khai do có tài liệu.
+Runtime không có chat/LangGraph, PostgreSQL/JPA hoặc persistence hội thoại. Frontend React/Vite tái sử dụng [HTML CookLens đã audit](frontend-reference/README.md), qua Nginx gọi Spring backend; backend gọi vision/recipes bằng HTTP. Qdrant + job init phục vụ corpus có version. Không cần LLM/key để tra recipe. App Expo tích hợp qua PR #17, dùng chung public API; người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26. Kiểm thử native đầy đủ Android/iOS còn mở theo báo cáo Expo.
 
 ## Ranh giới trách nhiệm
 
@@ -14,9 +14,9 @@ Chưa có chat/LangGraph, PostgreSQL/JPA hoặc persistence hội thoại trong 
 | --- | --- | --- |
 | Computer Vision | Ảnh hợp lệ → Top-K món + confidence | Suy luận toàn bộ nguyên liệu/định lượng từ ảnh món đã nấu |
 | Retrieval/RAG | Chọn recipe phù hợp, có metadata và nguồn | Thay thế database bằng LLM hoặc truy xuất chỉ bằng embedding |
-| LangGraph | Điều phối state, xác nhận, intent, step navigation | Tạo một agent riêng cho từng intent |
-| Backend | Spring Boot API, validation, persistence, timeout, logging | Huấn luyện model, RAG ingestion hoặc render UI |
-| Frontend | Upload/camera, xác nhận món, recipe, chat, step mode | Gọi trực tiếp model, Qdrant hoặc LLM provider |
+| LangGraph | Chưa có trong runtime; hướng mở rộng cho chat/state | Là dependency của luồng tra recipe hiện tại |
+| Backend | Spring Boot API, validation, timeout, logging | Lưu tài khoản/lịch sử trong MVP; huấn luyện model hoặc render UI |
+| Frontend | Web upload, xác nhận món, recipe; Expo dùng chung public API | Chat/step mode; gọi trực tiếp model, Qdrant hoặc LLM provider |
 
 ## Taxonomy bắt buộc: CV → Recipe
 
@@ -29,31 +29,32 @@ CV label: com_tam_suon
   → selected recipe: recipe_001
 ```
 
-- Mapping được version-control trong `data/processed/` khi bắt đầu xây data pipeline.
+- Mapping được version-control tại `data/processed/30vnfoods-label-map.json`; không chép danh sách lớp riêng vào service khác.
 - CV prediction chưa được người dùng xác nhận không được dùng để trả lời recipe cuối cùng.
 - Người dùng luôn có thể chọn một mục Top-K hoặc sửa sang món khác, kể cả khi confidence cao.
 
-## Retrieval policy
+## Retrieval policy hiện tại và mở rộng tương lai
 
 1. Nhận `confirmed_dish`.
 2. Lọc metadata theo `dish`, `language=vi`, `cuisine=vietnamese`.
 3. Thực hiện vector retrieval trong tập đã lọc.
-4. Rerank khi có nhiều recipe tương thích.
-5. Lưu `selected_recipe.id` cùng source provenance vào state.
-6. Chỉ đưa recipe đã chọn và context liên quan vào LLM.
+4. Runtime hiện tại không có reranker hoặc LLM fallback; thay đổi ranking cần version/evaluation riêng.
+5. UI hiện hiển thị recipe trả về trực tiếp, không lưu state hội thoại phía server.
 
 Vector similarity không được phép tự vượt qua filter món đã xác nhận. Recipe document phải được dựng từ schema đã validate, không nhúng HTML thô.
 
-## API contract tối thiểu
+## API contract hiện tại và phần mở rộng dự kiến
+
+Các route CV/recipe dưới đây thuộc API chạy hiện tại. Catalog, detail và health cũng được cung cấp theo [contract v1](contracts/mvp-v1.md). Chat chỉ là hợp đồng dự kiến cho milestone tương lai, chưa được cài trong backend:
 
 | Endpoint | Request chính | Response tối thiểu |
 | --- | --- | --- |
-| `POST /api/vision/predict` | `multipart/form-data` image | `predictions[]` gồm `dish`, `confidence`, `model_version` |
+| `POST /api/vision/predict` | `multipart/form-data` image | `predictions[]` gồm `rank`, `class_id`, `normalized_dish`, `display_name`, `confidence` |
 | `POST /api/recipes/search` | `confirmed_dish`, `top_k` | `recipes[]` gồm `id`, `title`, metadata và source |
-| `POST /api/chat` | `thread_id`, `message` | `message`, `current_step`, `selected_recipe_id`, state cần UI render |
+| `POST /api/chat` (dự kiến) | `thread_id`, `message` | `message`, `current_step`, `selected_recipe_id`, state cần UI render |
 
 - API dùng Java record DTO + Bean Validation; breaking change phải version contract.
-- Spring controllers gọi `service/`; service gọi typed HTTP clients đến CV/RAG/LangGraph services trong `ai/` với timeout và error mapping.
+- Spring controllers gọi `service/`; service gọi typed HTTP clients đến CV/recipe services trong `ai/` với timeout và error mapping. LangGraph là phần dự kiến, chưa có service trong runtime.
 - Khi bổ sung tài khoản/lịch sử, Spring Data JPA/PostgreSQL lưu dữ liệu ứng dụng; Qdrant thuộc retrieval. LangGraph/checkpointer chỉ thêm ở milestone chat, không là dependency khởi động v1 hiện tại.
 - Dùng springdoc annotations để sinh OpenAPI từ controller; không hand-maintain OpenAPI YAML.
 - Backend xác thực loại/kích thước ảnh, giới hạn request, đặt timeout downstream và trả lỗi có mã ổn định.

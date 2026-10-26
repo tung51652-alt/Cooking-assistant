@@ -1,6 +1,6 @@
 # Phase 5 — Compose độc lập và runtime offline
 
-Đang thực hiện trên `feature/docker-release` từ `develop` sau khi PR Phase 4 #14 đã merge. Candidate kỹ thuật `2.0.0-rc.1`, chưa phát hành ứng dụng `v2.0.0`, chưa push Docker Hub và chưa chuyển sang Phase 6. Theo yêu cầu cập nhật, mobile Expo được triển khai cùng đợt ở [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17), dùng chung gateway và nghiệm thu thiết bị riêng.
+Trạng thái: **hoàn tất, PR #16 đã được người dùng merge vào `origin/develop`**. Các gate CI của PR đã pass. Candidate kỹ thuật `2.0.0-rc.1` chưa phải application release `v2.0.0`; image ứng dụng chưa được push Docker Hub. Phase 6 còn lại là phát hành registry và kiểm thử pull trên máy sạch. App Expo được tích hợp qua [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26 và yêu cầu agent merge sau khi kiểm tra. Nghiệm thu đầy đủ Android/iOS vẫn còn; xem [báo cáo Expo](mobile-expo.md).
 
 ## Thay đổi
 
@@ -12,11 +12,11 @@
 
 ## Bằng chứng
 
-Local: deploy tests, YAML release/dev, scanner metadata và whitespace được kiểm tra trước commit. Không có Docker CLI trên host Windows này; Docker build/runtime xác minh trên Ubuntu CI.
+Tại thời điểm chuẩn bị candidate, deploy tests, YAML release/dev, scanner metadata và whitespace được kiểm tra local. Host lúc đó không có Docker CLI; Docker build/runtime được xác minh trên Ubuntu CI.
 
 CI đã build đủ image candidate, kiểm tra cấu hình release/dev, kiểm tra Nginx debug trên read-only/tmpfs và khởi động stack tới trạng thái healthy. Gate tiếp theo phát hiện phần rà history frontend quét cả layer upstream Nginx vì stage runtime không có WORKDIR. Đã sửa bằng cách xác minh và tách đúng suffix history của base image; test hồi quy vẫn chặn literal trong layer dự án và từ chối base history không khớp. Không nới scanner metadata chung.
 
-Gate `Docker standalone candidate / standalone-and-offline` đã pass cả push và pull_request. [CI thành công](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/39234455124), [report đã rà metadata](evidence/phase-5-docker.json). Đã kiểm chứng 30 món, 10 luồng CV/chọn dự đoán thứ hai/search/detail, seed mới/lặp lại, upgrade/rollback, bundle sai bị từ chối, giữ volume qua down/up, dừng/phục hồi ba dependency và luồng offline qua Nginx. Scanner/history/artifact frontend đều pass.
+Gate `Docker standalone candidate / standalone-and-offline` đã pass trên PR #16. [Workflow Docker candidate](https://github.com/tung51652-alt/Cooking-assistant/actions/workflows/docker-release.yml), [report đã rà metadata](evidence/phase-5-docker.json). Đã kiểm chứng 30 món, 10 luồng CV/chọn dự đoán thứ hai/search/detail, seed mới/lặp lại, upgrade/rollback, bundle sai bị từ chối, giữ volume qua down/up, dừng/phục hồi ba dependency và luồng offline qua Nginx. Scanner/history/artifact frontend đều pass.
 
 Test nâng version đã sửa quyền file trong bản sao bundle tạm: image đóng gói JSON read-only, `copytree` giữ mode đó; chỉ chmod bản sao trong `/tmp`, không thay bundle gốc trong image.
 
@@ -36,4 +36,4 @@ Peak là giá trị lớn nhất theo service giữa các instance lấy mẫu, 
 
 Phase 5 dùng image build local có tag candidate. Fresh volume và Compose ngoài source không chứng minh pull từ registry trên máy sạch; push/pull Docker Hub và bộ release chính thức thuộc Phase 6. Không công bố cấu hình máy tối thiểu hoặc P95 chỉ từ mẫu CI. Quyền phân phối và giới hạn provenance model/corpus giữ nguyên trong manifest/notices.
 
-Chỉ người dùng review/merge PR; agent không merge hoặc tự bắt đầu Phase 6.
+PR #16 đã được review/merge bởi người dùng. Không tự bắt đầu thao tác publish Phase 6; cần tuân thủ cổng release trong kế hoạch.

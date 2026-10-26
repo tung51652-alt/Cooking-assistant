@@ -1,6 +1,6 @@
 # Quyết định runtime và đầu vào — Phase 0
 
-Ngày audit: 2026-10-19. Đây là cấu hình/contract cho lần giao Top-3 + recipe, chưa là kết quả benchmark hoặc bằng chứng release.
+Ngày audit: 2026-10-19. Đây là quyết định runtime cho lần giao Top-3 + recipe; benchmark và giới hạn phát hành được ghi riêng trong báo cáo phase. Phase 0–5 hiện đã merge vào `origin/develop`; Docker Hub release và nghiệm thu cuối chưa hoàn tất.
 
 ## Stack và embedding
 
@@ -42,9 +42,9 @@ Checkpoint do **Phạm Hoàng Minh** huấn luyện, người dùng xác nhận 
 
 Chọn Docker Hub làm registry, bốn image ứng dụng và image Qdrant chính thức. Người dùng đã xác nhận namespace `trantung2006`, visibility `public`; manifest ghi tên repository dự kiến. Quyền push và việc tồn tại đủ bốn repository chưa được kiểm tra, chưa có image release; chúng được kiểm tra khi chuẩn bị phát hành, không yêu cầu gửi mật khẩu/token qua chat.
 
-Người dùng đã cho phép dựng CSS/JS từ HTML; khung frontend và bốn screenshot baseline mới đã được merge qua PR #7. Chưa nghiệm thu Phase 4 với API thật. Mobile trong MVP là trình duyệt responsive; mốc app tiếp theo dùng Expo, không build APK, theo mục mobile của kế hoạch.
+Người dùng đã cho phép dựng CSS/JS từ HTML; frontend đã được tích hợp với API thật và merge qua PR #14. Web hỗ trợ trình duyệt điện thoại. App Expo dùng chung API, không build APK; Expo tích hợp qua PR #17; upload ảnh trên điện thoại thật đã được người dùng xác nhận, nghiệm thu đầy đủ Android/iOS còn mở.
 
-Các quyết định và đầu vào Phase 0 đã sẵn sàng review; bằng chứng transfer được ghi trong [báo cáo Phase 0](../phases/phase-0.md). Corpus coverage/benchmark thuộc Phase 2, quyền push registry thuộc bước phát hành, không bị trình bày là đã kiểm chứng trong Phase 0. Chờ người dùng merge PR #6 và fetch xác nhận `origin/develop` trước khi làm Phase 1/2 phụ thuộc.
+Các quyết định và đầu vào Phase 0 đã được merge; bằng chứng transfer được ghi trong [báo cáo Phase 0](../phases/phase-0.md). Corpus coverage/benchmark được nghiệm thu ở Phase 2. Quyền push registry và pull trên máy sạch vẫn thuộc Phase 6, chưa được xem là đã kiểm chứng.
 
 ## Quy tắc không công bố mã định danh
 

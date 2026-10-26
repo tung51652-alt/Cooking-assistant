@@ -1,6 +1,6 @@
 # Phase 0 — Contract và đầu vào có thể tái lập
 
-Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, đã đồng bộ `origin/develop` sau khi PR #5 và #7 được người dùng merge. Trạng thái: **Phase 0 đã được người dùng merge qua PR #6, agent đã fetch xác nhận trên origin/develop**. Phase 1 bắt đầu sau khi xác nhận merge; chưa phát hành ứng dụng/Docker image.
+Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, đã đồng bộ `origin/develop` sau khi PR #5 và #7 được người dùng merge. Trạng thái: **Phase 0 đã được người dùng merge qua PR #6, agent đã fetch xác nhận trên origin/develop**. Các phase 1–5 sau đó cũng đã tích hợp; Phase 6–7 và application release chưa hoàn tất.
 
 ## Kết quả có thể review
 
@@ -31,8 +31,11 @@ Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, đã đồng bộ `origin/de
 | --- | --- |
 | Phase 1 | Chuẩn hóa mapping dùng chung từ nhánh data, triển khai CV Top-3, Dockerfile giữ model notices |
 | Phase 2 | Review recipe từng món, bổ sung nguồn được phép cho lớp thiếu; tối thiểu 1 recipe/món; tải/bundle embedding và đánh giá retrieval |
-| Phase 4 | Nghiệm thu frontend với backend/AI thật và đối chiếu giao diện; Expo là mốc sau MVP web |
-| Phase 5–7 | Đóng gói offline, đo tài nguyên/latency, kiểm tra quyền push và pull Docker Hub, nghiệm thu image release |
+| Phase 4 | Hoàn tất frontend với backend/AI thật và đối chiếu giao diện; đã merge vào `develop` |
+| Phase 5 | Compose độc lập/offline và đo tài nguyên đã merge; bằng chứng ở [Phase 5](phase-5.md) |
+| Phase 6–7 | Chưa hoàn tất: phát hành/pull Docker Hub, rồi nghiệm thu bộ release cuối |
+
+App Expo là client riêng, tích hợp qua PR #17 theo yêu cầu merge của người dùng. Ngày 2026-10-26 người dùng xác nhận upload ảnh trên điện thoại thật hoạt động; kiểm thử native đầy đủ còn mở trong báo cáo Expo.
 
 Các việc trên không bị đánh dấu đã hoàn thành trong Phase 0. Quyền public checkpoint được ghi theo xác nhận của người dùng; không gán license torchvision cho dataset/checkpoint hoặc công bố đã audit độc lập toàn bộ dataset.
 

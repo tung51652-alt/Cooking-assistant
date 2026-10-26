@@ -6,6 +6,7 @@ export type NativeFileUploader = (url: string, file: NativeUploadPart, requestId
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const text = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0;
+const nativeUploadPart = (v: unknown): v is NativeUploadPart => record(v) && text(v.uri);
 const uuid = (v: unknown): v is string => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const nullableNumber = (v: unknown) => v === null || (finite(v) && v > 0);
 const nullableString = (v: unknown) => v === null || typeof v === 'string';
@@ -34,8 +35,8 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
     let response: Response;
     if (path === '/vision/predict' && nativeFileUploader && init.body instanceof FormData) {
       const parts = init.body.getAll('file');
-      if (parts.length !== 1 || typeof parts[0] !== 'object' || !parts[0] || !('uri' in parts[0])) malformed();
-      response = await nativeFileUploader(`${baseUrl}${path}`, parts[0] as NativeUploadPart,
+      if (parts.length !== 1 || !nativeUploadPart(parts[0])) malformed();
+      response = await nativeFileUploader(`${baseUrl}${path}`, parts[0],
         headers.get('X-Request-ID')!, controller.signal);
     } else {
       response = await fetch(`${baseUrl}${path}`, { ...init, headers, signal: controller.signal });
