@@ -1,6 +1,6 @@
 # Phase 4 — Frontend Stitch và API thật
 
-Trạng thái: **đã được người dùng merge qua PR #14 và xác nhận trên `origin/develop`**. Phase 5 #16 cũng đã merge. Chưa phát hành `v2.0.0` hoặc push/pull image ứng dụng Docker Hub; việc đó thuộc Phase 6.
+Trạng thái: **đã được người dùng merge qua PR #14 và xác nhận trên `origin/develop`**. Phase 5 #16 cũng đã merge. Chưa phát hành `v2.0.0`; push/pull bộ image ứng viên 2.0.0-rc.2 sau đó được kiểm chứng riêng ở [Phase 6](phase-6.md).
 
 ## Nguồn và thiết kế
 

@@ -4,7 +4,7 @@ Tài liệu này mô tả runtime hiện có và hướng mở rộng CookLens. 
 
 ## Milestone hiện có trên develop
 
-Phạm vi hiện có là **Top-3 từ ảnh → xác nhận món → tìm tối đa 3 recipe → chi tiết trên frontend**, cùng Compose độc lập Phase 5. Phase 0–5 đã merge vào `origin/develop`; Docker Hub release thuộc Phase 6, nghiệm thu cuối thuộc Phase 7. [Contract v1](contracts/mvp-v1.md) chốt endpoint, error code, giới hạn byte/pixel, confirmation, timeout và version; [quyết định runtime](decisions/mvp-runtime.md) chốt stack/embedding/gates.
+Phạm vi hiện có là **Top-3 từ ảnh → xác nhận món → tìm tối đa 3 recipe → chi tiết trên frontend**, cùng Compose độc lập Phase 5. Phase 0–5 đã merge vào `origin/develop`; Phase 6 đã có prerelease 2.0.0-rc.2 trên Docker Hub và pull ẩn danh đã kiểm chứng; nghiệm thu chất lượng/final v2.0.0 thuộc Phase 7. [Contract v1](contracts/mvp-v1.md) chốt endpoint, error code, giới hạn byte/pixel, confirmation, timeout và version; [quyết định runtime](decisions/mvp-runtime.md) chốt stack/embedding/gates.
 
 Runtime không có chat/LangGraph, PostgreSQL/JPA hoặc persistence hội thoại. Frontend React/Vite tái sử dụng [HTML CookLens đã audit](frontend-reference/README.md), qua Nginx gọi Spring backend; backend gọi vision/recipes bằng HTTP. Qdrant + job init phục vụ corpus có version. Không cần LLM/key để tra recipe. App Expo tích hợp qua PR #17, dùng chung public API; người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26. Kiểm thử native đầy đủ Android/iOS còn mở theo báo cáo Expo.
 

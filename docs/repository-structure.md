@@ -1,6 +1,6 @@
 # Cấu trúc repository CookLens
 
-Trạng thái hiện tại theo [kế hoạch Top-3/recipe](plans/top3-recipes-docker-mvp.md), [contract v1](contracts/mvp-v1.md) và [quyết định runtime](decisions/mvp-runtime.md): Phase 0–5 đã merge, Phase 6–7 chưa hoàn tất. Sơ đồ bên dưới là bản đồ khái niệm, không phải danh sách đầy đủ file; thành phần ghi rõ "dự kiến" chưa thuộc runtime. Frontend production là React/TypeScript/Vite. PostgreSQL và LangGraph/chat chưa được khởi tạo. Snapshot HTML tại `docs/frontend-reference/` chỉ là tài liệu, không là source production thứ hai.
+Trạng thái hiện tại theo [kế hoạch Top-3/recipe](plans/top3-recipes-docker-mvp.md), [contract v1](contracts/mvp-v1.md) và [quyết định runtime](decisions/mvp-runtime.md): Phase 0–5 đã merge, Phase 6 registry có bằng chứng/prerelease qua PR #19; Phase 7 và v2.0.0 chính thức còn mở. Sơ đồ bên dưới là bản đồ khái niệm, không phải danh sách đầy đủ file; thành phần ghi rõ "dự kiến" chưa thuộc runtime. Frontend production là React/TypeScript/Vite. PostgreSQL và LangGraph/chat chưa được khởi tạo. Snapshot HTML tại `docs/frontend-reference/` chỉ là tài liệu, không là source production thứ hai.
 
 ## Nguyên tắc
 

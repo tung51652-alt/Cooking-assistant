@@ -1,5 +1,4 @@
 """Registry acceptance cannot be claimed from a local candidate or mismatched bundle."""
-from copy import deepcopy
 import json
 from pathlib import Path
 import sys

@@ -4,7 +4,7 @@ Ngày lập: 2026-10-19. Cập nhật trạng thái gần nhất: 2026-10-26. Nh
 
 Đây là kế hoạch triển khai, chưa phải danh sách tính năng đã hoàn thành. Các ô checklist chỉ được đánh dấu khi có mã, kiểm thử và bằng chứng tương ứng. Hiện trạng nhánh được xác định sau `git fetch origin` cùng ngày.
 
-Trạng thái đã đối chiếu với mã và GitHub: Phase 0–5 đã merge vào `origin/develop`, gồm Phase 5 qua [PR #16](https://github.com/tung51652-alt/Cooking-assistant/pull/16). Phase 6–7 chưa hoàn tất; chưa phát hành `v2.0.0` hoặc push image ứng dụng lên Docker Hub. Expo được tích hợp qua [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26 và yêu cầu agent xử lý conflict, kiểm tra rồi merge vào develop. Nghiệm thu đầy đủ Android/iOS vẫn chưa hoàn tất. Checklist đã tick mô tả công việc/bằng chứng đã đạt, không đồng nghĩa với phát hành toàn sản phẩm.
+Trạng thái đã đối chiếu với mã và GitHub: Phase 0–5 đã merge vào `origin/develop`, gồm Phase 5 qua [PR #16](https://github.com/tung51652-alt/Cooking-assistant/pull/16). Phase 6 đã có build/push bốn image public, pull ẩn danh trên runner sạch và [prerelease v2.0.0-rc.2](https://github.com/tung51652-alt/Cooking-assistant/releases/tag/v2.0.0-rc.2) qua PR #19; bằng chứng tại [báo cáo Phase 6](../phases/phase-6.md). Phase 7 và ứng dụng chính thức `v2.0.0` chưa hoàn tất. Expo được tích hợp qua [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26 và yêu cầu agent xử lý conflict, kiểm tra rồi merge vào develop. Nghiệm thu đầy đủ Android/iOS vẫn chưa hoàn tất. Checklist đã tick mô tả công việc/bằng chứng đã đạt, không đồng nghĩa với phát hành toàn sản phẩm.
 
 Bản hoàn thành toàn bộ Phase 0–7 của kế hoạch này là **CookLens phiên bản 2**, tag phát hành ứng dụng `v2.0.0`. Chỉ công bố khi luồng ảnh → Top-3 → xác nhận món → công thức chạy với service thật, đủ Docker images/Compose và đạt nghiệm thu Phase 7. Các phase và PR trung gian không được gọi là release v2 hoàn chỉnh. Version public API, taxonomy và artifact model được quản lý riêng; release trọng số `vision-model-v1` hiện có không phải phiên bản ứng dụng v1 hoặc v2.
 
@@ -367,17 +367,17 @@ Compose phải dùng `healthcheck` cùng `depends_on` condition phù hợp. Cont
 
 Điều kiện kỹ thuật đã đạt trên CI cho image candidate và Compose ngoài source. Điều kiện pull bộ phát hành từ registry trên máy sạch thuộc Phase 6, không tuyên bố đã đạt ở Phase 5.
 
-Đối chiếu phần còn lại: cơ chế runbook, restart và rollback đã có bằng chứng ở candidate Phase 5; các checklist Phase 6–7 vẫn chưa tick vì chưa phát hành/pull bộ image từ registry hoặc nghiệm thu trên chính bộ release. Không dùng smoke candidate thay nghiệm thu release.
+Đối chiếu phần còn lại: cơ chế runbook, restart và rollback đã có bằng chứng ở candidate Phase 5; Phase 6 sau đó đã có bằng chứng push/pull registry riêng ở PR #19; Phase 7 vẫn chưa tick vì nghiệm thu chất lượng và bộ release chính thức còn mở. Không dùng smoke candidate thay nghiệm thu release.
 
 ## 10. Phase 6 — Phát hành Docker Hub và runbook
 
-Cập nhật yêu cầu ngày 2026-10-26: người dùng hoãn các bước Docker Hub/repository/secrets/push-pull. Candidate trên CI đã pass source-checks, build, gói Compose/notices/runbook, lifecycle/offline và 100 mẫu warm/API; xem [báo cáo và giới hạn](../phases/phase-6-candidate.md), [preflight](../phases/phase-6-preflight.md) và [runbook candidate](../runbooks/candidate.md). Không yêu cầu Docker trên máy người dùng. Không tick hoàn tất Phase 6 hoặc nghiệm thu Phase 7 bằng candidate; giữ gate registry và nghiệm thu trên bộ phát hành cho đợt sau.
+Cập nhật yêu cầu ngày 2026-10-26: sau lượt candidate khi hoãn Docker Hub, người dùng yêu cầu hoàn thiện Phase 6 trên PR #19 và đã thêm hai Actions secrets để publish. Pipeline đã push bốn image public, pull ẩn danh trên runner sạch, kiểm tra chính Compose trong gói và tạo prerelease v2.0.0-rc.2. Xem [bằng chứng registry](../phases/phase-6.md). [Candidate](../phases/phase-6-candidate.md) và [preflight](../phases/phase-6-preflight.md) giữ làm snapshot lịch sử; Phase 7 vẫn chưa hoàn tất.
 
 Nhánh: tiếp tục PR #19 trên `codex/phase6-release-ci`, đồng bộ develop đã có Phase 5 và PR Expo #17. Người dùng trực tiếp yêu cầu hoàn thiện Phase 6 rồi agent merge PR #19 vào develop sau khi kiểm tra đạt. Hai Actions secrets Docker Hub đã được người dùng cấu hình; chỉ kiểm tra tên và kết quả đăng nhập, không đọc/in giá trị token.
 
 Docker Hub được chọn làm registry cho lần phát hành này. Docker không bắt buộc dùng Docker Hub: có thể dùng registry khác hoặc `docker save/load`; nhưng muốn người dùng pull bản build sẵn, nhóm cần công bố image trong một registry truy cập được. Không tự đặt tên tài khoản như thể repository đã tồn tại.
 
-| Image dự kiến | Nội dung |
+| Image đã công bố cho Phase 6 | Nội dung |
 | --- | --- |
 | `trantung2006/cooklens-vision:2.0.0-rc.2` | CV code + CPU runtime + checkpoint + taxonomy |
 | `trantung2006/cooklens-recipes:2.0.0-rc.2` | API retrieval + embedding model + corpus/vector bundle; cũng dùng cho init |
@@ -386,15 +386,15 @@ Docker Hub được chọn làm registry cho lần phát hành này. Docker khô
 
 Bổ sung thứ tự phát hành ngày 2026-10-26: Phase 6 công bố bốn image ứng viên `2.0.0-rc.2` và GitHub prerelease `v2.0.0-rc.2`, rồi pull/kiểm thử từ runner sạch. Giữ yêu cầu ban đầu chỉ công bố bản chính thức `v2.0.0` sau nghiệm thu Phase 7: khi đạt, promote chính bộ image đã nghiệm thu sang `2.0.0` và kiểm tra lại bộ Compose cuối. Không rebuild hoặc ghi đè tag đã công bố để làm thay đổi nội dung một bản phát hành. Compose trong gói pin version đã được kiểm chứng, không yêu cầu người dùng tự sửa. Qdrant tham chiếu repository chính thức và version/tag đã test, không push bản sao vào namespace nhóm.
 
-- [ ] CI chạy kiểm thử/contract trước build; tải artifact qua kiểm tra toàn vẹn nội bộ, build cả bốn image và lưu manifest API/model/taxonomy/corpus/embedding versions.
-- [ ] Image gắn release tag dễ đọc; Compose dùng version/tag đã nghiệm thu, không dùng commit/hash làm tag và không ghi đè nội dung release đã phát hành.
-- [ ] Cấu hình quyền push bằng CI secret; public pull không cần token nếu đã đáp ứng quyền phân phối. Private release ghi rõ cần `docker login` một lần, không hứa chạy ẩn danh.
-- [ ] Push vào Docker Hub và xác minh pull lại theo release tag trên máy/CI sạch. Publish là bước phát hành sau khi có namespace/quyền và artifact hợp lệ; viết kế hoạch này chưa thực hiện push.
-- [ ] Kiểm tra version phát hành thống nhất: GitHub prerelease `v2.0.0-rc.2`, bốn image ứng dụng `2.0.0-rc.2`, Compose và runbook; release chính thức `v2.0.0` cùng image `2.0.0` thuộc bước chốt sau Phase 7; giữ version API/model/taxonomy/corpus riêng, không đổi theo số phiên bản app một cách máy móc.
-- [ ] Giao bộ release: `compose.release.yaml`, config mặc định không nhạy cảm, release notes, attribution/licenses và runbook tiếng Việt.
-- [ ] Runbook nêu URL `http://localhost:8080`, readiness/cold-start, cách xem logs, restart, upgrade, rollback và xử lý model/index không tương thích.
-- [ ] Giải thích `docker compose down` giữ named volume; `down -v` xóa dữ liệu index, lần sau phải seed lại. Không đưa lệnh xóa volume vào bước chạy thường ngày.
-- [ ] Gate CI cuối cùng chạy bằng chính image từ registry, không dùng source bind mount hoặc image build local chưa push.
+- [x] CI chạy kiểm thử/contract trước build; tải artifact qua kiểm tra toàn vẹn nội bộ, build cả bốn image và lưu manifest API/model/taxonomy/corpus/embedding versions.
+- [x] Image gắn release tag dễ đọc; Compose dùng version/tag đã nghiệm thu, không dùng commit/hash làm tag và không ghi đè nội dung release đã phát hành.
+- [x] Cấu hình quyền push bằng CI secret; public pull không cần token nếu đã đáp ứng quyền phân phối. Private release ghi rõ cần `docker login` một lần, không hứa chạy ẩn danh.
+- [x] Push vào Docker Hub và xác minh pull lại theo release tag trên máy/CI sạch. Đã thực hiện push public và pull ẩn danh qua pipeline tag v2.0.0-rc.2, report registry riêng ghi kết quả.
+- [x] Kiểm tra version phát hành thống nhất: GitHub prerelease `v2.0.0-rc.2`, bốn image ứng dụng `2.0.0-rc.2`, Compose và runbook; release chính thức `v2.0.0` cùng image `2.0.0` thuộc bước chốt sau Phase 7; giữ version API/model/taxonomy/corpus riêng, không đổi theo số phiên bản app một cách máy móc.
+- [x] Giao bộ release: `compose.release.yaml`, config mặc định không nhạy cảm, release notes, attribution/licenses và runbook tiếng Việt.
+- [x] Runbook nêu URL `http://localhost:8080`, readiness/cold-start, cách xem logs, restart, upgrade, rollback và xử lý model/index không tương thích.
+- [x] Giải thích `docker compose down` giữ named volume; `down -v` xóa dữ liệu index, lần sau phải seed lại. Không đưa lệnh xóa volume vào bước chạy thường ngày.
+- [x] Gate CI cuối cùng chạy bằng chính image từ registry, không dùng source bind mount hoặc image build local chưa push.
 
 Lệnh mục tiêu sau khi tải bộ release:
 
@@ -402,15 +402,15 @@ Lệnh mục tiêu sau khi tải bộ release:
 docker compose -f compose.release.yaml up -d --pull always --wait
 ```
 
-Runbook phải ghi phiên bản Compose đã test có hỗ trợ các option này và timeout cold-start đủ thực tế; nếu cần `--wait-timeout`, đưa giá trị được đo vào lệnh phát hành. Đây là giao diện chạy dự kiến, chưa phải file Compose đã được tạo trong lần viết kế hoạch.
+Runbook phải ghi phiên bản Compose đã test có hỗ trợ các option này và timeout cold-start đủ thực tế; nếu cần `--wait-timeout`, đưa giá trị được đo vào lệnh phát hành. Gói prerelease đã chứa Compose pin namespace/tag được kiểm chứng; lệnh chạy thực tế trong runbook có `--wait-timeout 240`, không tính bước pull vào startup.
 
 ### Kết thúc Phase 6
 
-- [ ] Rà file thừa, release archive/test output và script thử theo [cổng chung](#phase-closeout); chỉ giao file Compose/config/attribution/runbook cần thiết.
-- [ ] Rà secrets và mọi giá trị mã/hash trong commits, workflows, logs, manifest, registry image và bundle tải về; không ghi giá trị mã/hash, login token hoặc URL ký tạm thời.
-- [ ] Tạo PR kèm image version/tag và kết quả pull thật; chờ người dùng merge rồi fetch xác nhận trước phase nghiệm thu cuối.
+- [x] Rà file thừa, release archive/test output và script thử theo [cổng chung](#phase-closeout); chỉ giao file Compose/config/attribution/runbook cần thiết.
+- [x] Rà secrets và mọi giá trị mã/hash trong commits, workflows, logs, manifest, registry image và bundle tải về; không ghi giá trị mã/hash, login token hoặc URL ký tạm thời.
+- [x] PR #19 có image version/tag, gói tải và report pull thật; người dùng trực tiếp giao agent merge vào develop sau khi kiểm tra. Agent fetch xác nhận trước Phase 7.
 
-Điều kiện ra phase: bản ứng viên có image thật trên registry public, version/tag đã kiểm chứng bằng pull ẩn danh trên runner khác không có image ứng dụng local, gói Compose/notices/runbook/report tải được mà không cần source/artifact riêng; người dùng chỉ cần bộ release và Docker, thêm login nếu dùng registry private; PR được người dùng merge vào `develop`.
+Điều kiện ra phase: bản ứng viên có image thật trên registry public, version/tag đã kiểm chứng bằng pull ẩn danh trên runner khác không có image ứng dụng local, gói Compose/notices/runbook/report tải được mà không cần source/artifact riêng; người dùng chỉ cần bộ release và Docker, thêm login nếu dùng registry private; PR được merge vào `develop` theo yêu cầu trực tiếp của người dùng.
 
 ## 11. Phase 7 — Nghiệm thu end-to-end
 

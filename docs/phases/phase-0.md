@@ -1,6 +1,6 @@
 # Phase 0 — Contract và đầu vào có thể tái lập
 
-Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, đã đồng bộ `origin/develop` sau khi PR #5 và #7 được người dùng merge. Trạng thái: **Phase 0 đã được người dùng merge qua PR #6, agent đã fetch xác nhận trên origin/develop**. Các phase 1–5 sau đó cũng đã tích hợp; Phase 6–7 và application release chưa hoàn tất.
+Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, đã đồng bộ `origin/develop` sau khi PR #5 và #7 được người dùng merge. Trạng thái: **Phase 0 đã được người dùng merge qua PR #6, agent đã fetch xác nhận trên origin/develop**. Các phase 1–5 sau đó cũng đã tích hợp; Phase 6 sau đó có registry/prerelease/pull sạch đã kiểm chứng; Phase 7 và application release v2.0.0 chưa hoàn tất.
 
 ## Kết quả có thể review
 
@@ -33,7 +33,8 @@ Ngày: 2026-10-19. Nhánh: `feature/mvp-contracts`, đã đồng bộ `origin/de
 | Phase 2 | Review recipe từng món, bổ sung nguồn được phép cho lớp thiếu; tối thiểu 1 recipe/món; tải/bundle embedding và đánh giá retrieval |
 | Phase 4 | Hoàn tất frontend với backend/AI thật và đối chiếu giao diện; đã merge vào `develop` |
 | Phase 5 | Compose độc lập/offline và đo tài nguyên đã merge; bằng chứng ở [Phase 5](phase-5.md) |
-| Phase 6–7 | Chưa hoàn tất: phát hành/pull Docker Hub, rồi nghiệm thu bộ release cuối |
+| Phase 6 | Registry/prerelease 2.0.0-rc.2 và pull ẩn danh đã kiểm chứng, xem [báo cáo Phase 6](phase-6.md) |
+| Phase 7 | Nghiệm thu chất lượng/bộ cuối và phát hành chính thức v2.0.0 chưa hoàn tất |
 
 App Expo là client riêng, tích hợp qua PR #17 theo yêu cầu merge của người dùng. Ngày 2026-10-26 người dùng xác nhận upload ảnh trên điện thoại thật hoạt động; kiểm thử native đầy đủ còn mở trong báo cáo Expo.
 

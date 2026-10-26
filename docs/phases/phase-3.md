@@ -1,6 +1,6 @@
 # Phase 3 — Public gateway Spring Boot
 
-Trạng thái: **đã được người dùng merge qua PR #13 và xác nhận trên `origin/develop`**. Phase 4–5 cũng đã merge. Chưa phát hành application `v2.0.0` hoặc push bộ image ứng dụng lên Docker Hub.
+Trạng thái: **đã được người dùng merge qua PR #13 và xác nhận trên `origin/develop`**. Phase 4–5 cũng đã merge. Chưa phát hành application `v2.0.0`; Phase 6 sau đó đã push và kiểm chứng pull bộ image ứng viên 2.0.0-rc.2 trên Docker Hub.
 
 ## Phạm vi và tổ chức
 

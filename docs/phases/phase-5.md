@@ -1,6 +1,6 @@
 # Phase 5 — Compose độc lập và runtime offline
 
-Trạng thái: **hoàn tất, PR #16 đã được người dùng merge vào `origin/develop`**. Các gate CI của PR đã pass. Candidate kỹ thuật `2.0.0-rc.1` chưa phải application release `v2.0.0`; image ứng dụng chưa được push Docker Hub. Phase 6 còn lại là phát hành registry và kiểm thử pull trên máy sạch. App Expo được tích hợp qua [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26 và yêu cầu agent merge sau khi kiểm tra. Nghiệm thu đầy đủ Android/iOS vẫn còn; xem [báo cáo Expo](mobile-expo.md).
+Trạng thái: **hoàn tất, PR #16 đã được người dùng merge vào `origin/develop`**. Các gate CI của PR đã pass. Candidate kỹ thuật `2.0.0-rc.1` chưa phải application release `v2.0.0`; tại mốc Phase 5 image ứng dụng chưa được push Docker Hub. Phase 6 sau đó đã phát hành ứng viên 2.0.0-rc.2 và kiểm chứng pull ẩn danh trên runner sạch, xem [báo cáo Phase 6](phase-6.md). App Expo được tích hợp qua [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26 và yêu cầu agent merge sau khi kiểm tra. Nghiệm thu đầy đủ Android/iOS vẫn còn; xem [báo cáo Expo](mobile-expo.md).
 
 ## Thay đổi
 
@@ -34,6 +34,6 @@ Peak là giá trị lớn nhất theo service giữa các instance lấy mẫu, 
 
 ## Giới hạn
 
-Phase 5 dùng image build local có tag candidate. Fresh volume và Compose ngoài source không chứng minh pull từ registry trên máy sạch; push/pull Docker Hub và bộ release chính thức thuộc Phase 6. Không công bố cấu hình máy tối thiểu hoặc P95 chỉ từ mẫu CI. Quyền phân phối và giới hạn provenance model/corpus giữ nguyên trong manifest/notices.
+Phase 5 dùng image build local có tag candidate. Fresh volume và Compose ngoài source không chứng minh pull từ registry trên máy sạch; push/pull Docker Hub được kiểm chứng riêng ở Phase 6 với ứng viên 2.0.0-rc.2; bản chính thức v2.0.0 chờ Phase 7. Không công bố cấu hình máy tối thiểu hoặc P95 chỉ từ mẫu CI. Quyền phân phối và giới hạn provenance model/corpus giữ nguyên trong manifest/notices.
 
-PR #16 đã được review/merge bởi người dùng. Không tự bắt đầu thao tác publish Phase 6; cần tuân thủ cổng release trong kế hoạch.
+PR #16 đã được review/merge bởi người dùng. Phase 6 đã được người dùng yêu cầu triển khai/merge riêng qua PR #19; chỉ công bố chính thức v2.0.0 sau nghiệm thu Phase 7.
