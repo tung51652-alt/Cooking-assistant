@@ -4,7 +4,7 @@ Ngày lập: 2026-10-19. Cập nhật trạng thái gần nhất: 2026-10-26. Nh
 
 Đây là kế hoạch triển khai, chưa phải danh sách tính năng đã hoàn thành. Các ô checklist chỉ được đánh dấu khi có mã, kiểm thử và bằng chứng tương ứng. Hiện trạng nhánh được xác định sau `git fetch origin` cùng ngày.
 
-Trạng thái đã đối chiếu với mã và GitHub: Phase 0–5 đã merge vào `origin/develop`, gồm Phase 5 qua [PR #16](https://github.com/tung51652-alt/Cooking-assistant/pull/16). Phase 6–7 chưa hoàn tất; chưa phát hành `v2.0.0` hoặc push image ứng dụng lên Docker Hub. PR Expo [#17](https://github.com/tung51652-alt/Cooking-assistant/pull/17) vẫn mở riêng; thiết bị thật chưa nghiệm thu. Checklist đã tick mô tả công việc/bằng chứng đã đạt, không đồng nghĩa với phát hành toàn sản phẩm.
+Trạng thái đã đối chiếu với mã và GitHub: Phase 0–5 đã merge vào `origin/develop`, gồm Phase 5 qua [PR #16](https://github.com/tung51652-alt/Cooking-assistant/pull/16). Phase 6–7 chưa hoàn tất; chưa phát hành `v2.0.0` hoặc push image ứng dụng lên Docker Hub. Expo được tích hợp qua [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26 và yêu cầu agent xử lý conflict, kiểm tra rồi merge vào develop. Nghiệm thu đầy đủ Android/iOS vẫn chưa hoàn tất. Checklist đã tick mô tả công việc/bằng chứng đã đạt, không đồng nghĩa với phát hành toàn sản phẩm.
 
 Bản hoàn thành toàn bộ Phase 0–7 của kế hoạch này là **CookLens phiên bản 2**, tag phát hành ứng dụng `v2.0.0`. Chỉ công bố khi luồng ảnh → Top-3 → xác nhận món → công thức chạy với service thật, đủ Docker images/Compose và đạt nghiệm thu Phase 7. Các phase và PR trung gian không được gọi là release v2 hoàn chỉnh. Version public API, taxonomy và artifact model được quản lý riêng; release trọng số `vision-model-v1` hiện có không phải phiên bản ứng dụng v1 hoặc v2.
 
@@ -48,7 +48,7 @@ Quy trình chung cho từng PR:
 2. Với nhánh đã có mã hữu ích: chuyển vào nhánh, đồng bộ `develop`, sửa trên nhánh đó. Với service mới: tạo nhánh từ `develop`. Ngoại lệ cherry-pick commit data ở bảng trên nhằm tách dependency thử nghiệm.
 3. Người dùng đã cho phép agent sửa các nhánh thành viên, commit/push thay đổi thuộc công việc này và tạo PR vào `develop`; không phải xin lại quyền cho từng thao tác thông thường. Bảo toàn công việc đang có, fetch trước push và xử lý thay đổi mới của người khác; không force-push, ghi đè hoặc viết lại lịch sử nhánh chia sẻ.
 4. Hoàn thành kiểm thử và [cổng kết thúc phase](#phase-closeout) trước khi push/tạo PR sẵn sàng review. Mỗi PR ghi contract thay đổi, đường dẫn file, cấu hình, cách chạy, kiểm thử, artifact/version và kết quả rà soát file/secrets. PR tài liệu chỉ sửa docs thì kiểm tra Markdown/link/diff, không chạy suite ứng dụng không liên quan.
-5. Agent gửi link PR cùng kết quả kiểm tra; **người dùng trực tiếp bấm merge**. Agent không tự merge hoặc bật auto-merge. Nếu có nhiều PR phụ thuộc trong một phase, ghi rõ thứ tự merge.
+5. Agent gửi link PR cùng kết quả kiểm tra; **người dùng trực tiếp bấm merge**. Agent không tự merge hoặc bật auto-merge khi chưa có yêu cầu trực tiếp. Riêng PR mobile #17, người dùng đã yêu cầu agent merge vào develop sau khi kiểm tra và xử lý conflict ngày 2026-10-26. Nếu có nhiều PR phụ thuộc trong một phase, ghi rõ thứ tự merge.
 6. Sau khi người dùng merge, fetch `origin`, xác nhận commit đã có trên `origin/develop`, cập nhật local rồi mới bắt đầu phần phụ thuộc hoặc phase kế tiếp. Nếu PR cần sửa, tiếp tục sửa trên nhánh PR đó. Các nhánh cùng phase chỉ làm song song khi dependency đã được merge hoặc dùng contract/fixture độc lập.
 7. Không commit weights, venv, secrets hoặc index sinh ra. Giải quyết `.gitignore` khác nhau giữa nhánh; bỏ tham chiếu kiểu `origin/minh/cv:...` trong tài liệu sau khi file đã có đường dẫn chung.
 
@@ -300,7 +300,7 @@ Nguyên tắc phối hợp: frontend chỉ gọi public /api cùng origin, dùng
 
 ### Mobile bằng Expo — cùng domain, triển khai cùng Phase 5 theo yêu cầu cập nhật
 
-Mobile là một client khác của CookLens, giữ nguyên luồng **chụp/chọn ảnh → Top-3 → xác nhận/sửa món → tối đa ba công thức → chi tiết nguyên liệu/bước nấu/nguồn**, taxonomy 30 món và giới hạn model. Không thêm chatbot, đăng nhập, lịch sử hoặc service AI riêng để làm mobile. Người dùng yêu cầu triển khai Expo ngay cùng Phase 5; mã trên `feature/mobile-expo`, báo cáo và kiểm chứng thiết bị tách khỏi nghiệm thu web/Docker. Xem [PR Expo #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17), [báo cáo Expo trên nhánh triển khai](https://github.com/tung51652-alt/Cooking-assistant/blob/feature/mobile-expo/docs/phases/mobile-expo.md) và [hướng dẫn chạy Expo Go](https://github.com/tung51652-alt/Cooking-assistant/blob/feature/mobile-expo/mobile/README.md).
+Mobile là một client khác của CookLens, giữ nguyên luồng **chụp/chọn ảnh → Top-3 → xác nhận/sửa món → tối đa ba công thức → chi tiết nguyên liệu/bước nấu/nguồn**, taxonomy 30 món và giới hạn model. Không thêm chatbot, đăng nhập, lịch sử hoặc service AI riêng để làm mobile. Người dùng yêu cầu triển khai Expo ngay cùng Phase 5; mã trên `feature/mobile-expo`, báo cáo và kiểm chứng thiết bị tách khỏi nghiệm thu web/Docker. Xem [PR Expo #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17), [báo cáo Expo](../phases/mobile-expo.md) và [hướng dẫn chạy Expo Go](../../mobile/README.md).
 
 Nguyên tắc chung:
 
@@ -315,13 +315,13 @@ Checklist khi bắt đầu và nghiệm thu mốc Expo:
 
 - [x] Chốt SDK/dependencies hỗ trợ Expo Go, vị trí mã và adapter dùng chung; bổ sung hướng dẫn cài dependency/start/scan QR, không yêu cầu người dùng build APK.
 - [x] Dùng chung API contract/types/validation, taxonomy/model/corpus metadata và backend với web; sáu client contract tests và CI web/server thật đã pass, không nhân bản backend hoặc dữ liệu cho mobile.
-- [ ] Kiểm tra từ điện thoại thật tới gateway LAN/HTTPS, native multipart và metadata versions; chưa có thiết bị kết nối để nghiệm thu.
+- [x] Kết nối điện thoại thật tới gateway LAN và upload multipart qua Expo: người dùng xác nhận hoạt động ngày 2026-10-26 sau khi chuyển sang uploader native Expo FileSystem. Client vẫn kiểm tra metadata/envelope trước khi nhận Top-3; đây là smoke upload, chưa phải nghiệm thu HTTPS hoặc toàn bộ luồng trên cả Android/iOS.
 - [x] Triển khai camera/thư viện, permission denied/cancel, preview/đổi ảnh, validation/chuyển định dạng và upload; không lưu lịch sử ảnh. Typecheck/bundle đã pass; hành vi camera/HEIC trên thiết bị còn chờ kiểm chứng ở mục dưới.
 - [x] Triển khai Top-3, xác nhận/sửa món, danh sách/chi tiết và nguồn; loading/empty/error/retry, hủy request và chặn kết quả cũ. Client contract dùng chung được kiểm thử; chưa coi là nghiệm thu native trên thiết bị thật.
 - [ ] Kiểm thử trên thiết bị thật Android và iOS theo phạm vi bàn giao đã chốt; kiểm tra safe area, chữ lớn, screen reader, nút Back và chuyển nền/quay lại app. Báo rõ nền tảng chưa được kiểm chứng; không dùng test viewport web thay bằng chứng Expo.
-- [x] Web build, 20 Playwright desktop/mobile và sáu client contract tests pass sau tách client. Tám checks PR #17, gồm gateway/browser/Docker/CV/recipes thật và Expo bundle, đã pass; không dùng kết quả này thay bằng chứng Expo trên thiết bị.
+- [x] Web build, 20 Playwright desktop/mobile và sáu client contract tests đã pass sau tách client. Bản sửa multipart có chín contract tests pass, gồm adapter native, cancellation và lỗi upload; mobile typecheck, Expo dependency check và bundle Android/iOS pass. CI của PR được chạy lại sau khi đồng bộ develop. Không dùng kết quả build/CI thay bằng chứng thiết bị.
 - [x] Rà file/test tạm, cache Metro, generated outputs, source/config/lockfile và nội dung commit; scanner metadata cùng web bundle đã pass. Native export chỉ dùng kiểm tra bundling, không commit/publish output. PR #17 đã sẵn sàng review, mô tả nêu rõ phần chưa kiểm chứng trên điện thoại; không coi đây là nghiệm thu native release.
-- [ ] Người dùng review/merge PR Expo; nghiệm thu thiết bị thật trước khi xác nhận hoàn tất mốc mobile. Không tự merge hoặc bật auto-merge.
+- [x] Người dùng xác nhận upload hoạt động và trực tiếp yêu cầu agent xử lý conflict, kiểm tra rồi merge PR Expo #17 vào develop ngày 2026-10-26. Nghiệm thu đầy đủ thiết bị vẫn theo mục chưa tick phía trên, không suy ra từ việc merge.
 
 ## 9. Phase 5 — Docker Compose và artifact đầy đủ
 

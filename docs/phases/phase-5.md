@@ -1,6 +1,6 @@
 # Phase 5 — Compose độc lập và runtime offline
 
-Trạng thái: **hoàn tất, PR #16 đã được người dùng merge vào `origin/develop`**. Các gate CI của PR đã pass. Candidate kỹ thuật `2.0.0-rc.1` chưa phải application release `v2.0.0`; image ứng dụng chưa được push Docker Hub. Phase 6 còn lại là phát hành registry và kiểm thử pull trên máy sạch. App Expo được triển khai riêng ở [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17), đang mở và chưa nghiệm thu thiết bị.
+Trạng thái: **hoàn tất, PR #16 đã được người dùng merge vào `origin/develop`**. Các gate CI của PR đã pass. Candidate kỹ thuật `2.0.0-rc.1` chưa phải application release `v2.0.0`; image ứng dụng chưa được push Docker Hub. Phase 6 còn lại là phát hành registry và kiểm thử pull trên máy sạch. App Expo được tích hợp qua [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26 và yêu cầu agent merge sau khi kiểm tra. Nghiệm thu đầy đủ Android/iOS vẫn còn; xem [báo cáo Expo](mobile-expo.md).
 
 ## Thay đổi
 

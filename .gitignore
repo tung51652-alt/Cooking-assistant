@@ -21,6 +21,9 @@ test-results/
 .idea/
 *.iml
 .DS_Store
+.expo/
+/mobile/android/
+/mobile/ios/
 
 # Credentials; examples contain placeholders only
 .env

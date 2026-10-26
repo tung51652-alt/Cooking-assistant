@@ -4,7 +4,7 @@ Trạng thái hiện tại theo [kế hoạch Top-3/recipe](plans/top3-recipes-d
 
 ## Nguyên tắc
 
-Repository chia mã theo service, dữ liệu, client, triển khai và tài liệu. `mobile/` cùng `packages/` hiện có ở PR Expo #17, chưa nằm trong `develop`.
+Repository chia mã theo service, dữ liệu, client, triển khai và tài liệu. `mobile/` cùng `packages/` được tích hợp qua PR Expo #17: mã UI/ảnh riêng cho native, client API dùng chung với web.
 
 ```text
 .
@@ -55,8 +55,8 @@ Repository chia mã theo service, dữ liệu, client, triển khai và tài li�
 │   ├── tests/                 # Deploy/release regression tests
 │   └── env/                   # Chỉ .env.example, tuyệt đối không secret
 ├── .github/workflows/         # CI workflows
-├── mobile/                    # Expo app trên PR #17, chưa merge vào develop
-├── packages/                  # Shared API client/contract trên PR #17
+├── mobile/                    # Expo Go app, dùng chung gateway với web
+├── packages/                  # Shared API client/contract cho web và Expo
 └── docs/
     ├── cv/                    # Dataset, model, train results
     ├── data/                  # Data/RAG schema và nguồn dữ liệu

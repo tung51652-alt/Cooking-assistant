@@ -1,0 +1,5 @@
+# Explicit mobile development overlay after recipes.phase2.yml and backend.phase3.yml.
+# Requires the private LAN address of the Docker host; never opens AI/Qdrant.
+services:
+  backend:
+    ports: !override ['${COOKLENS_LAN_IP:?Set the Docker host private LAN IP}:${BACKEND_PORT:-8080}:8080']

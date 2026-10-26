@@ -2,7 +2,7 @@
 
 Đưa ảnh một món ăn Việt vào, xem **Top-3 dự đoán**, chọn hoặc sửa món rồi tìm công thức và xem nguyên liệu/bước nấu/nguồn. Bản hiện có trên `develop` gồm frontend responsive theo nguồn Stitch, Spring Boot gateway, CV EfficientNet-B2, recipe retrieval E5/Qdrant thật và Compose độc lập Phase 5.
 
-Hiện hỗ trợ 30 món, corpus 33 công thức; mỗi món trả tối đa ba công thức có sẵn, không tự tạo thêm kết quả để đủ ba. Một số công thức được AI biên soạn và có nhãn nguồn rõ ràng. Ảnh dùng để nhận diện món, không suy ra nguyên liệu trực tiếp từ pixel. Chưa có chatbot, tài khoản/lịch sử hoặc cooking assistant. Web responsive dùng được trên trình duyệt điện thoại. App Expo đang được review ở PR #17; không làm APK.
+Hiện hỗ trợ 30 món, corpus 33 công thức; mỗi món trả tối đa ba công thức có sẵn, không tự tạo thêm kết quả để đủ ba. Một số công thức được AI biên soạn và có nhãn nguồn rõ ràng. Ảnh dùng để nhận diện món, không suy ra nguyên liệu trực tiếp từ pixel. Chưa có chatbot, tài khoản/lịch sử hoặc cooking assistant. Web responsive dùng được trên trình duyệt điện thoại; [app Expo Go](mobile/README.md) dùng chung gateway và đã được người dùng xác nhận upload ảnh hoạt động trên điện thoại thật. Chưa nghiệm thu đầy đủ Android/iOS, không build APK.
 
 ## Trạng thái phiên bản
 
@@ -19,7 +19,7 @@ docker pull qdrant/qdrant:v1.19.2
 docker compose -f deploy/compose/compose.release.yaml up -d --wait --wait-timeout 240
 ```
 
-Mở **http://127.0.0.1:8080/**. Có thể chép riêng compose.release.yaml ra thư mục ngoài source và chạy với các image đã có; runtime không cần model/Python/Java/Node trên host. Chỉ web được publish, AI/backend/Qdrant ở mạng internal. Xem [runbook Docker](docs/runbooks/docker.md) cho build/dev/debug, volume, di chuyển image, upgrade/rollback và giới hạn offline; [báo cáo Phase 5](docs/phases/phase-5.md) ghi bằng chứng kiểm thử. Mobile Expo dùng cùng gateway, đang triển khai riêng ở [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); Compose release không mở cổng LAN mặc định.
+Mở **http://127.0.0.1:8080/**. Có thể chép riêng compose.release.yaml ra thư mục ngoài source và chạy với các image đã có; runtime không cần model/Python/Java/Node trên host. Chỉ web được publish, AI/backend/Qdrant ở mạng internal. Xem [runbook Docker](docs/runbooks/docker.md) cho build/dev/debug, volume, di chuyển image, upgrade/rollback và giới hạn offline; [báo cáo Phase 5](docs/phases/phase-5.md) ghi bằng chứng kiểm thử. Mobile Expo dùng cùng gateway, tích hợp qua [PR #17](https://github.com/tung51652-alt/Cooking-assistant/pull/17); Compose release không mở cổng LAN mặc định.
 
 ## Stack review Phase 4 trên máy đã có image
 
@@ -152,4 +152,4 @@ Browser → Nginx frontend → Spring Boot /api → Vision EfficientNet-B2
 | [Dữ liệu công thức](data/recipes/README.md) | Nguồn/license/attribution và AI-authored provenance |
 | [Tài liệu chung](docs/README.md) | CV, data, kiến trúc và roadmap dài hạn |
 
-Trước PR phải rà file/test tạm, build output, secrets và mọi literal mã/hash bị cấm trong code, tài liệu, lockfile và bundle. Không commit trọng số/dataset lớn, key/token, log hay dữ liệu người dùng. Giữ test hồi quy có mục đích. Agent tạo PR, người dùng review/merge từng phase; chưa chuyển Phase 6 khi PR Phase 5 chưa được merge.
+Trước PR phải rà file/test tạm, build output, secrets và mọi literal mã/hash bị cấm trong code, tài liệu, lockfile và bundle. Không commit trọng số/dataset lớn, key/token, log hay dữ liệu người dùng. Giữ test hồi quy có mục đích. Agent tạo PR, người dùng review/merge từng phase; Phase 4 và Phase 5 đã merge; phát hành Docker Hub và nghiệm thu release vẫn thuộc Phase 6–7. Riêng PR mobile #17, người dùng đã yêu cầu agent xử lý conflict và merge vào develop sau khi kiểm tra đạt.
