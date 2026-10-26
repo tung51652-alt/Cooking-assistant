@@ -2,6 +2,8 @@
 
 Ngày: 2026-10-26. Nhánh `codex/phase6-release-ci`, nền `develop` đã có Phase 5. Người dùng cho phép tiếp tục phần candidate và kiểm thử, hoãn repository/secrets/push-pull Docker Hub. Chưa đánh dấu hoàn tất Phase 6–7 hoặc phát hành ứng dụng `v2.0.0`.
 
+Đây là báo cáo lịch sử của lượt candidate khi hoãn Docker Hub. Sau đó người dùng yêu cầu tiếp tục toàn bộ Phase 6 trên PR #19; tiến độ registry/pull thật tại [báo cáo Phase 6](phase-6.md).
+
 ## Thay đổi
 
 - Workflow Docker có job kiểm tra source trước build: manifest/full coverage, data/deploy tests, Java tests, frontend build/bundle audit và Playwright. Job standalone chỉ chạy khi job này đạt.
@@ -58,6 +60,6 @@ Trước build phải stage checkpoint/embedding và dựng recipe vector bundle
 
 ## Phần còn lại
 
-Docker Hub repositories/secrets, publish, clean pull và bộ release chính thức vẫn thuộc Phase 6. Phase 7 còn accuracy trên tập ảnh có quyền, review công thức, các gate release thực và phần thiết bị phù hợp phạm vi bàn giao. Expo trên điện thoại thật vẫn chưa nghiệm thu; Actions không cung cấp backend thường trực cho điện thoại.
+Docker Hub repositories/secrets, publish, clean pull và bộ release chính thức vẫn thuộc Phase 6. Phase 7 còn accuracy trên tập ảnh có quyền, review công thức, các gate release thực và phần thiết bị phù hợp phạm vi bàn giao. Người dùng đã xác nhận upload ảnh Expo hoạt động trong PR #17; kiểm thử native đầy đủ Android/iOS vẫn còn mở. Actions không cung cấp backend thường trực cho điện thoại.
 
 Agent chỉ bàn giao PR; người dùng review/merge. Không tự merge hoặc bật auto-merge.

@@ -1,17 +1,38 @@
-name: Docker standalone candidate
+name: Docker candidate and registry release
 on:
   pull_request:
     paths: ['deploy/**', 'backend/**', 'frontend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/**', '.dockerignore', '.github/workflows/docker-release.yml']
   push:
     branches: [feature/docker-release, codex/phase6-release-ci, develop, main]
+    tags: ['v2.0.0-rc.*']
     paths: ['deploy/**', '.dockerignore', '.github/workflows/docker-release.yml']
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
   group: docker-candidate-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 jobs:
+  release-settings:
+    runs-on: ubuntu-24.04
+    outputs:
+      publish: ${{ steps.version.outputs.publish }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - id: version
+        name: Resolve candidate version; only explicit prerelease tags can publish
+        run: |
+          python3 - <<'PYTHON'
+          import os, sys
+          sys.path.insert(0, 'deploy/scripts')
+          from registry_release import release_version
+          publish = os.environ['GITHUB_REF'].startswith('refs/tags/')
+          version = release_version(os.environ['GITHUB_REF_NAME']) if publish else '2.0.0-rc.1'
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('publish=' + str(publish).lower() + '\nversion=' + version + '\n')
+          PYTHON
   source-checks:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -31,13 +52,17 @@ jobs:
       - run: python -m unittest discover -s deploy/tests -v
       - run: mvn -B -q -f backend/pom.xml test
       - run: npm --prefix frontend ci --ignore-scripts --no-audit --no-fund
+      - run: node --experimental-strip-types --test packages/cooklens-api/client.test.mjs
       - run: npm --prefix frontend run build
       - run: python deploy/scripts/check_frontend_build.py
       - run: npx playwright install --with-deps chromium
         working-directory: frontend
       - run: npm --prefix frontend run test:e2e
   standalone-and-offline:
-    needs: source-checks
+    needs: [release-settings, source-checks]
+    env:
+      COOKLENS_IMAGE_PREFIX: ${{ needs.release-settings.outputs.publish == 'true' && 'trantung2006/cooklens' || 'cooklens' }}
+      COOKLENS_IMAGE_TAG: ${{ needs.release-settings.outputs.version }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -47,6 +72,15 @@ jobs:
         with: {python-version: '3.12'}
       - run: python deploy/scripts/check_public_metadata.py
       - run: python -m unittest discover -s deploy/tests -v
+      - name: Validate publishing credentials and unused tags
+        if: needs.release-settings.outputs.publish == 'true'
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          test "$DOCKERHUB_USERNAME" = 'trantung2006' && test -n "$DOCKERHUB_TOKEN" || { echo 'Missing or incompatible Docker Hub secrets'; exit 1; }
+          docker compose -f deploy/compose/compose.release.yaml config --format json > /tmp/cooklens-registry-compose.json
+          python deploy/scripts/registry_release.py preflight --compose-json /tmp/cooklens-registry-compose.json
       - name: Stage verified build artifacts
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -79,3 +113,61 @@ jobs:
           path: /tmp/cooklens-candidate/
           if-no-files-found: error
           retention-days: 14
+      - name: Sign in to Docker Hub only after candidate verification
+        if: needs.release-settings.outputs.publish == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Push verified immutable candidate images
+        if: needs.release-settings.outputs.publish == 'true'
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: python deploy/scripts/registry_release.py push --compose-json /tmp/cooklens-registry-compose.json
+  clean-registry-pull:
+    if: needs.release-settings.outputs.publish == 'true'
+    needs: [release-settings, standalone-and-offline]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - uses: actions/download-artifact@v4
+        with:
+          name: cooklens-candidate
+          path: /tmp/cooklens-registry-bundle
+      - name: Pull anonymously on a separate runner and verify the packaged Compose
+        run: python deploy/scripts/smoke_release_stack.py --pull-registry --compose /tmp/cooklens-registry-bundle/compose.release.yaml --samples 100 --report /tmp/cooklens-registry-bundle/verification.json
+      - name: Package verified registry candidate with runbook and notices
+        env:
+          RELEASE_VERSION: ${{ needs.release-settings.outputs.version }}
+        run: python deploy/scripts/registry_release.py package --bundle /tmp/cooklens-registry-bundle --archive "/tmp/cooklens-registry-release/cooklens-$RELEASE_VERSION.tar.gz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cooklens-registry-release
+          path: /tmp/cooklens-registry-release/*.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+  publish-prerelease:
+    needs: [release-settings, clean-registry-pull]
+    if: needs.release-settings.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - uses: actions/download-artifact@v4
+        with:
+          name: cooklens-registry-release
+          path: /tmp/cooklens-registry-release
+      - name: Publish standalone download as a GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.release-settings.outputs.version }}
+        run: python deploy/scripts/registry_release.py github-release --archive "/tmp/cooklens-registry-release/cooklens-$RELEASE_VERSION.tar.gz" --tag "v$RELEASE_VERSION"

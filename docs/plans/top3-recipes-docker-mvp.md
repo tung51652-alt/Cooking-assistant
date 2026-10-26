@@ -67,7 +67,7 @@ Mỗi phase bắt buộc chạy `python3 deploy/scripts/check_public_metadata.py
 - **Đóng gói/phát hành:** kiểm tra `.gitignore`, `.dockerignore`, frontend build bundle, Docker build context và các layer/config/history của image trong phạm vi phase. Xóa secret trong layer sau không làm secret biến mất khỏi layer trước; phải build lại từ đầu vào sạch. Bản release không chứa credential dù registry private.
 - **Nếu phát hiện rò rỉ:** ngừng push/publish phần bị ảnh hưởng, loại khỏi thay đổi mới và báo vị trí/loại dữ liệu mà không in giá trị. Credential đã bị commit/push phải được thu hồi/rotate; xóa file ở commit mới chưa xử lý hết lịch sử. Không tự rewrite lịch sử nhánh chung; phối hợp xử lý và chạy lại kiểm tra trước mở/đánh dấu PR sẵn sàng.
 
-Đầu ra bắt buộc: bảng ngắn trong PR gồm `files`, `tests`, `secrets/hashes`, `build/image` (hoặc `không áp dụng` có lý do), công cụ/lệnh đã chạy, kết quả và phần còn tồn tại. Chỉ người dùng merge sau khi cổng này cùng điều kiện kỹ thuật của phase đạt.
+Đầu ra bắt buộc: bảng ngắn trong PR gồm `files`, `tests`, `secrets/hashes`, `build/image` (hoặc `không áp dụng` có lý do), công cụ/lệnh đã chạy, kết quả và phần còn tồn tại. Người dùng merge hoặc trực tiếp yêu cầu agent merge một PR cụ thể sau khi cổng này cùng điều kiện kỹ thuật của phase đạt. PR #19 được người dùng trực tiếp yêu cầu hoàn thiện và merge vào develop ngày 2026-10-26.
 
 ## 3. Kiến trúc và nguyên tắc chung giữa service
 
@@ -373,24 +373,24 @@ Compose phải dùng `healthcheck` cùng `depends_on` condition phù hợp. Cont
 
 Cập nhật yêu cầu ngày 2026-10-26: người dùng hoãn các bước Docker Hub/repository/secrets/push-pull. Candidate trên CI đã pass source-checks, build, gói Compose/notices/runbook, lifecycle/offline và 100 mẫu warm/API; xem [báo cáo và giới hạn](../phases/phase-6-candidate.md), [preflight](../phases/phase-6-preflight.md) và [runbook candidate](../runbooks/candidate.md). Không yêu cầu Docker trên máy người dùng. Không tick hoàn tất Phase 6 hoặc nghiệm thu Phase 7 bằng candidate; giữ gate registry và nghiệm thu trên bộ phát hành cho đợt sau.
 
-Nhánh: tạo nhánh Phase 6 từ `develop` đã có PR #16; có thể dùng `feature/release-ci` nếu cần tách CI/release thành PR độc lập.
+Nhánh: tiếp tục PR #19 trên `codex/phase6-release-ci`, đồng bộ develop đã có Phase 5 và PR Expo #17. Người dùng trực tiếp yêu cầu hoàn thiện Phase 6 rồi agent merge PR #19 vào develop sau khi kiểm tra đạt. Hai Actions secrets Docker Hub đã được người dùng cấu hình; chỉ kiểm tra tên và kết quả đăng nhập, không đọc/in giá trị token.
 
 Docker Hub được chọn làm registry cho lần phát hành này. Docker không bắt buộc dùng Docker Hub: có thể dùng registry khác hoặc `docker save/load`; nhưng muốn người dùng pull bản build sẵn, nhóm cần công bố image trong một registry truy cập được. Không tự đặt tên tài khoản như thể repository đã tồn tại.
 
 | Image dự kiến | Nội dung |
 | --- | --- |
-| `trantung2006/cooklens-vision:2.0.0` | CV code + CPU runtime + checkpoint + taxonomy |
-| `trantung2006/cooklens-recipes:2.0.0` | API retrieval + embedding model + corpus/vector bundle; cũng dùng cho init |
-| `trantung2006/cooklens-backend:2.0.0` | Spring Boot API đã build |
-| `trantung2006/cooklens-frontend:2.0.0` | React build + Nginx/reverse proxy |
+| `trantung2006/cooklens-vision:2.0.0-rc.2` | CV code + CPU runtime + checkpoint + taxonomy |
+| `trantung2006/cooklens-recipes:2.0.0-rc.2` | API retrieval + embedding model + corpus/vector bundle; cũng dùng cho init |
+| `trantung2006/cooklens-backend:2.0.0-rc.2` | Spring Boot API đã build |
+| `trantung2006/cooklens-frontend:2.0.0-rc.2` | React build + Nginx/reverse proxy |
 
-Bốn image ứng dụng dùng tag `2.0.0` đồng bộ với release ứng dụng `v2.0.0`; file Compose và runbook phải chứa version đã nghiệm thu, không yêu cầu người dùng tự sửa. Qdrant tham chiếu repository chính thức và version/tag đã test, không push bản sao vào namespace nhóm.
+Bổ sung thứ tự phát hành ngày 2026-10-26: Phase 6 công bố bốn image ứng viên `2.0.0-rc.2` và GitHub prerelease `v2.0.0-rc.2`, rồi pull/kiểm thử từ runner sạch. Giữ yêu cầu ban đầu chỉ công bố bản chính thức `v2.0.0` sau nghiệm thu Phase 7: khi đạt, promote chính bộ image đã nghiệm thu sang `2.0.0` và kiểm tra lại bộ Compose cuối. Không rebuild hoặc ghi đè tag đã công bố để làm thay đổi nội dung một bản phát hành. Compose trong gói pin version đã được kiểm chứng, không yêu cầu người dùng tự sửa. Qdrant tham chiếu repository chính thức và version/tag đã test, không push bản sao vào namespace nhóm.
 
 - [ ] CI chạy kiểm thử/contract trước build; tải artifact qua kiểm tra toàn vẹn nội bộ, build cả bốn image và lưu manifest API/model/taxonomy/corpus/embedding versions.
 - [ ] Image gắn release tag dễ đọc; Compose dùng version/tag đã nghiệm thu, không dùng commit/hash làm tag và không ghi đè nội dung release đã phát hành.
 - [ ] Cấu hình quyền push bằng CI secret; public pull không cần token nếu đã đáp ứng quyền phân phối. Private release ghi rõ cần `docker login` một lần, không hứa chạy ẩn danh.
 - [ ] Push vào Docker Hub và xác minh pull lại theo release tag trên máy/CI sạch. Publish là bước phát hành sau khi có namespace/quyền và artifact hợp lệ; viết kế hoạch này chưa thực hiện push.
-- [ ] Kiểm tra version phát hành thống nhất: GitHub application release `v2.0.0`, bốn image ứng dụng `2.0.0`, Compose và runbook; giữ version API/model/taxonomy/corpus riêng, không đổi theo số phiên bản app một cách máy móc.
+- [ ] Kiểm tra version phát hành thống nhất: GitHub prerelease `v2.0.0-rc.2`, bốn image ứng dụng `2.0.0-rc.2`, Compose và runbook; release chính thức `v2.0.0` cùng image `2.0.0` thuộc bước chốt sau Phase 7; giữ version API/model/taxonomy/corpus riêng, không đổi theo số phiên bản app một cách máy móc.
 - [ ] Giao bộ release: `compose.release.yaml`, config mặc định không nhạy cảm, release notes, attribution/licenses và runbook tiếng Việt.
 - [ ] Runbook nêu URL `http://localhost:8080`, readiness/cold-start, cách xem logs, restart, upgrade, rollback và xử lý model/index không tương thích.
 - [ ] Giải thích `docker compose down` giữ named volume; `down -v` xóa dữ liệu index, lần sau phải seed lại. Không đưa lệnh xóa volume vào bước chạy thường ngày.
@@ -410,7 +410,7 @@ Runbook phải ghi phiên bản Compose đã test có hỗ trợ các option nà
 - [ ] Rà secrets và mọi giá trị mã/hash trong commits, workflows, logs, manifest, registry image và bundle tải về; không ghi giá trị mã/hash, login token hoặc URL ký tạm thời.
 - [ ] Tạo PR kèm image version/tag và kết quả pull thật; chờ người dùng merge rồi fetch xác nhận trước phase nghiệm thu cuối.
 
-Điều kiện ra phase: release có image thật, version/tag đã kiểm chứng, tải/chạy được từ máy không có repo hoặc artifact local; người dùng chỉ cần bộ release và Docker, thêm login nếu dùng registry private; PR được người dùng merge vào `develop`.
+Điều kiện ra phase: bản ứng viên có image thật trên registry public, version/tag đã kiểm chứng bằng pull ẩn danh trên runner khác không có image ứng dụng local, gói Compose/notices/runbook/report tải được mà không cần source/artifact riêng; người dùng chỉ cần bộ release và Docker, thêm login nếu dùng registry private; PR được người dùng merge vào `develop`.
 
 ## 11. Phase 7 — Nghiệm thu end-to-end
 
@@ -440,6 +440,8 @@ Nguyên tắc phối hợp: nghiệm thu bằng một bộ version tương thíc
 - [ ] Cập nhật README/checklist theo bằng chứng đã có, hướng dẫn lấy artifact cho developer và lệnh chạy cho người dùng.
 
 ### Kết thúc Phase 7
+
+- [ ] Sau khi đủ gate chất lượng, promote bộ image ứng viên đã nghiệm thu sang tag `2.0.0` mà không rebuild, cập nhật Compose/notes và pull kiểm tra lại bộ cuối; chỉ sau đó công bố GitHub application release `v2.0.0`. Phase 6 chỉ phát hành prerelease để không gọi bản chưa nghiệm thu là release v2 hoàn chỉnh.
 
 - [ ] Rà tổng thể file thừa/test tạm và artifacts qua tất cả PR theo [cổng chung](#phase-closeout); giữ bộ test hồi quy và bằng chứng cần thiết, không xóa tài liệu/test hữu ích để làm sạch hình thức.
 - [ ] Chạy lại rà secrets và mọi giá trị mã/hash trên phạm vi commit sẽ phát hành, source, docs, fixtures, bundles và image cuối; báo kết quả/giới hạn, không in giá trị bí mật.

@@ -24,6 +24,7 @@ from uuid import uuid4
 from check_frontend_build import verify
 from check_public_metadata import violations
 from prepare_candidate_bundle import candidate_config
+from registry_release import registry_images
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVICES = ('qdrant', 'vision', 'recipes', 'backend', 'frontend')
@@ -60,7 +61,7 @@ def latency_summary(values):
             'p95_seconds': sorted(values)[math.ceil(len(values) * .95) - 1] if len(values) >= 100 else None}
 
 
-def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', samples=10):
+def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', samples=10, pull_registry=False):
     samples = sample_count(samples)
     project = 'cooklens-release-test-' + uuid4().hex[:12]
     with socket.socket() as probe:
@@ -70,6 +71,12 @@ def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', 
     base = f'http://127.0.0.1:{port}'
     with tempfile.TemporaryDirectory(prefix='cooklens-standalone-') as directory:
         directory = Path(directory)
+        if pull_registry:
+            # Deliberately ignore all Docker credentials from the host/runner.
+            public_config = directory / 'public-docker'
+            public_config.mkdir()
+            (public_config / 'config.json').write_text('{}')
+            env['DOCKER_CONFIG'] = str(public_config)
         shutil.copyfile(compose_path, directory / 'compose.release.yaml')
         compose = ['docker', 'compose', '-p', project, '-f', 'compose.release.yaml']
 
@@ -77,7 +84,7 @@ def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', 
             return command([*compose, *parts], cwd=directory, env=env, success=success)
 
         def docker(*parts, data=None, success=True):
-            return command(['docker', *parts], data=data, success=success)
+            return command(['docker', *parts], env=env, data=data, success=success)
 
         def identifier(service, all=False):
             parts = ('ps', '-a', '-q', service) if all else ('ps', '-q', service)
@@ -129,6 +136,23 @@ def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', 
         try:
             config = json.loads(dc('config', '--format', 'json').stdout)
             _, candidate_version = candidate_config(config)
+            registry_pull_seconds = None
+            if pull_registry:
+                registry_images(config)
+                images = sorted({service['image'] for service in config['services'].values()})
+                for name in ('vision', 'recipes', 'backend', 'frontend'):
+                    if docker('image', 'inspect', config['services'][name]['image'], success=False).returncode == 0:
+                        raise ValueError('Clean registry verification requires absent application images')
+                tick = time.monotonic()
+                for image_name in images:
+                    docker('pull', image_name)
+                    image_info = json.loads(docker('image', 'inspect', image_name).stdout)[0]
+                    assert image_info['Architecture'] == 'amd64' and image_info['Os'] == 'linux'
+                registry_pull_seconds = round(time.monotonic() - tick, 3)
+                # History verification needs the exact upstream runtime, not a rebuilt app image.
+                dockerfile = (ROOT / 'deploy/docker/Dockerfile.frontend').read_text()
+                base_image = [line.split()[1] for line in dockerfile.splitlines() if line.startswith('FROM ')][-1]
+                docker('pull', base_image)
             assert set(config['services']) == {*SERVICES, 'recipe-init'}
             for service, settings in config['services'].items():
                 assert 'build' not in settings and ':latest' not in settings['image']
@@ -139,6 +163,13 @@ def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', 
             dc('up', '-d', '--wait', '--wait-timeout', '240')
             ready()
             cold_start = time.monotonic() - started
+            expected = json.loads((ROOT / 'deploy/artifacts/manifest.json').read_text())
+            health = api('/api/health')
+            assert health['dependencies']['vision']['model_version'] == expected['vision']['model_version']
+            assert health['dependencies']['vision']['taxonomy_version'] == expected['taxonomy_version']
+            assert health['dependencies']['recipes']['taxonomy_version'] == expected['taxonomy_version']
+            assert health['dependencies']['recipes']['corpus_version'] == expected['corpus']['corpus_version']
+            assert health['dependencies']['recipes']['embedding_version'] == expected['embedding']['embedding_version']
             init = inspect('recipe-init')
             assert init['State']['ExitCode'] == 0 and not init['State']['Running']
             seed_seconds = (datetime.fromisoformat(init['State']['FinishedAt'].replace('Z', '+00:00')) -
@@ -306,7 +337,9 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
             report = {
                 'application_candidate': candidate_version, 'public_api_version': '1.0.0',
                 'images': {name: settings['image'] for name, settings in config['services'].items()},
-                'registry_pull_verified': False,
+                'registry_pull_verified': pull_registry,
+                'registry_pull_seconds': registry_pull_seconds,
+                'artifact_versions_match': True,
                 'host': {'logical_cpus': engine['NCPU'], 'memory_bytes': engine['MemTotal'],
                          'architecture': engine['Architecture'], 'os': engine['OSType']},
                 'compose_version': docker('compose', 'version', '--short').stdout.decode().strip(),
@@ -328,7 +361,9 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
                 'services': resources,
                 'limitations': 'CI CPU candidate sample, not minimum hardware or full release acceptance. '
                                 'P95 is reported only with at least 100 samples; the image is a smoke fixture, not an accuracy dataset. '
-                                'Images available locally; clean registry pull remains deferred. '
+                                + ('Images pulled anonymously on a clean runner; final Phase 7 quality acceptance remains open. '
+                                   if pull_registry else 'Images available locally; clean registry pull remains deferred. ')
+                                +
                                 'Memory peaks are per-service maxima across sampled container instances, '
                                 'not a simultaneous whole-stack peak.',
             }
@@ -346,5 +381,6 @@ if __name__ == '__main__':
     parser.add_argument('--report', type=Path, required=True)
     parser.add_argument('--compose', type=Path, default=ROOT / 'deploy/compose/compose.release.yaml')
     parser.add_argument('--samples', type=sample_count, default=10)
+    parser.add_argument('--pull-registry', action='store_true', help='Require absent app images, then pull anonymously before testing')
     args = parser.parse_args()
-    run(args.report, args.compose, args.samples)
+    run(args.report, args.compose, args.samples, args.pull_registry)
