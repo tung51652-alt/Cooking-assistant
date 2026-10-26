@@ -2,7 +2,7 @@
 
 React/TypeScript/Vite cho luồng ảnh → Top-3 → xác nhận/sửa món → công thức. Phase 4 dùng **nguồn đúng** `/home/trantung/ict/stitch_giao_di_n_chatbot_m_th_c`; xem [snapshot và đối chiếu thiết kế](../docs/frontend-reference/stitch/README.md). Nguồn FrontEndCookLens trước đây được giữ như lịch sử Phase 0, không còn là baseline giao diện.
 
-Web responsive cho máy tính và trình duyệt điện thoại; app Expo ở mốc sau, không APK. Không chatbot, tài khoản, lưu bộ sưu tập hoặc cooking assistant. Panel trợ lý trong nguồn chuyển thành hướng dẫn ba bước đúng chức năng hiện tại.
+Web responsive cho máy tính và trình duyệt điện thoại. App Expo dùng chung API đang ở PR #17, chưa merge; không APK. Không chatbot, tài khoản, lưu bộ sưu tập hoặc cooking assistant. Panel trợ lý trong nguồn chuyển thành hướng dẫn ba bước đúng chức năng hiện tại.
 
 ## Thiết kế và tổ chức
 
@@ -30,7 +30,7 @@ docker compose -p cooklens-phase4-local \
   -f deploy/compose/frontend.phase4.yml up -d
 ```
 
-Mở http://127.0.0.1:5173/. Đây là overlay review Phase 4; hướng dẫn build/stage model của từng service nằm trong README backend/AI. Compose phát hành chỉ cần pull image thuộc Phase 5–6, chưa công bố Docker Hub hoặc release v2.0.0 ở đây.
+Mở http://127.0.0.1:5173/. Đây là overlay dev/review của web Phase 4; hướng dẫn build/stage model của từng service nằm trong README backend/AI. Compose Phase 5 đã có image candidate; Docker Hub release và pull trên máy sạch thuộc Phase 6. Chưa phát hành `v2.0.0`.
 
 Nginx phục vụ bundle và proxy /api cùng origin tới backend theo DNS Compose. Chỉ frontend publish loopback; backend/AI/Qdrant ở network internal. Runtime user 10001, read-only, tmpfs, budget 128 MiB/1 CPU. Không COPY source/tests/docs/node_modules vào runtime image. Liveness tại /health/live; readiness toàn stack tại /api/health.
 

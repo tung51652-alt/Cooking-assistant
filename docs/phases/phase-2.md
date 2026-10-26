@@ -1,6 +1,6 @@
 # Phase 2 — Corpus và retrieval
 
-Trạng thái: **triển khai và kiểm thử kỹ thuật đã hoàn tất, người dùng đã merge PR dữ liệu #10 rồi PR service #11; agent đã fetch xác nhận local develop đồng bộ origin/develop**. Corpus đã phủ 30/30 món; chưa chuyển Phase 3. Review bên ngoài và nấu kiểm chứng công thức tiếp tục được ghi là chưa thực hiện, thuộc nghiệm thu Phase 7.
+Trạng thái: **đã hoàn tất và được merge vào `origin/develop` qua PR dữ liệu #10, service #11 và audit #12**. Phase 3–5 cũng đã merge. Corpus phủ 30/30 món; review bên ngoài và nấu kiểm chứng công thức vẫn chưa thực hiện, thuộc nghiệm thu Phase 7.
 
 ## Dữ liệu và quyền biên soạn
 
