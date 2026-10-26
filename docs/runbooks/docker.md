@@ -2,6 +2,8 @@
 
 Bản kiểm tra tích hợp: `2.0.0-rc.1`, Linux/amd64, CPU. Chưa phát hành ứng dụng `v2.0.0`, chưa công bố image candidate trên Docker Hub. Không chạy `pull` với tên image dưới đây như thể chúng đã được phát hành. Phase 6 sẽ kiểm chứng push/pull và bộ phát hành trên máy sạch; hiện developer build image hoặc chuyển image bằng `docker save`/`docker load`.
 
+Theo yêu cầu ngày 2026-10-26, Docker Hub được hoãn; CI tiếp tục build/test candidate và đóng gói cấu hình, notices, version metadata cùng báo cáo. Xem [runbook gói candidate](candidate.md). Gói artifact CI không chứa image và không cung cấp server thường trực cho Expo; Phase 6–7 chưa được đánh dấu hoàn tất từ kết quả candidate.
+
 ## Chuẩn bị cho developer
 
 Cần Docker Engine/Desktop chạy Linux containers, Compose 2.24.4 trở lên và Internet khi build. Chuẩn bị checkpoint/embedding/bundle theo [README gốc](../../README.md), không đổi môi trường train đang có. Python chỉ phục vụ chuẩn bị artifact, Node/JDK/Maven nằm trong build stage.
@@ -77,6 +79,8 @@ Chạy từ root source có Docker và image candidate:
 ```sh
 python deploy/scripts/smoke_release_stack.py --report /tmp/cooklens-phase5.json
 ```
+
+Để kiểm tra chính Compose đã đóng gói và đo ít nhất 100 mẫu warm cho mỗi API, truyền `--compose` trỏ file trong gói và `--samples 100`. Report lấy version từ image trong Compose; chỉ ghi P95 khi có đủ 100 mẫu và kiểm tra mục tiêu vision ≤10 giây/search ≤3 giây. Đây là latency với fixture smoke, chưa phải đánh giá accuracy hoặc nghiệm thu release registry.
 
 Script tự tạo project/volume riêng, chép Compose ngoài source, xác minh đầy đủ 30 món, chọn dự đoán thứ hai, lấy recipe/detail, seed mới/lặp lại, nâng version/rollback, từ chối bundle sai, giữ volume qua `down/up`, dừng/phục hồi từng dependency và luồng offline. Chỉ project test do script tạo được thu dọn cả volume. CI xuất report đã rà metadata; không lưu raw inspect/history/log, mã truy cập hoặc giá trị hash vào báo cáo.
 

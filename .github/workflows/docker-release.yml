@@ -3,7 +3,7 @@ on:
   pull_request:
     paths: ['deploy/**', 'backend/**', 'frontend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/**', '.dockerignore', '.github/workflows/docker-release.yml']
   push:
-    branches: [feature/docker-release, develop, main]
+    branches: [feature/docker-release, codex/phase6-release-ci, develop, main]
     paths: ['deploy/**', '.dockerignore', '.github/workflows/docker-release.yml']
   workflow_dispatch:
 permissions:
@@ -12,7 +12,32 @@ concurrency:
   group: docker-candidate-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  source-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '21'}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: python deploy/scripts/check_public_metadata.py
+      - run: python deploy/scripts/verify_mvp_inputs.py
+      - run: python data/recipes/validate.py --require-full-coverage
+      - run: python -m unittest discover -s data/tests -v
+      - run: python -m unittest discover -s deploy/tests -v
+      - run: mvn -B -q -f backend/pom.xml test
+      - run: npm --prefix frontend ci --ignore-scripts --no-audit --no-fund
+      - run: npm --prefix frontend run build
+      - run: python deploy/scripts/check_frontend_build.py
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npm --prefix frontend run test:e2e
   standalone-and-offline:
+    needs: source-checks
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -38,13 +63,19 @@ jobs:
           docker compose -f deploy/compose/compose.release.yaml -f deploy/compose/compose.dev.yaml build
           docker pull qdrant/qdrant:v1.19.2
           docker compose -f deploy/compose/compose.release.yaml -f deploy/compose/compose.dev.yaml --profile debug run --rm --no-deps debug -t
-      - name: Standalone, persistence, versions, failure recovery and offline flow
-        run: python deploy/scripts/smoke_release_stack.py --report /tmp/cooklens-phase5.json
-      - name: Validate measured report
-        run: python deploy/scripts/check_public_metadata.py --file /tmp/cooklens-phase5.json
+      - name: Prepare standalone candidate configuration and notices
+        run: |
+          docker compose -f deploy/compose/compose.release.yaml config --format json > /tmp/cooklens-compose.json
+          python deploy/scripts/prepare_candidate_bundle.py --compose-json /tmp/cooklens-compose.json --output /tmp/cooklens-candidate
+          docker compose -f /tmp/cooklens-candidate/compose.release.yaml config --quiet
+      - name: Verify packaged Compose, lifecycle, offline flow and 100 warm latency samples
+        run: python deploy/scripts/smoke_release_stack.py --compose /tmp/cooklens-candidate/compose.release.yaml --samples 100 --report /tmp/cooklens-candidate/verification.json
+      - name: Validate candidate metadata and measured report
+        run: |
+          python deploy/scripts/check_public_metadata.py --file /tmp/cooklens-candidate/candidate.json --file /tmp/cooklens-candidate/compose.release.yaml --file /tmp/cooklens-candidate/verification.json
       - uses: actions/upload-artifact@v4
         with:
-          name: phase5-measurements
-          path: /tmp/cooklens-phase5.json
+          name: cooklens-candidate
+          path: /tmp/cooklens-candidate/
           if-no-files-found: error
           retention-days: 14

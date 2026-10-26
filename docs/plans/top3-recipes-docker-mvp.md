@@ -371,6 +371,8 @@ Compose phải dùng `healthcheck` cùng `depends_on` condition phù hợp. Cont
 
 ## 10. Phase 6 — Phát hành Docker Hub và runbook
 
+Cập nhật yêu cầu ngày 2026-10-26: người dùng hoãn các bước Docker Hub/repository/secrets/push-pull. Tiếp tục chuẩn bị candidate trên CI, bộ Compose/notices/runbook và kiểm thử sớm bằng image build local; không yêu cầu Docker trên máy người dùng. Xem [preflight](../phases/phase-6-preflight.md) và [runbook candidate](../runbooks/candidate.md). Không tick hoàn tất Phase 6 hoặc nghiệm thu Phase 7 bằng candidate; giữ gate registry và nghiệm thu trên bộ phát hành cho đợt sau.
+
 Nhánh: tạo nhánh Phase 6 từ `develop` đã có PR #16; có thể dùng `feature/release-ci` nếu cần tách CI/release thành PR độc lập.
 
 Docker Hub được chọn làm registry cho lần phát hành này. Docker không bắt buộc dùng Docker Hub: có thể dùng registry khác hoặc `docker save/load`; nhưng muốn người dùng pull bản build sẵn, nhóm cần công bố image trong một registry truy cập được. Không tự đặt tên tài khoản như thể repository đã tồn tại.

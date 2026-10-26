@@ -7,6 +7,7 @@ Only selected measurements are persisted, never raw Docker metadata or logs.
 import argparse
 from datetime import datetime
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -22,6 +23,7 @@ from uuid import uuid4
 
 from check_frontend_build import verify
 from check_public_metadata import violations
+from prepare_candidate_bundle import candidate_config
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVICES = ('qdrant', 'vision', 'recipes', 'backend', 'frontend')
@@ -45,7 +47,21 @@ def command(parts, *, cwd=None, env=None, data=None, success=True):
     return result
 
 
-def run(report_path):
+def sample_count(value):
+    count = int(value)
+    if not 1 <= count <= 1000:
+        raise argparse.ArgumentTypeError('Samples must be between 1 and 1000')
+    return count
+
+
+def latency_summary(values):
+    return {'median_seconds': round(statistics.median(values), 3),
+            'max_seconds': round(max(values), 3),
+            'p95_seconds': sorted(values)[math.ceil(len(values) * .95) - 1] if len(values) >= 100 else None}
+
+
+def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', samples=10):
+    samples = sample_count(samples)
     project = 'cooklens-release-test-' + uuid4().hex[:12]
     with socket.socket() as probe:
         probe.bind(('127.0.0.1', 0))
@@ -54,7 +70,7 @@ def run(report_path):
     base = f'http://127.0.0.1:{port}'
     with tempfile.TemporaryDirectory(prefix='cooklens-standalone-') as directory:
         directory = Path(directory)
-        shutil.copyfile(ROOT / 'deploy/compose/compose.release.yaml', directory / 'compose.release.yaml')
+        shutil.copyfile(compose_path, directory / 'compose.release.yaml')
         compose = ['docker', 'compose', '-p', project, '-f', 'compose.release.yaml']
 
         def dc(*parts, success=True):
@@ -112,6 +128,7 @@ def run(report_path):
 
         try:
             config = json.loads(dc('config', '--format', 'json').stdout)
+            _, candidate_version = candidate_config(config)
             assert set(config['services']) == {*SERVICES, 'recipe-init'}
             for service, settings in config['services'].items():
                 assert 'build' not in settings and ':latest' not in settings['image']
@@ -178,7 +195,8 @@ def run(report_path):
             body = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="food.png"\r\n'
                     'Content-Type: image/png\r\n\r\n').encode() + image + f'\r\n--{boundary}--\r\n'.encode()
             vision_times, search_times = [], []
-            for _ in range(10):
+            api('/api/vision/predict', body, mime='multipart/form-data; boundary=' + boundary)
+            for _ in range(samples):
                 tick = time.monotonic()
                 prediction = api('/api/vision/predict', body, mime='multipart/form-data; boundary=' + boundary)
                 vision_times.append(time.monotonic() - tick)
@@ -280,8 +298,15 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
                     'memory_peak_bytes': peaks[service],
                 }
             engine = json.loads(docker('info', '--format', '{{json .}}').stdout)
+            vision_latency = latency_summary(vision_times)
+            search_latency = latency_summary(search_times)
+            if samples >= 100:
+                assert vision_latency['p95_seconds'] <= 10, 'Vision P95 exceeds the 10-second target'
+                assert search_latency['p95_seconds'] <= 3, 'Search P95 exceeds the 3-second target'
             report = {
-                'application_candidate': '2.0.0-rc.1', 'public_api_version': '1.0.0',
+                'application_candidate': candidate_version, 'public_api_version': '1.0.0',
+                'images': {name: settings['image'] for name, settings in config['services'].items()},
+                'registry_pull_verified': False,
                 'host': {'logical_cpus': engine['NCPU'], 'memory_bytes': engine['MemTotal'],
                          'architecture': engine['Architecture'], 'os': engine['OSType']},
                 'compose_version': docker('compose', 'version', '--short').stdout.decode().strip(),
@@ -292,13 +317,18 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
                 'offline_full_flow_through_frontend': True,
                 'only_frontend_published_on_loopback': True,
                 'cold_start_seconds': round(cold_start, 3), 'seed_seconds': round(seed_seconds, 3),
-                'warm_sequential_samples': 10,
-                'vision_median_seconds': round(statistics.median(vision_times), 3),
-                'vision_max_seconds': round(max(vision_times), 3),
-                'search_median_seconds': round(statistics.median(search_times), 3),
-                'search_max_seconds': round(max(search_times), 3), 'services': resources,
-                'limitations': 'CI CPU integration sample, not minimum hardware or P95 acceptance. '
-                                'Images built locally; clean registry pull is Phase 6. '
+                'warm_sequential_samples': samples,
+                'vision_median_seconds': vision_latency['median_seconds'],
+                'vision_max_seconds': vision_latency['max_seconds'],
+                'vision_p95_seconds': vision_latency['p95_seconds'],
+                'search_median_seconds': search_latency['median_seconds'],
+                'search_max_seconds': search_latency['max_seconds'],
+                'search_p95_seconds': search_latency['p95_seconds'],
+                'warm_latency_targets_passed': samples >= 100,
+                'services': resources,
+                'limitations': 'CI CPU candidate sample, not minimum hardware or full release acceptance. '
+                                'P95 is reported only with at least 100 samples; the image is a smoke fixture, not an accuracy dataset. '
+                                'Images available locally; clean registry pull remains deferred. '
                                 'Memory peaks are per-service maxima across sampled container instances, '
                                 'not a simultaneous whole-stack peak.',
             }
@@ -314,4 +344,7 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report', type=Path, required=True)
-    run(parser.parse_args().report)
+    parser.add_argument('--compose', type=Path, default=ROOT / 'deploy/compose/compose.release.yaml')
+    parser.add_argument('--samples', type=sample_count, default=10)
+    args = parser.parse_args()
+    run(args.report, args.compose, args.samples)
