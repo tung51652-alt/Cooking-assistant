@@ -1,6 +1,8 @@
 import type { Dish, Prediction, RecipeDetail, RecipeSummary, RecipeSource } from './types';
 
 export class ApiError extends Error {}
+export interface NativeUploadPart { uri: string; name?: string; type?: string }
+export type NativeFileUploader = (url: string, file: NativeUploadPart, requestId: string, signal: AbortSignal) => Promise<Response>;
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const text = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0;
@@ -17,7 +19,7 @@ const recipeBase = (v: unknown) => record(v) && typeof v.id === 'string' && /^[a
   && nullableNumber(v.servings) && nullableNumber(v.prep_time_minutes) && nullableNumber(v.cook_time_minutes) && source(v.source);
 function malformed(): never { throw new ApiError('Dữ liệu trả về chưa đúng định dạng. Vui lòng thử lại sau.'); }
 
-export function createApi(baseUrl: string, requestId: () => string) {
+export function createApi(baseUrl: string, requestId: () => string, nativeFileUploader?: NativeFileUploader) {
   baseUrl = normalizeBaseUrl(baseUrl);
 async function request(path: string, signal: AbortSignal, init: RequestInit = {}, timeoutMs = 10_000) {
   const controller = new AbortController();
@@ -29,7 +31,15 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
   const headers = new Headers(init.headers);
   headers.set('X-Request-ID', requestId());
   try {
-    const response = await fetch(`${baseUrl}${path}`, { ...init, headers, signal: controller.signal });
+    let response: Response;
+    if (path === '/vision/predict' && nativeFileUploader && init.body instanceof FormData) {
+      const parts = init.body.getAll('file');
+      if (parts.length !== 1 || typeof parts[0] !== 'object' || !parts[0] || !('uri' in parts[0])) malformed();
+      response = await nativeFileUploader(`${baseUrl}${path}`, parts[0] as NativeUploadPart,
+        headers.get('X-Request-ID')!, controller.signal);
+    } else {
+      response = await fetch(`${baseUrl}${path}`, { ...init, headers, signal: controller.signal });
+    }
     if (!response.ok) {
       const messages: Record<number, string> = {
         400: 'Không đọc được ảnh. Hãy chọn ảnh JPG hoặc PNG hợp lệ.',

@@ -3,15 +3,24 @@ import { ActivityIndicator, Alert, AppState, BackHandler, Image, Linking, Pressa
   StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { randomUUID } from 'expo-crypto';
+import { File, UploadType } from 'expo-file-system';
 import { useFonts } from 'expo-font';
-import { createApi } from '../packages/cooklens-api';
+import { createApi, type NativeFileUploader } from '../packages/cooklens-api';
 import type { Dish, Prediction, RecipeDetail, RecipeSummary, RecipeSource } from '../packages/cooklens-api/types';
 import { chooseImage, discardImage, uploadBody, type UploadImage } from './src/image';
 
 type Page = 'upload' | 'recognition' | 'recipes' | 'detail';
 const configuredUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 let api: ReturnType<typeof createApi> | null = null;
-try { if (configuredUrl) api = createApi(configuredUrl, randomUUID); } catch { /* Show configuration help below. */ }
+const nativeFileUploader: NativeFileUploader = async (url, file, requestId, signal) => {
+  const result = await new File(file.uri).upload(url, {
+    httpMethod: 'POST', uploadType: UploadType.MULTIPART, fieldName: 'file',
+    mimeType: file.type || 'image/jpeg', headers: { 'X-Request-ID': requestId },
+    sessionType: 'foreground', signal,
+  });
+  return new Response(result.body, { status: result.status, headers: result.headers });
+};
+try { if (configuredUrl) api = createApi(configuredUrl, randomUUID, nativeFileUploader); } catch { /* Show configuration help below. */ }
 
 function Button({ title, onPress, disabled = false, secondary = false }: {
   title: string; onPress: () => void; disabled?: boolean; secondary?: boolean;
