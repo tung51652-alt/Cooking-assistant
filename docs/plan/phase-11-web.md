@@ -62,3 +62,12 @@ Frontend mới; backend/AI giữ nguyên nội dung candidate Phase 10 trước 
 
 Quality review Phase 10 vẫn pending, không có đánh giá human được tự điền.
 Không tự commit/push hoặc publish image; checklist PR/CI vẫn mở theo [workflow](../WORKFLOW.md#4-git-và-quyền-thực-hiện).
+
+## Sửa CI sau PR
+
+PR #22: cả bảy job dừng ở metadata scanner, trước build/runtime; tái hiện local trên cùng revision.
+Nguyên nhân là literal URL có user/password giả trong test rejection của evaluation transport.
+Giữ nguyên scanner và coverage rejection, dựng URL fixture ở runtime thay vì lưu literal dạng credential URL trong source.
+Xác minh bằng scanner toàn repo và bộ deploy tests có test transport liên quan; không chạy lại stack/model evaluation cho thay đổi fixture này.
+Kết quả: scanner toàn bộ tracked files qua; 44 deploy test qua và 4 Compose test qua khi cấp đúng PATH cho Docker CLI.
+Không sửa workflow hoặc nới policy; CI trên GitHub chưa chạy lại vì fix vẫn local, chưa commit/push.

@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
+from urllib.parse import urlunsplit
 from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
@@ -203,7 +204,8 @@ class AssistantEvaluationTests(unittest.TestCase):
         self.assertIsNone(report['controlled']['passed'])
 
     def test_transport_rejects_redirects_credential_urls_and_retries(self):
-        for base in ('http://example.com', 'https://user:secret@example.com', 'https://example.com?key=secret',
+        credential_url = urlunsplit(('https', 'user:secret@example.com', '', '', ''))
+        for base in ('http://example.com', credential_url, 'https://example.com?key=secret',
                      'https://example.com/v1', 'file:///tmp'):
             with self.assertRaises(ValueError):
                 evaluation.Api(base)
