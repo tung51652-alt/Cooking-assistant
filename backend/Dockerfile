@@ -11,13 +11,18 @@ COPY backend/src/main backend/src/main
 COPY data/processed/30vnfoods-label-map.json data/processed/30vnfoods-label-map.json
 COPY deploy/artifacts/manifest.json deploy/artifacts/manifest.json
 RUN mvn -B -q -f backend/pom.xml -Dmaven.test.skip=true package
+RUN mkdir -p /src/sqlite && cd /src/sqlite && \
+    jar xf /root/.m2/repository/org/xerial/sqlite-jdbc/3.51.0.0/sqlite-jdbc-3.51.0.0.jar "org/sqlite/native/Linux/$(uname -m)/libsqlitejdbc.so" && \
+    cp "org/sqlite/native/Linux/$(uname -m)/libsqlitejdbc.so" /src/libsqlitejdbc.so
 
 FROM eclipse-temurin:21.0.12.1_1-jre-jammy
 WORKDIR /app
+RUN mkdir -p /app/data && chown 10001:10001 /app/data && chmod 0700 /app/data
 RUN mkdir -p /app/health/com/cooklens/config && chmod 0755 /app/health /app/health/com /app/health/com/cooklens /app/health/com/cooklens/config
 COPY --from=build --chmod=0444 /src/backend/target/cooklens-backend.jar /app/cooklens-backend.jar
+COPY --from=build --chmod=0555 /src/libsqlitejdbc.so /app/sqlite/libsqlitejdbc.so
 COPY --from=build --chmod=0444 /src/backend/target/classes/com/cooklens/config/HealthProbe.class /app/health/com/cooklens/config/HealthProbe.class
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=70 -XX:+ExitOnOutOfMemoryError -Djava.io.tmpdir=/tmp"
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=70 -XX:+ExitOnOutOfMemoryError -Djava.io.tmpdir=/tmp -Dorg.sqlite.lib.path=/app/sqlite"
 USER 10001:10001
 EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=3s --start-period=45s --retries=3 \

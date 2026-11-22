@@ -43,6 +43,7 @@ public class RequestGuard extends OncePerRequestFilter {
             chain.doFilter(new MemoryRequest(request, bytes), response); return;
         }
         String path = request.getRequestURI();
+        if (path.startsWith("/api/assistant/")) response.setHeader("Cache-Control", "no-store");
         boolean business = path.startsWith("/api/") && !path.equals("/api/health") && !request.getMethod().equals("OPTIONS");
         if (!business) { chain.doFilter(request, response); return; }
         if (!slots.tryAcquire()) { writeFailure(request, response, new ApiFailure(503, "SERVICE_BUSY")); return; }

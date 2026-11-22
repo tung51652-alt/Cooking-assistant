@@ -12,6 +12,16 @@ public class ApiFailure extends RuntimeException {
     public String code() { return code; }
     public String publicMessage() {
         return switch (code) {
+            case "SESSION_NOT_FOUND" -> "Không tìm thấy phiên nấu ăn.";
+            case "SESSION_EXPIRED" -> "Phiên đã hết hạn. Hãy tạo phiên mới.";
+            case "SESSION_VERSION_CONFLICT" -> "Phiên đã thay đổi. Hãy đọc lại trạng thái mới nhất.";
+            case "OPERATION_CONFLICT" -> "Mã thao tác đã được dùng cho yêu cầu khác.";
+            case "RECIPE_VERSION_MISMATCH" -> "Phiên bản công thức không phù hợp. Hãy tải lại công thức.";
+            case "SESSION_FINISHED" -> "Phiên nấu ăn đã kết thúc.";
+            case "INVALID_SESSION_ACTION" -> "Thao tác không phù hợp với trạng thái phiên.";
+            case "SESSION_HISTORY_LIMIT" -> "Phiên đã đạt giới hạn thao tác. Hãy tạo phiên mới.";
+            case "ASSISTANT_STORAGE_UNAVAILABLE" -> "Kho lưu phiên chưa sẵn sàng. Vui lòng thử lại sau.";
+            case "ASSISTANT_NOT_CONFIGURED" -> "Hỏi đáp chưa được cấu hình. Bạn vẫn có thể điều khiển bước nấu.";
             case "INVALID_IMAGE" -> "Không đọc được ảnh. Vui lòng chọn ảnh JPG hoặc PNG hợp lệ.";
             case "UPLOAD_TOO_LARGE" -> "Yêu cầu vượt quá giới hạn dung lượng.";
             case "UNSUPPORTED_MEDIA_TYPE" -> "Định dạng yêu cầu không được hỗ trợ.";

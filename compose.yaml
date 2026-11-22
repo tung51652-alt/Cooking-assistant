@@ -61,6 +61,8 @@ services:
     environment:
       VISION_URL: http://vision:8000
       RECIPES_URL: http://recipes:8001
+      ASSISTANT_DB_PATH: /app/data/assistant.sqlite
+    volumes: [assistant-sessions:/app/data]
     cpus: 2
     mem_limit: 512m
     depends_on:
@@ -83,3 +85,4 @@ networks:
 
 volumes:
   recipe-index:
+  assistant-sessions:

@@ -98,9 +98,14 @@ public class GatewayService {
         var result = valid(recipes.detail(recipeId, id));
         contract.require(contract.corpusVersion.equals(result.corpusVersion()) && recipeId.equals(result.recipe().id()));
         var r = result.recipe();
+        validateRecipeSnapshot(recipeId, r);
+        return new DetailResponse(contract.apiVersion, id, result.corpusVersion(), r);
+    }
+    void validateRecipeSnapshot(String recipeId, Recipe r) {
+        valid(r);
+        contract.require(recipeId.equals(r.id()));
         baseRecipe(r.id(), r.normalizedDish(), r.language(), r.cuisine(), r.source());
         for (int i=0; i<r.instructions().size(); i++) contract.require(r.instructions().get(i).step() == i+1);
-        return new DetailResponse(contract.apiVersion, id, result.corpusVersion(), r);
     }
     private void baseRecipe(String id, String dish, String language, String cuisine, Source source) {
         contract.require(id.matches("[a-z0-9][a-z0-9_-]{0,79}") && contract.dishes.stream().anyMatch(d -> d.normalizedDish().equals(dish))

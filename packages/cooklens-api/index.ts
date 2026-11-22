@@ -1,6 +1,12 @@
-import type { Dish, Prediction, RecipeDetail, RecipeSummary, RecipeSource } from './types';
+import type { Dish, Prediction, RecipeDetail, RecipeDocument, RecipeSummary, RecipeSource, AssistantSession, CreateSession, SessionActionRequest, SessionMessageRequest } from './types';
 
-export class ApiError extends Error {}
+export class ApiError extends Error {
+  readonly status?: number;
+  readonly code?: string;
+  constructor(message: string, status?: number, code?: string) {
+    super(message); this.status = status; this.code = code;
+  }
+}
 export interface NativeUploadPart { uri: string; name?: string; type?: string }
 export type NativeFileUploader = (url: string, file: NativeUploadPart, requestId: string, signal: AbortSignal) => Promise<Response>;
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -19,6 +25,10 @@ const recipeBase = (v: unknown) => record(v) && typeof v.id === 'string' && /^[a
   && text(v.title) && text(v.normalized_dish) && v.language === 'vi' && v.cuisine === 'vietnamese'
   && nullableNumber(v.servings) && nullableNumber(v.prep_time_minutes) && nullableNumber(v.cook_time_minutes) && source(v.source);
 function malformed(): never { throw new ApiError('Dữ liệu trả về chưa đúng định dạng. Vui lòng thử lại sau.'); }
+function canonicalUuid(value: string): string {
+  if (!uuid(value)) malformed();
+  return value.toLowerCase();
+}
 
 export function createApi(baseUrl: string, requestId: () => string, nativeFileUploader?: NativeFileUploader) {
   baseUrl = normalizeBaseUrl(baseUrl);
@@ -48,10 +58,32 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
         415: 'Định dạng chưa hỗ trợ. Hãy chọn ảnh JPG hoặc PNG.',
         422: 'Thông tin chưa hợp lệ. Vui lòng kiểm tra ảnh hoặc món đã chọn.',
         404: 'Công thức này không còn tồn tại. Hãy chọn công thức khác.',
+        409: 'Phiên đã thay đổi hoặc thao tác không phù hợp. Hãy tải lại phiên.',
+        410: 'Phiên nấu ăn đã hết hạn. Hãy tạo phiên mới.',
         503: 'Dịch vụ chưa sẵn sàng. Bạn có thể thử lại sau.',
         504: 'Dịch vụ phản hồi quá lâu. Vui lòng thử lại.',
       };
-      throw new ApiError(messages[response.status] || 'Chưa xử lý được yêu cầu. Vui lòng thử lại sau.');
+      if (path.startsWith('/assistant/')) {
+        const error: unknown = await response.json().catch(() => null);
+        const assistantErrors: Record<string, string> = {
+          SESSION_NOT_FOUND: 'Không tìm thấy phiên nấu ăn. Hãy tạo phiên mới.',
+          SESSION_EXPIRED: messages[410],
+          SESSION_VERSION_CONFLICT: messages[409],
+          OPERATION_CONFLICT: 'Mã thao tác đã được dùng. Hãy tải lại phiên trước khi tiếp tục.',
+          RECIPE_VERSION_MISMATCH: 'Phiên bản công thức đã thay đổi. Hãy tải lại công thức.',
+          INVALID_SESSION_ACTION: 'Thao tác không phù hợp với trạng thái phiên.',
+          SESSION_FINISHED: 'Phiên nấu ăn đã kết thúc. Hãy tạo phiên mới.',
+          SESSION_HISTORY_LIMIT: 'Phiên đã đạt giới hạn thao tác. Hãy tạo phiên mới.',
+          ASSISTANT_NOT_CONFIGURED: 'Hỏi đáp chưa được cấu hình. Bạn vẫn có thể điều khiển bước nấu.',
+          ASSISTANT_STORAGE_UNAVAILABLE: 'Kho lưu phiên chưa sẵn sàng. Vui lòng thử lại sau.',
+        };
+        if (record(error) && error.api_version === '1.0.0' && uuid(error.request_id)
+          && response.headers.get('X-Request-ID') === error.request_id && typeof error.code === 'string'
+          && Object.hasOwn(assistantErrors, error.code)) {
+          throw new ApiError(assistantErrors[error.code], response.status, error.code);
+        }
+      }
+      throw new ApiError(messages[response.status] || 'Chưa xử lý được yêu cầu. Vui lòng thử lại sau.', response.status);
     }
     if (!response.headers.get('content-type')?.includes('application/json')) malformed();
     const data: unknown = await response.json().catch(() => malformed());
@@ -97,7 +129,7 @@ async function searchRecipes(confirmedDish: string, signal: AbortSignal, query =
     || (r.retrieval_score === results[i-1].retrieval_score && r.id < results[i-1].id)))) malformed();
   return results;
 }
-async function getRecipe(id: string, confirmedDish: string, signal: AbortSignal): Promise<RecipeDetail> {
+async function getRecipeDocument(id: string, confirmedDish: string, signal: AbortSignal): Promise<RecipeDocument> {
   const data = await request(`/recipes/${encodeURIComponent(id)}`, signal);
   const v = data.recipe;
   if (!text(data.corpus_version) || !record(v) || !recipeBase(v) || v.id !== id || v.normalized_dish !== confirmedDish
@@ -105,10 +137,60 @@ async function getRecipe(id: string, confirmedDish: string, signal: AbortSignal)
       && text(item.normalized_name) && typeof item.optional === 'boolean' && nullableNumber(item.quantity) && nullableString(item.unit) && nullableString(item.note))
     || !Array.isArray(v.instructions) || v.instructions.length === 0 || !v.instructions.every((item,i) => record(item) && item.step === i+1
       && text(item.text) && nullableNumber(item.duration_minutes)) || !Array.isArray(v.tags) || !v.tags.every(text) || !text(v.created_at) || !text(v.updated_at)) malformed();
-  return v as RecipeDetail;
+  return { corpus_version: data.corpus_version, recipe: v as RecipeDetail };
+}
+async function getRecipe(id: string, confirmedDish: string, signal: AbortSignal): Promise<RecipeDetail> {
+  return (await getRecipeDocument(id, confirmedDish, signal)).recipe;
 }
 
-return { predict, getDishes, searchRecipes, getRecipe };
+function session(data: Record<string, unknown>, id?: string, minimumVersion = 0): AssistantSession {
+  const v = data.session;
+  if (!record(v) || !uuid(v.id) || (id !== undefined && v.id !== id) || !text(v.corpus_version) || !text(v.recipe_version)
+    || !record(v.recipe) || !recipeBase(v.recipe) || v.recipe_version !== v.recipe.updated_at
+    || !Array.isArray(v.recipe.instructions) || v.recipe.instructions.length === 0
+    || !v.recipe.instructions.every((step,i) => record(step) && step.step === i+1 && text(step.text) && nullableNumber(step.duration_minutes))
+    || !Array.isArray(v.recipe.ingredients) || v.recipe.ingredients.length === 0
+    || !v.recipe.ingredients.every(item => record(item) && text(item.name) && text(item.normalized_name)
+      && typeof item.optional === 'boolean' && nullableNumber(item.quantity) && nullableString(item.unit) && nullableString(item.note))
+    || !Array.isArray(v.recipe.tags) || !v.recipe.tags.every(text) || !text(v.recipe.created_at) || !text(v.recipe.updated_at)
+    || !Number.isSafeInteger(v.version) || !finite(v.version) || v.version < minimumVersion
+    || !Number.isInteger(v.current_step) || !finite(v.current_step) || v.current_step < 0
+    || v.total_steps !== v.recipe.instructions.length || v.current_step > v.recipe.instructions.length
+    || !['ready', 'cooking', 'finished'].includes(v.status as string)
+    || (v.status === 'ready' && v.current_step !== 0) || (v.status === 'cooking' && v.current_step === 0)
+    || ![v.created_at, v.updated_at, v.expires_at].every(t => typeof t === 'string' && Number.isFinite(Date.parse(t)))
+    || !Array.isArray(v.history) || v.history.length > 100
+    || !v.history.every((event,i) => record(event) && uuid(event.operation_id) && event.version === i+1
+      && ['start', 'next', 'previous', 'repeat', 'finish'].includes(event.action as string)
+      && Number.isInteger(event.current_step) && finite(event.current_step) && event.current_step >= 0
+      && event.current_step <= (v.total_steps as number) && text(event.created_at))
+    || v.version !== v.history.length || !Array.isArray(v.messages) || v.messages.length > 100
+    || !v.messages.every(message => record(message) && ['user', 'assistant'].includes(message.role as string) && text(message.text))) malformed();
+  return v as AssistantSession;
+}
+async function createSession(body: CreateSession, signal: AbortSignal): Promise<AssistantSession> {
+  const payload = { ...body, operation_id: canonicalUuid(body.operation_id) };
+  const result = session(await request('/assistant/sessions', signal, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }));
+  if (result.recipe.id !== body.recipe_id || result.corpus_version !== body.corpus_version) malformed();
+  return result;
+}
+async function getSession(id: string, signal: AbortSignal, minimumVersion = 0): Promise<AssistantSession> {
+  id = canonicalUuid(id);
+  return session(await request(`/assistant/sessions/${encodeURIComponent(id)}`, signal), id, minimumVersion);
+}
+async function sessionAction(id: string, body: SessionActionRequest, signal: AbortSignal): Promise<AssistantSession> {
+  id = canonicalUuid(id);
+  const payload = { ...body, operation_id: canonicalUuid(body.operation_id) };
+  return session(await request(`/assistant/sessions/${encodeURIComponent(id)}/actions`, signal,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }), id, payload.expected_version + 1);
+}
+async function sessionMessage(id: string, body: SessionMessageRequest, signal: AbortSignal): Promise<AssistantSession> {
+  id = canonicalUuid(id);
+  const payload = { ...body, operation_id: canonicalUuid(body.operation_id) };
+  return session(await request(`/assistant/sessions/${encodeURIComponent(id)}/messages`, signal,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }), id, payload.expected_version + 1);
+}
+return { predict, getDishes, searchRecipes, getRecipe, getRecipeDocument, createSession, getSession, sessionAction, sessionMessage };
 }
 
 export function normalizeBaseUrl(value: string): string {
