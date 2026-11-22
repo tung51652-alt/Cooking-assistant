@@ -1,7 +1,6 @@
 # Phase 8 — Chốt nền tảng và contract
 
-Trạng thái: triển khai local phần contract/nền SQLite; chưa đóng.
-Đã kiểm chứng source/backend/client; Docker runtime sau tổ chức lại chưa kiểm chứng.
+Trạng thái: nền Docker/contract/SQLite đã kiểm chứng xanh trên CI (PR #21); chưa đóng vì còn chờ quyết định người dùng (provider/model, thiết bị Expo, ngưỡng đánh giá LLM) và review/merge PR.
 Đầu vào: bản ảnh/công thức và [thiết kế trợ lý](assistant.md).
 
 ## Mục tiêu
@@ -21,14 +20,14 @@ Có nền chạy ổn định và contract rõ ràng trước khi triển khai t
 ## Kiểm thử
 
 - [x] Chạy deploy/data tests, build web và kiểm tra contract client hiện tại.
-- [ ] Bật Docker, chạy `docker compose up`; kiểm tra readiness và luồng ảnh → recipe → detail.
-- [ ] Kiểm tra seed mới, restart giữ index và chỉ cổng web được publish.
+- [x] Bật Docker, chạy `docker compose up`; kiểm tra readiness và luồng ảnh → recipe → detail.
+- [x] Kiểm tra seed mới, restart giữ index và chỉ cổng web được publish.
 - [x] Đối chiếu từng route/action với tình huống hợp lệ, lỗi và yêu cầu bảo toàn state.
-- [ ] Rà link tài liệu, diff, secrets và đầu vào artifact; không dùng số đo cũ thay test mới.
+- [x] Rà link tài liệu, diff, secrets và đầu vào artifact; không dùng số đo cũ thay test mới.
 
 ## Điều kiện hoàn thành
 
-- [ ] Nền Docker chạy thật, hồi quy cũ qua; contract và các giới hạn đã ghi rõ.
+- [x] Nền Docker chạy thật, hồi quy cũ qua; contract và các giới hạn đã ghi rõ.
 - [ ] Provider/model và phạm vi mobile đã chốt; key được cấu hình riêng, không ghi vào plan/Git.
 - [ ] PR/CI đã review và tích hợp; đủ đầu vào cho [Phase 9](phase-09-sessions.md).
 
@@ -66,3 +65,12 @@ Chưa có Docker executable nên không chạy Compose/readiness/seed mới/rest
 Artifact manifest/provenance đã đọc; chưa có kiểm chứng build/runtime model trong lần này.
 Không dùng số đo nghiệm thu cũ thay thế lần kiểm chứng này.
 Provider/model/ngân sách, thiết bị Expo và tiêu chí đánh giá LLM vẫn chờ quyết định; PR/CI/tích hợp chưa thực hiện trong phạm vi bàn giao.
+
+2026-11-22 (cập nhật CI trên PR #21):
+- Toàn bộ 9/9 CI jobs hoạt động đều PASS (2 job prerelease-tag `clean-registry-pull` và `publish-prerelease` bỏ qua theo điều kiện tag):
+  - `Backend public API / gateway-and-real-stack`: PASS ([run 44997906884](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906884/job/137132897383)) — `mvn test` 27/27 trên JDK 21, `docker compose up --wait`, luồng ảnh → recipe → detail thật, `only_frontend_published_on_loopback: true`, `ai_services_only_internal_networks: true`, kiểm chứng SQLite volume/restart và `generate_frontend_contract.sh` + `git diff --quiet -- frontend/src/generated/api.d.ts` (0 drift).
+  - `Docker standalone candidate / source-checks` & `standalone-and-offline`: PASS ([source-checks](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906939/job/137132888769), [standalone-and-offline](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906939/job/137133290149)) — `smoke_release_stack.py` xác nhận seed `recipe-init` mới/lặp/nâng cấp/rollback, `docker compose down`/`up` giữ nguyên volume `recipe-index`, chỉ cổng web `frontend` publish trên `127.0.0.1`, và luồng offline 100 mẫu.
+  - `Frontend design and real API / browser-and-docker`: PASS ([run 44997906862](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906862/job/137132902183)) — Playwright mocked + real API trên Compose stack.
+  - `Recipes runtime / cpu-runtime`: PASS ([run 44997906857](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906857/job/137132824120)); `Mobile Expo / contracts-and-native-bundles`: PASS ([run 44997906872](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906872/job/137132824325)) sau khi cập nhật patch pins Expo SDK 58; `MVP input artifacts / verify-inputs`: PASS ([run 44997906890](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906890/job/137132824140)); `Recipe corpus / validate`: PASS ([run 44997906922](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906922/job/137132824254)).
+- Rà tài liệu & bảo mật: 87 link nội bộ trong `docs/` hợp lệ (0 broken); `deploy/scripts/check_public_metadata.py` và `deploy/scripts/verify_mvp_inputs.py` PASS. PR #4 (`hung/rag`, `fea:add notebook rag`) vẫn mở ngoài scope — không sửa/merge.
+- Gates còn mở: quyết định provider/model/ngân sách LLM, thiết bị Expo, ngưỡng đánh giá LLM, GitHub review/approval và merge PR #21 (chưa đóng Phase 8).

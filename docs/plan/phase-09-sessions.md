@@ -1,6 +1,6 @@
 # Phase 9 — Phiên và điều khiển bước nấu
 
-Trạng thái: đã triển khai và kiểm chứng local; chưa đóng gate hồi quy/PR/CI và phụ thuộc Phase 8.
+Trạng thái: đã triển khai, bổ sung unit tests và kiểm chứng Docker SQLite/volume/restart xanh trên CI (PR #21); chưa đóng vì còn chờ review/merge PR và quyết định còn mở của Phase 8.
 Phụ thuộc [Phase 8](phase-08-foundation.md).
 
 ## Mục tiêu
@@ -10,7 +10,7 @@ Backend quản lý phiên và bước nấu chính xác, không phụ thuộc LL
 ## Thực hiện
 
 - [x] Tạo/đọc phiên từ recipe ID hợp lệ; backend lấy công thức từ corpus và gắn version.
-- [ ] Lưu SQLite trong volume backend, có schema/version và quyền ghi cho user non-root.
+- [x] Lưu SQLite trong volume backend, có schema/version và quyền ghi cho user non-root.
 - [x] Triển khai bắt đầu, tiếp, trước, nhắc lại, kết thúc; thống nhất index API/UI.
 - [x] Giới hạn bước đầu/cuối, tuổi phiên và kích thước lịch sử; xử lý phiên mất/hết hạn.
 - [x] Xử lý request trùng, đồng thời và version state; đổi công thức tạo phiên mới.
@@ -18,16 +18,16 @@ Backend quản lý phiên và bước nấu chính xác, không phụ thuộc LL
 
 ## Kiểm thử
 
-- [ ] Unit tests cho mọi action, trạng thái kết thúc và các biên bước.
+- [x] Unit tests cho mọi action, trạng thái kết thúc và các biên bước.
 - [x] Integration tests với SQLite thật: database mới, đọc/ghi, hết hạn và khôi phục sau restart.
 - [x] Hai phiên hoạt động song song không trộn công thức, bước hoặc hội thoại.
 - [x] Gửi trùng/đồng thời không làm tăng bước hai lần hoặc ghi đè state mới.
 - [x] Recipe ID sai/không có/version không phù hợp trả lỗi rõ; không nhận recipe giả từ client.
-- [ ] Chạy backend/client contract tests và kiểm tra type sinh lại không lệch API.
+- [x] Chạy backend/client contract tests và kiểm tra type sinh lại không lệch API.
 
 ## Điều kiện hoàn thành
 
-- [ ] Phiên/bước hoạt động và lưu bền vững, kể cả khi chưa cấu hình API LLM.
+- [x] Phiên/bước hoạt động và lưu bền vững, kể cả khi chưa cấu hình API LLM.
 - [ ] Tests qua, PR/CI tích hợp; sẵn sàng cho [Phase 10](phase-10-llm.md).
 
 ## Kết quả kiểm tra
@@ -73,3 +73,14 @@ Tái hiện trước sửa trả 410 sai cho payload khác; sau sửa 16 HTTP ch
 Sau sửa R1 đã chạy lại 208 HTTP checks dữ liệu sai và 179 HTTP checks hồi quy, đều qua.
 Reviewer độc lập xác minh bằng đọc code và script, không chạy app/test hoặc sửa dữ liệu; kết quả runtime ở trên do worker thực hiện.
 Docker, JDK 21 runtime, provider/mobile và PR/CI vẫn là các gate chưa đóng, không được suy ra đã đạt từ verdict review local.
+
+2026-11-22 (cập nhật unit tests & CI trên PR #21):
+- Đã cập nhật assertion số OpenAPI paths `5 → 9` tại `GatewayIntegrationTest.java:178` và `deploy/scripts/smoke_backend_stack.py:102`, đồng thời bổ sung 2 file unit test bền vững trong repo: `PersistedSessionValidatorTest.java` (5 ca) và `AssistantServiceTest.java` (9 ca) phủ mọi action, biên bước, trạng thái kết thúc, 100-action limit, dedup/conflict/concurrent, expiry/precedence/purge, corrupt DB/schema và cách ly phiên song song.
+- `Backend public API / gateway-and-real-stack` ([run 44997906884](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906884/job/137132897383)): PASS trên JDK 21 (`mvn test` 27/27) và real Compose stack (`deploy/scripts/smoke_backend_stack.py`):
+  - Xác nhận container `backend` chạy `id -u`/`id -g` = `10001:10001`, root filesystem read-only (từ chối ghi `/app/ro-check`), volume `assistant-sessions` gắn RW tại `/app/data`.
+  - Xác nhận `/app/data/assistant.sqlite` thuộc `10001:10001`, `PRAGMA user_version = 1` (`assistant_sqlite_schema_version: 1`, `assistant_sqlite_volume_persisted: true`).
+  - Xác nhận phiên tạo và chuyển bước `start` trước `docker compose restart backend` đọc lại nguyên vẹn sau restart và chuyển tiếp `next` lên version 2 (`assistant_restart_survived: true`).
+  - Xác nhận `POST /api/assistant/sessions/{id}/messages` khi chưa cấu hình LLM trả 503 `ASSISTANT_NOT_CONFIGURED` và không mutate state/history/messages (`assistant_messages_unconfigured_503_no_mutation: true`).
+  - Xác nhận `generate_frontend_contract.sh` + `git diff --quiet -- frontend/src/generated/api.d.ts` đạt 0 drift.
+- `Docker standalone candidate / source-checks` ([run 44997906939](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906939/job/137132888769)) và `Mobile Expo / contracts-and-native-bundles` ([run 44997906872](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906872/job/137132824325)): PASS (shared client 9/9, web build/e2e, Expo contracts).
+- Gates còn mở: GitHub review/approval, merge PR #21 và các quyết định Phase 8 (provider/model, thiết bị Expo, ngưỡng đánh giá LLM); chưa đóng Phase 9.
