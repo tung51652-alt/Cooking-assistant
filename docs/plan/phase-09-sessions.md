@@ -1,6 +1,6 @@
 # Phase 9 — Phiên và điều khiển bước nấu
 
-Trạng thái: đã triển khai, bổ sung unit tests và kiểm chứng Docker SQLite/volume/restart xanh trên CI (PR #21); chưa đóng vì còn chờ review/merge PR và quyết định còn mở của Phase 8.
+Trạng thái: đã triển khai, bổ sung unit tests và kiểm chứng Docker SQLite/volume/restart xanh trên CI (PR #21); các quyết định Phase 8 đã chốt; chưa đóng vì còn chờ review và merge PR #21 vào `develop`.
 Phụ thuộc [Phase 8](phase-08-foundation.md).
 
 ## Mục tiêu
@@ -83,4 +83,4 @@ Docker, JDK 21 runtime, provider/mobile và PR/CI vẫn là các gate chưa đó
   - Xác nhận `POST /api/assistant/sessions/{id}/messages` khi chưa cấu hình LLM trả 503 `ASSISTANT_NOT_CONFIGURED` và không mutate state/history/messages (`assistant_messages_unconfigured_503_no_mutation: true`).
   - Xác nhận `generate_frontend_contract.sh` + `git diff --quiet -- frontend/src/generated/api.d.ts` đạt 0 drift.
 - `Docker standalone candidate / source-checks` ([run 44997906939](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906939/job/137132888769)) và `Mobile Expo / contracts-and-native-bundles` ([run 44997906872](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906872/job/137132824325)): PASS (shared client 9/9, web build/e2e, Expo contracts).
-- Gates còn mở: GitHub review/approval, merge PR #21 và các quyết định Phase 8 (provider/model, thiết bị Expo, ngưỡng đánh giá LLM); chưa đóng Phase 9.
+- Gates còn mở: GitHub review/approval và merge PR #21 vào `develop` (các quyết định Phase 8 đã chốt ngày 2026-11-22 +07; chưa đóng Phase 9 cho đến khi merge).

@@ -1,6 +1,6 @@
 # Phase 8 — Chốt nền tảng và contract
 
-Trạng thái: nền Docker/contract/SQLite đã kiểm chứng xanh trên CI (PR #21); chưa đóng vì còn chờ quyết định người dùng (provider/model, thiết bị Expo, ngưỡng đánh giá LLM) và review/merge PR.
+Trạng thái: nền Docker/contract/SQLite đã kiểm chứng xanh trên CI (PR #21) và 4 quyết định Phase 8 đã chốt; chưa đóng vì còn chờ review và merge PR #21 vào `develop`.
 Đầu vào: bản ảnh/công thức và [thiết kế trợ lý](assistant.md).
 
 ## Mục tiêu
@@ -14,8 +14,8 @@ Có nền chạy ổn định và contract rõ ràng trước khi triển khai t
 - [x] Chốt request/response cho tạo/đọc phiên, messages, actions và lỗi; giữ API cũ tương thích.
 - [x] Chốt action, quy tắc bước đầu/cuối, đổi recipe, gửi trùng và response muộn.
 - [x] Chốt SQLite/schema, recipe version gắn phiên, tuổi phiên và giới hạn lịch sử/body.
-- [ ] Chọn provider/model đầu tiên, timeout, giới hạn output và ngân sách gọi API thật.
-- [ ] Chốt hệ điều hành/thiết bị Expo bàn giao; chốt bộ tình huống, kỳ vọng từng ca, số mẫu và ngưỡng latency/usage của trợ lý trước khi đo.
+- [x] Chọn provider/model đầu tiên, timeout, giới hạn output và ngân sách gọi API thật.
+- [x] Chốt hệ điều hành/thiết bị Expo bàn giao; chốt bộ tình huống, kỳ vọng từng ca, số mẫu và ngưỡng latency/usage của trợ lý trước khi đo.
 
 ## Kiểm thử
 
@@ -28,26 +28,38 @@ Có nền chạy ổn định và contract rõ ràng trước khi triển khai t
 ## Điều kiện hoàn thành
 
 - [x] Nền Docker chạy thật, hồi quy cũ qua; contract và các giới hạn đã ghi rõ.
-- [ ] Provider/model và phạm vi mobile đã chốt; key được cấu hình riêng, không ghi vào plan/Git.
+- [x] Provider/model và phạm vi mobile đã chốt; key được cấu hình riêng, không ghi vào plan/Git.
 - [ ] PR/CI đã review và tích hợp; đủ đầu vào cho [Phase 9](phase-09-sessions.md).
 
 ## Quyết định cần chốt
 
+Các quyết định bên dưới đã được người dùng chốt ngày 2026-11-22 (+07):
+
 Provider/model:
 
-Chờ người dùng chốt; không tự chọn provider, key hoặc gọi dịch vụ trả phí.
+- Hai lựa chọn được phê duyệt: Anthropic `claude-haiku-5-5` ($0.10/$0.50 mỗi 1M tokens, trả phí) và NVIDIA Nemotron 3 Ultra (free tier / endpoint tương thích OpenAI).
+- Chính sách: chỉ kích hoạt một provider tại một thời điểm qua cấu hình runtime (không tự động fallback âm thầm sang provider khác); `LLM_API_KEY` chỉ cấp qua biến môi trường runtime ngoài Git, tài liệu plan, layer Docker image và client.
 
-Giới hạn phiên, request và ngân sách:
+Giới hạn phiên, request và ngân sách (Option 2A):
 
-Phiên 24 giờ cố định, tối đa 100 action (slot cuối dành cho kết thúc), tối đa 10.000 record.
-SQLite schema 1, snapshot recipe/corpus version; body 8 KiB, nhận JSON trong 5 s, 4 request nghiệp vụ/instance.
-Message không blank, tối đa 2.000 UTF-16 code units; chưa gửi ra provider hoặc lưu hội thoại trong Phase 9.
-Quy tắc đầy đủ ở [contract](../contracts/mvp-v1.md#phiên-trợ-lý-phase-89).
-Timeout/output/ngân sách gọi LLM thật và ngưỡng latency/usage còn chờ quyết định cùng provider.
+- Phiên 24 giờ cố định, tối đa 100 action (slot cuối dành cho kết thúc), tối đa 10.000 record.
+- SQLite schema 1, snapshot recipe/corpus version; body 8 KiB, nhận JSON trong 5 s, message không blank tối đa 2.000 UTF-16 code units; chưa gửi ra provider hoặc lưu hội thoại trong Phase 9. Quy tắc đầy đủ ở [contract](../contracts/mvp-v1.md#phiên-trợ-lý-phase-89).
+- Timeout và output LLM: `LLM_TIMEOUT_SECONDS=20` phía backend (2 s connect; client `POST /messages` timeout 25 s); `LLM_MAX_OUTPUT_TOKENS=512`.
+- Lịch sử hội thoại: tối đa 30 lượt chat mỗi phiên 24 giờ (60 message records; gửi 6 lượt gần nhất / 12 messages, trần cửa sổ ngữ cảnh ~2.500 tokens).
+- Rate limit: 4 request nghiệp vụ đồng thời/instance + 12 requests/phút/phiên.
+- Ngân sách tháng: tối đa $10/tháng (cảnh báo tại $5, chặn cứng tại $10).
 
-Nền tảng/thiết bị mobile:
+Nền tảng/thiết bị mobile (Option 3A):
 
-Chờ người dùng chốt; không dùng browser mobile emulation để thay bằng chứng thiết bị thật.
+- Chỉ bàn giao trên thiết bị Android thật (Android 10+ / API 29+, khuyến nghị Android 12+) qua Expo Go SDK 58 (React Native 0.88.1).
+- iOS không được đánh giá/nghiệm thu trong MVP; không dùng browser mobile emulation để thay bằng chứng thiết bị thật.
+
+Bộ tình huống và ngưỡng đánh giá trợ lý trước khi đo (Option 4A Standard MVP):
+
+- 30 ca single-turn thuộc 6 nhóm (8 hướng dẫn bước nấu bình thường trên >=4 công thức trong corpus, 5 thiếu dữ liệu/mơ hồ, 5 ngoài phạm vi/prompt injection, 4 an toàn thực phẩm/dị ứng, 4 đổi công thức/toàn vẹn state, 4 response muộn/trùng/tiêm lỗi) + 3 hội thoại multi-turn (~50 lượt gọi API thật tổng cộng).
+- Ngưỡng latency: `p50 <= 2.5 s`, `p95 <= 6.0 s` (trần cứng `<= 8.0 s`).
+- Ngưỡng pass rate: `100%` ở nhóm an toàn/state/bảo mật; `>= 90%` ở hỏi đáp thường (0 trường hợp bịa định lượng/nguồn như sự thật của công thức).
+- Ngưỡng usage: input trung bình `<= 4.000 tokens/lượt` (`p95 <= 6.000`), output trung bình `<= 350 tokens/lượt` (trần cứng `<= 512`).
 
 ## Kết quả kiểm tra
 
@@ -73,4 +85,5 @@ Provider/model/ngân sách, thiết bị Expo và tiêu chí đánh giá LLM v�
   - `Frontend design and real API / browser-and-docker`: PASS ([run 44997906862](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906862/job/137132902183)) — Playwright mocked + real API trên Compose stack.
   - `Recipes runtime / cpu-runtime`: PASS ([run 44997906857](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906857/job/137132824120)); `Mobile Expo / contracts-and-native-bundles`: PASS ([run 44997906872](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906872/job/137132824325)) sau khi cập nhật patch pins Expo SDK 58; `MVP input artifacts / verify-inputs`: PASS ([run 44997906890](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906890/job/137132824140)); `Recipe corpus / validate`: PASS ([run 44997906922](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906922/job/137132824254)).
 - Rà tài liệu & bảo mật: 87 link nội bộ trong `docs/` hợp lệ (0 broken); `deploy/scripts/check_public_metadata.py` và `deploy/scripts/verify_mvp_inputs.py` PASS. PR #4 (`hung/rag`, `fea:add notebook rag`) vẫn mở ngoài scope — không sửa/merge.
-- Gates còn mở: quyết định provider/model/ngân sách LLM, thiết bị Expo, ngưỡng đánh giá LLM, GitHub review/approval và merge PR #21 (chưa đóng Phase 8).
+- Quyết định Phase 8 đã chốt (2026-11-22 +07): provider/model (Anthropic `claude-haiku-5-5` hoặc NVIDIA Nemotron 3 Ultra, một provider/lần qua runtime config, key ngoài Git/plan/image/client), Option 2A (timeout/output/lượt chat/rate limit/ngân sách $10/tháng), Option 3A (Android 10+ thật qua Expo Go SDK 58, không nghiệm thu iOS/emulation) và Option 4A Standard MVP (30 ca single-turn + 3 multi-turn, ngưỡng latency/pass rate/usage).
+- Gates còn mở: GitHub review/approval và merge PR #21 vào `develop` (chưa đóng Phase 8 cho đến khi merge).
