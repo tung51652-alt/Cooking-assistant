@@ -13,7 +13,9 @@ ROOT = Path(__file__).resolve().parents[2]
 class ComposeTests(unittest.TestCase):
     def config(self, **overrides):
         excluded = {'COMPOSE_FILE', 'COMPOSE_PROJECT_NAME', 'COMPOSE_PROFILES',
-                    'COOKLENS_IMAGE_PREFIX', 'COOKLENS_IMAGE_TAG', 'HOST_PORT', 'HOST_BIND'}
+                    'COOKLENS_IMAGE_PREFIX', 'COOKLENS_IMAGE_TAG', 'HOST_PORT', 'HOST_BIND',
+                    'LLM_PROVIDER', 'LLM_BASE_URL', 'LLM_MODEL', 'LLM_API_KEY', 'LLM_TIMEOUT_SECONDS',
+                    'LLM_MAX_OUTPUT_TOKENS', 'LLM_MAX_INPUT_TOKENS'}
         env = {key: value for key, value in os.environ.items() if key not in excluded}
         env.update(overrides)
         output = subprocess.check_output(
@@ -60,3 +62,20 @@ class ComposeTests(unittest.TestCase):
                 self.assertEqual((binding['host_ip'], binding['published'], binding['target']),
                                  (host, port, 8080))
                 self.assertTrue(config['networks']['application']['internal'])
+
+    def test_llm_runtime_configuration_is_backend_only_and_ai_stays_internal(self):
+        from uuid import uuid4
+        key = 'test-' + str(uuid4())
+        config = self.config(LLM_API_KEY=key, LLM_MAX_OUTPUT_TOKENS='256')
+        backend = config['services']['backend']
+        self.assertEqual(backend['environment']['LLM_API_KEY'], key)
+        self.assertEqual(backend['environment']['LLM_MAX_OUTPUT_TOKENS'], '256')
+        self.assertEqual(set(backend['networks']), {'application', 'llm-egress'})
+        self.assertFalse(config['networks']['llm-egress'].get('internal', False))
+        for name, service in config['services'].items():
+            if name != 'backend':
+                self.assertFalse(any(field.startswith('LLM_') for field in service.get('environment', {})))
+                self.assertNotIn('llm-egress', service['networks'])
+            if name in ('vision', 'recipes', 'recipe-init', 'qdrant'):
+                self.assertEqual(set(service['networks']), {'application'})
+        self.assertEqual(self.config()['services']['backend']['environment']['LLM_API_KEY'], '')

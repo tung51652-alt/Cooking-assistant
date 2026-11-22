@@ -10,6 +10,11 @@ from check_public_metadata import violations
 
 ROOT = Path(__file__).resolve().parents[2]
 APPS = ('vision', 'recipes', 'backend', 'frontend')
+LLM_DEFAULTS = {
+    'LLM_PROVIDER': 'openai', 'LLM_BASE_URL': 'https://integrate.api.nvidia.com/v1',
+    'LLM_MODEL': 'nvidia/nemotron-3-ultra-550b-a55b', 'LLM_API_KEY': '',
+    'LLM_TIMEOUT_SECONDS': '20', 'LLM_MAX_OUTPUT_TOKENS': '512', 'LLM_MAX_INPUT_TOKENS': '6000',
+}
 
 
 def candidate_config(config):
@@ -47,6 +52,12 @@ def candidate_config(config):
     config['name'] = 'cooklens'
     if config.get('configs') or config.get('secrets'):
         raise ValueError('Candidate cannot require external config or secret files')
+    environment = services['backend'].get('environment', {})
+    if environment.get('LLM_API_KEY') not in (None, '', '${LLM_API_KEY:-}'):
+        raise ValueError('Candidate cannot include an expanded LLM API key')
+    if any(key in environment for key in LLM_DEFAULTS):
+        for key, default in LLM_DEFAULTS.items():
+            environment[key] = '${' + key + ':-' + default + '}'
     for kind in ('networks', 'volumes'):
         for item in config.get(kind, {}).values():
             if item.get('external'):

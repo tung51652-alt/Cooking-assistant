@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  testMatch: process.env.COOKLENS_REAL_API === '1' ? 'real-flow.spec.ts' : 'flow.spec.ts',
+  testMatch: process.env.COOKLENS_REAL_API === '1' ? 'real-flow.spec.ts' : ['flow.spec.ts', 'assistant.spec.ts'],
   workers: process.env.COOKLENS_REAL_API === '1' ? 1 : undefined,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

@@ -62,6 +62,14 @@ services:
       VISION_URL: http://vision:8000
       RECIPES_URL: http://recipes:8001
       ASSISTANT_DB_PATH: /app/data/assistant.sqlite
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://integrate.api.nvidia.com/v1}
+      LLM_MODEL: ${LLM_MODEL:-nvidia/nemotron-3-ultra-550b-a55b}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-20}
+      LLM_MAX_OUTPUT_TOKENS: ${LLM_MAX_OUTPUT_TOKENS:-512}
+      LLM_MAX_INPUT_TOKENS: ${LLM_MAX_INPUT_TOKENS:-6000}
+    networks: [application, llm-egress]
     volumes: [assistant-sessions:/app/data]
     cpus: 2
     mem_limit: 512m
@@ -82,6 +90,7 @@ services:
 networks:
   application: {internal: true}
   browser:
+  llm-egress:
 
 volumes:
   recipe-index:

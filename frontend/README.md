@@ -1,8 +1,11 @@
 # CookLens frontend
 
-React/TypeScript/Vite cho luồng ảnh → Top-3 → xác nhận/sửa món → công thức. Giao diện CookLens dùng font/icon local, nền kem và accent cam; xem [kiến trúc](../docs/architecture.md).
+React/TypeScript/Vite cho luồng ảnh → Top-3 → xác nhận/sửa món → công thức → trợ lý nấu ăn.
+Giao diện CookLens dùng font/icon local, nền kem và accent cam; xem [kiến trúc](../docs/architecture.md).
 
-Web responsive cho máy tính và trình duyệt điện thoại. App Expo dùng chung API đã tích hợp qua PR #17; upload đã được xác nhận trên điện thoại, nghiệm thu Android/iOS đầy đủ còn mở; không APK. Không chatbot, tài khoản, lưu bộ sưu tập hoặc cooking assistant. Panel trợ lý trong nguồn chuyển thành hướng dẫn ba bước đúng chức năng hiện tại.
+Web responsive cho máy tính và trình duyệt điện thoại.
+Source Phase 11 có hỏi đáp theo recipe và điều khiển bước; quality review Phase 10 và PR/CI vẫn mở.
+App Expo dùng chung API đã tích hợp qua PR #17; trợ lý Expo và nghiệm thu Android/iOS đầy đủ còn mở; không APK, tài khoản hoặc bộ sưu tập.
 
 ## Thiết kế và tổ chức
 
@@ -10,13 +13,22 @@ Giữ CookLens, nền kem, accent cam, font Epilogue/Plus Jakarta Sans, hai pane
 
 Design read: sản phẩm nấu ăn tiếng Việt, ưu tiên bảo toàn thiết kế cung cấp. DESIGN_VARIANCE=3, MOTION_INTENSITY=1, VISUAL_DENSITY=4. Skill design-taste chỉ dùng audit/preservation/accessibility. CSS native, không thêm framework hay motion quảng cáo. Nút camera xanh đậm hơn nguồn để tăng độ tương phản chữ trắng.
 
-- src/features: UploadPage, RecognitionPage, RecipePage.
+- src/features: UploadPage, RecognitionPage, RecipePage, AssistantPage.
 - src/lib/api.ts: HTTP client, deadline và validation runtime.
 - src/generated/api.d.ts: schema sinh từ OpenAPI; src/types.ts dùng lại DTO, không định nghĩa contract song song.
 - src/App.tsx: state, điều hướng History API, hủy request cũ và focus khi đổi trang.
 - src/styles.css: tokens, responsive, focus và reduced motion.
 
-Giữ URL /index.html, /recognition.html, /recipe.html và /. Back/Forward hoạt động; reload/deep-link không có state sẽ hướng dẫn bắt đầu lại. Ảnh chỉ ở RAM, object URL được giải phóng; không localStorage/sessionStorage/base64 persistence.
+Giữ URL /index.html, /recognition.html, /recipe.html, /assistant.html và /.
+Back/Forward hoạt động; assistant reload khôi phục phiên gần nhất từ backend.
+Chỉ session ID/recipe ID nằm trong localStorage; hội thoại và snapshot ở backend, key không vào client.
+Ảnh chỉ ở RAM, object URL được giải phóng; không persist ảnh/base64.
+
+Từ recipe detail, chọn “Hỏi CookLens & bắt đầu nấu”; nav “Trợ lý” mở lại phiên gần nhất.
+Chat không tự điều khiển bước theo lời model; năm nút và các lệnh xác định dùng state từ server.
+Request được khóa khi đang chờ, hủy/bỏ qua khi rời màn hình; retry kết quả chưa rõ giữ nguyên operation ID, không tự gửi lại.
+Version conflict tải lại phiên và giữ câu hỏi; hết hạn có lối chọn recipe/tạo phiên mới.
+HTML/link trong lời model chỉ là text, nguồn recipe dùng HTTP(S) đã validate.
 
 ## Docker
 
@@ -58,9 +70,16 @@ npx playwright install chromium
 npm run build
 npm run test:e2e
 COOKLENS_REAL_API=1 COOKLENS_BASE_URL=http://127.0.0.1:8080 npm run test:e2e
+# Chỉ với candidate Phase 10/11 và key đã cấu hình ở backend:
+COOKLENS_REAL_API=1 COOKLENS_REAL_ASSISTANT=1 COOKLENS_BASE_URL=http://127.0.0.1:8080 npm run test:e2e -- --grep 'real assistant photo'
 ```
 
-20 mocked tests và 6 tests với Docker/CV/E5/Qdrant thật ở desktop 1440×900, mobile 390×844. Bao gồm xác nhận thủ công, sửa món/query, đủ detail/provenance, lỗi/empty/timeout, navigation race, ảnh thay thế, escaping, keyboard, deep-link, không overflow hoặc request CDN. Mobile là emulation, chưa thử camera trên điện thoại thật. Có thể truyền PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH khi máy có Chromium tương thích; không hardcode đường dẫn thành viên.
+Suite mặc định gồm 20 case ảnh/công thức và 24 case trợ lý ở desktop 1440×900, mobile 390×844.
+Phase 11 đã chạy 24 case trợ lý (20 qua lần đầu, 4 lỗi được sửa và chạy lại qua) và hai flow Docker/provider thật; build/client checks qua.
+Theo yêu cầu rút ngắn kiểm tra, không chạy lại toàn bộ hồi quy ảnh/công thức hoặc bộ backend/deploy đã qua Phase 10.
+Bao gồm retry idempotent, double submit, đổi recipe, navigation race, version conflict, expiry, lỗi provider/config/budget, quota và model text an toàn.
+Mobile là emulation, chưa thử trợ lý trên điện thoại thật.
+Có thể truyền PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH khi máy có Chromium tương thích; không hardcode đường dẫn thành viên.
 
 Bốn baseline upload desktop/mobile, recognition desktop, recipe desktop trong docs được chụp bằng API thật. COOKLENS_CAPTURE_BASELINES=1 trong suite thật mới ghi đè chúng; test mặc định không ghi ảnh. Hai stitch-reference screenshots được chụp từ HTML tham chiếu tại cùng viewport để đối chiếu, có dùng CDN của nguồn khi chụp; CDN không có trong app runtime.
 

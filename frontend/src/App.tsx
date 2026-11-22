@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { IconContext, BowlFood, ArrowRight } from '@phosphor-icons/react';
-import type { Dish, Prediction, RecipeDetail, RecipeSummary, SelectedImage, View } from './types';
+import type { Dish, Prediction, RecipeDetail, RecipeDocument, RecipeSummary, SelectedImage, View } from './types';
 import * as api from './lib/api';
 import UploadPage from './features/UploadPage';
 import RecognitionPage from './features/RecognitionPage';
 import RecipePage from './features/RecipePage';
+import AssistantPage from './features/AssistantPage';
 
-const routes: Record<View, string> = { upload: '/index.html', recognition: '/recognition.html', recipes: '/recipe.html' };
-const labels: Record<View, string> = { upload: 'Trang chủ', recognition: 'Nhận diện', recipes: 'Công thức' };
+const routes: Record<View, string> = { upload: '/index.html', recognition: '/recognition.html', recipes: '/recipe.html', assistant: '/assistant.html' };
+const labels: Record<View, string> = { upload: 'Trang chủ', recognition: 'Nhận diện', recipes: 'Công thức', assistant: 'Trợ lý' };
 function currentView(): View {
-  return location.pathname === routes.recognition ? 'recognition' : location.pathname === routes.recipes ? 'recipes' : 'upload';
+  return location.pathname === routes.recognition ? 'recognition' : location.pathname === routes.recipes ? 'recipes' : location.pathname === routes.assistant ? 'assistant' : 'upload';
 }
 
 export default function App() {
@@ -23,6 +24,8 @@ export default function App() {
   const [confirmed, setConfirmed] = useState<Dish | null>(null);
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null);
   const [detail, setDetail] = useState<RecipeDetail | null>(null);
+  const [recipeDocument, setRecipeDocument] = useState<RecipeDocument | null>(null);
+  const [assistantDocument, setAssistantDocument] = useState<RecipeDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<'predict' | 'dishes' | 'search' | 'detail' | null>(null);
   const request = useRef<AbortController | null>(null);
@@ -30,7 +33,7 @@ export default function App() {
   const previousView = useRef(view);
 
   useEffect(() => {
-    const pop = () => { cancel(); setError(null); setView(currentView()); };
+    const pop = () => { cancel(); setError(null); if (currentView() === 'assistant') setAssistantDocument(null); setView(currentView()); };
     window.addEventListener('popstate', pop);
     return () => { window.removeEventListener('popstate', pop); request.current?.abort(); };
   }, []);
@@ -46,10 +49,10 @@ export default function App() {
   }
   function link(event: MouseEvent<HTMLAnchorElement>, next: View) {
     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-    event.preventDefault(); cancel(); setError(null); navigate(next);
+    event.preventDefault(); cancel(); setError(null); if (next === 'assistant') setAssistantDocument(null); navigate(next);
   }
   function cancel() { request.current?.abort(); request.current = null; setBusy(null); }
-  function resetRecipes() { setConfirmed(null); setRecipes(null); setDetail(null); }
+  function resetRecipes() { setConfirmed(null); setRecipes(null); setDetail(null); setRecipeDocument(null); }
   function replaceImage(next: SelectedImage | null) {
     cancel(); imageRef.current = next; setImage(next); setPredictions([]); setChosen(null); resetRecipes(); setError(null);
   }
@@ -88,7 +91,7 @@ export default function App() {
   }
   async function findRecipes(dish: Dish | null = chosen, query = '') {
     if (!dish) return;
-    setConfirmed(dish); setRecipes(null); setDetail(null); navigate('recipes');
+    setConfirmed(dish); setRecipes(null); setDetail(null); setRecipeDocument(null); navigate('recipes');
     await run('search', async signal => {
       const result = await api.searchRecipes(dish.normalized_dish, signal, query);
       if (!signal.aborted) setRecipes(result);
@@ -96,10 +99,10 @@ export default function App() {
   }
   async function openRecipe(recipe: RecipeSummary) {
     if (!confirmed) return;
-    setDetail(null);
+    setDetail(null); setRecipeDocument(null);
     await run('detail', async signal => {
-      const result = await api.getRecipe(recipe.id, confirmed.normalized_dish, signal);
-      if (!signal.aborted) setDetail(result);
+      const result = await api.getRecipeDocument(recipe.id, confirmed.normalized_dish, signal);
+      if (!signal.aborted) { setDetail(result.recipe); setRecipeDocument(result); }
     });
   }
   return <IconContext.Provider value={{ weight: 'regular', size: 22 }}>
@@ -112,7 +115,8 @@ export default function App() {
       {error && <div className="error-message" role="alert"><p>{error}</p><button className="text-btn" onClick={() => setError(null)}>Đóng thông báo</button></div>}
       {view === 'upload' && <UploadPage image={image} busy={busy === 'predict'} onFiles={filesChanged} onRemove={() => replaceImage(null)} onPredict={recognize} onInvalid={invalidImage} />}
       {view === 'recognition' && <RecognitionPage image={image} predictions={predictions} chosen={chosen} dishes={dishes} busy={busy === 'dishes'} onChoose={choose} onConfirm={() => findRecipes()} onEdit={editDish} onUpload={() => { cancel(); navigate('upload'); }} />}
-      {view === 'recipes' && <RecipePage dish={confirmed} recipes={recipes} detail={detail} busy={busy === 'search' ? 'search' : busy === 'detail' ? 'detail' : null} onOpen={openRecipe} onBack={() => setDetail(null)} onSearch={query => findRecipes(confirmed, query)} onChooseDish={() => { cancel(); setError(null); navigate('recognition'); }} />}
+      {view === 'recipes' && <RecipePage dish={confirmed} recipes={recipes} detail={detail} busy={busy === 'search' ? 'search' : busy === 'detail' ? 'detail' : null} onOpen={openRecipe} onBack={() => { setDetail(null); setRecipeDocument(null); }} onSearch={query => findRecipes(confirmed, query)} onChooseDish={() => { cancel(); setError(null); navigate('recognition'); }} onAssistant={() => { if (recipeDocument) { cancel(); setError(null); setAssistantDocument(recipeDocument); navigate('assistant'); } }} />}
+      {view === 'assistant' && <AssistantPage key={assistantDocument ? `${assistantDocument.recipe.id}:${assistantDocument.corpus_version}` : 'restore'} document={assistantDocument} onRecipes={() => { setAssistantDocument(null); navigate('recipes'); }} />}
     </main>
     <footer><div className="footer-inner"><a className="footer-brand" href={routes.upload} onClick={event => link(event, 'upload')}><span aria-hidden="true">🍳</span> CookLens</a><span>© {new Date().getFullYear()} CookLens. Từ ảnh món ăn đến công thức của bạn.</span><a href="#main">Về đầu trang <ArrowRight size={16} aria-hidden="true" /></a></div></footer>
   </IconContext.Provider>;

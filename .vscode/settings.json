@@ -1,0 +1,4 @@
+{
+  "java.compile.nullAnalysis.mode": "disabled",
+  "python.terminal.useEnvFile": true
+}

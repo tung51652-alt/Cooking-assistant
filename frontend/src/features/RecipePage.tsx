@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Clock, Users, MagnifyingGlass } from '@phosphor-icons/react';
 import type { Dish, RecipeDetail, RecipeSource, RecipeSummary } from '../types';
 
-function Source({ source }: { source: RecipeSource }) {
+export function Source({ source }: { source: RecipeSource }) {
   let url: URL | null = null;
   try { url = new URL(source.url); } catch { /* Render attribution as text when no valid URL exists. */ }
   return <div className="source-info"><span>Nguồn: </span>
@@ -24,9 +24,10 @@ interface Props {
   onBack: () => void;
   onSearch: (query?: string) => void;
   onChooseDish: () => void;
+  onAssistant: () => void;
 }
 
-export default function RecipePage({ dish, recipes, detail, busy, onOpen, onBack, onSearch, onChooseDish }: Props) {
+export default function RecipePage({ dish, recipes, detail, busy, onOpen, onBack, onSearch, onChooseDish, onAssistant }: Props) {
   const [query, setQuery] = useState('');
   useEffect(() => setQuery(''), [dish?.normalized_dish]);
   return <section className="section" aria-labelledby="recipe-title">
@@ -43,6 +44,7 @@ export default function RecipePage({ dish, recipes, detail, busy, onOpen, onBack
         {busy && <div className="loading-state" role="status">{busy === 'search' ? 'Đang tìm công thức phù hợp…' : 'Đang tải công thức…'}</div>}
         {!busy && detail ? <>
           <button className="text-btn back-link" onClick={onBack}>← Danh sách công thức</button>
+          <div className="assistant-entry"><div><h2>Cùng CookLens vào bếp</h2><p>Hỏi về công thức và theo dõi từng bước nấu.</p></div><button className="primary-btn" onClick={onAssistant}>Hỏi CookLens &amp; bắt đầu nấu</button></div>
           <div className="recipe-info-grid">
             <div className="recipe-card"><h2>Nguyên liệu</h2><ul id="ingredients" className="ingredients">
               {detail.ingredients.map((item, index) => <li key={index}><span>{item.name}{item.note && <small>{item.note}</small>}</span><strong>{item.quantity === null ? 'Chưa có định lượng' : `${new Intl.NumberFormat('vi-VN').format(item.quantity)}${item.unit ? ` ${item.unit}` : ''}`}</strong></li>)}

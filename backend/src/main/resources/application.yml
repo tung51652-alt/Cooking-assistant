@@ -42,6 +42,14 @@ springdoc:
     path: /swagger-ui.html
   paths-to-match: /api/**
 cooklens:
+  llm:
+    provider: ${LLM_PROVIDER:openai}
+    base-url: ${LLM_BASE_URL:https://integrate.api.nvidia.com/v1}
+    model: ${LLM_MODEL:nvidia/nemotron-3-ultra-550b-a55b}
+    api-key: ${LLM_API_KEY:}
+    timeout-seconds: ${LLM_TIMEOUT_SECONDS:20}
+    max-output-tokens: ${LLM_MAX_OUTPUT_TOKENS:512}
+    max-input-tokens: ${LLM_MAX_INPUT_TOKENS:6000}
   assistant-db-path: ${ASSISTANT_DB_PATH:${user.home}/.cooklens/assistant.sqlite}
   vision-url: ${VISION_URL:http://127.0.0.1:8000}
   recipes-url: ${RECIPES_URL:http://127.0.0.1:8001}

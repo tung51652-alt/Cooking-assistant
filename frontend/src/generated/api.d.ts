@@ -64,7 +64,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Hỏi đáp theo phiên; chưa cấu hình provider trả 503 */
+        /** Hỏi đáp theo phiên hoặc lệnh bước nấu xác định */
         post: operations["sessionMessage"];
         delete?: never;
         options?: never;
@@ -666,6 +666,16 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    "X-Request-ID"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Internal Server Error */
             500: {
                 headers: {
@@ -720,6 +730,8 @@ export interface operations {
             200: {
                 headers: {
                     "X-Request-ID"?: string;
+                    /** @description Request-local prepare/provider/persist/total durations in milliseconds; provider includes network and parsing. */
+                    "Server-Timing"?: unknown;
                     [name: string]: unknown;
                 };
                 content: {
@@ -778,6 +790,16 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    "X-Request-ID"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
                 headers: {
                     "X-Request-ID"?: string;
                     [name: string]: unknown;
@@ -898,6 +920,16 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    "X-Request-ID"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
                 headers: {
                     "X-Request-ID"?: string;
                     [name: string]: unknown;
@@ -1328,6 +1360,16 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    "X-Request-ID"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
                 headers: {
                     "X-Request-ID"?: string;
                     [name: string]: unknown;

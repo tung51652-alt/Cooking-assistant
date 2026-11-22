@@ -67,7 +67,7 @@ def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_regist
     with socket.socket() as probe:
         probe.bind(('127.0.0.1', 0))
         port = probe.getsockname()[1]
-    env = {**os.environ, 'HOST_PORT': str(port)}
+    env = {**os.environ, 'HOST_PORT': str(port), 'LLM_API_KEY': ''}
     base = f'http://127.0.0.1:{port}'
     with tempfile.TemporaryDirectory(prefix='cooklens-standalone-') as directory:
         directory = Path(directory)
@@ -180,7 +180,12 @@ def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_regist
                 assert all(mount['Type'] != 'bind' for mount in state['Mounts'])
                 if service != 'frontend':
                     assert not state['HostConfig']['PortBindings']
-                    internal_only(service)
+                    if service == 'backend':
+                        attached = state['NetworkSettings']['Networks']
+                        assert len(attached) == 2
+                        assert sum(not json.loads(docker('network', 'inspect', name).stdout)[0]['Internal'] for name in attached) == 1
+                    else:
+                        internal_only(service)
                 else:
                     bindings = state['HostConfig']['PortBindings']['8080/tcp']
                     assert bindings == [{'HostIp': '127.0.0.1', 'HostPort': str(port)}]
@@ -282,14 +287,18 @@ with tempfile.TemporaryDirectory() as tmp:
                     dc('start', dependency)
                     ready()
 
-            # Remove the only external bridge. Exercise Nginx -> gateway -> both AI APIs.
+            # Remove both external bridges. Exercise Nginx -> gateway -> both AI APIs.
             frontend = identifier('frontend')
             networks = inspect('frontend')['NetworkSettings']['Networks']
             bridge = next(name for name in networks
                           if not json.loads(docker('network', 'inspect', name).stdout)[0]['Internal'])
-            docker('network', 'disconnect', bridge, frontend)
+            backend_bridge = next(name for name in inspect('backend')['NetworkSettings']['Networks']
+                                  if not json.loads(docker('network', 'inspect', name).stdout)[0]['Internal'])
+            docker('network', 'disconnect', backend_bridge, identifier('backend'))
             try:
+                docker('network', 'disconnect', bridge, frontend)
                 internal_only('frontend')
+                internal_only('backend')
                 assert docker('exec', frontend, 'wget', '-T', '2', '-q', '-O', '/dev/null',
                               'http://1.1.1.1', success=False).returncode != 0
                 offline = '''
@@ -313,6 +322,7 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
                 docker('exec', '-i', identifier('recipes'), 'python', '-c', offline, data=image)
                 sample_peaks()
             finally:
+                docker('network', 'connect', backend_bridge, identifier('backend'))
                 # Recreate the web service to restore the published loopback port reliably.
                 dc('up', '-d', '--no-deps', '--force-recreate', 'frontend')
                 ready()
@@ -349,6 +359,7 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
                 'catalog_dishes_searched': len(catalog), 'dependency_stop_recovery': True,
                 'offline_full_flow_through_frontend': True,
                 'only_frontend_published_on_loopback': True,
+                'backend_dedicated_llm_egress': True,
                 'cold_start_seconds': round(cold_start, 3), 'seed_seconds': round(seed_seconds, 3),
                 'warm_sequential_samples': samples,
                 'vision_median_seconds': vision_latency['median_seconds'],

@@ -33,22 +33,68 @@ Release dùng cùng origin; mặc định CORS trống. Nếu chạy Vite khác 
 
 `/api/assistant/sessions`, `/{id}`, `/{id}/actions` và `/{id}/messages` được mô tả trong [contract](../docs/contracts/mvp-v1.md#phiên-trợ-lý-phase-89).
 Phiên lấy snapshot công thức từ gateway, tồn tại 24 giờ và giữ tối đa 100 action có operation ID/version.
-Hỏi đáp hiện trả `ASSISTANT_NOT_CONFIGURED`; điều khiển bước không cần key/LLM.
+Hỏi đáp dùng provider khi có key/config/pricing hợp lệ; thiếu cấu hình trả `ASSISTANT_NOT_CONFIGURED`, điều khiển bước không cần key/LLM.
 Web/Expo chưa có giao diện phiên; dùng client chung `getRecipeDocument`, `createSession`, `getSession`, `sessionAction`, `sessionMessage`.
 `getRecipeDocument` giữ corpus version cần cho tạo phiên; `getRecipe` cũ vẫn trả recipe như trước.
 
 `ASSISTANT_DB_PATH` mặc định là `${user.home}/.cooklens/assistant.sqlite` khi chạy Spring trực tiếp.
 Trong Compose, backend dùng `/app/data/assistant.sqlite` trên volume `assistant-sessions`.
 Schema khởi tạo khi truy cập phiên lần đầu; schema lạ hoặc lỗi ghi chỉ ảnh hưởng API trợ lý.
+Source Phase 10 dùng schema 3, migrate schema 1/2 trong transaction và giữ phiên/action/chat/replay cũ.
+`/messages` đã nối provider/context với operation pending/completed/failed; lưu reply nguyên cặp và bỏ reply khi state đã đổi/hết hạn.
+Revision phiên tính cả action và chat turn đã commit; action history có thể có khoảng trống version.
 Mỗi lần load kiểm tra snapshot và bất biến state/history trước khi trả dữ liệu hoặc ghi action; dữ liệu lưu sai trả storage 503, không tự sửa.
 Snapshot hợp lệ từ corpus cũ được giữ nguyên, không so version với manifest hiện tại khi đọc.
 Không log session ID/nội dung hội thoại hoặc chia sẻ ID phiên vì ID là quyền truy cập phiên.
 Native library SQLite được đóng gói tại `/app/sqlite` để dùng được với `/tmp` noexec và root filesystem read-only.
 
+## Adapter trợ lý (source Phase 10)
+
+`ChatProvider` có adapter Chat Completions tương thích OpenAI dùng Java HttpClient, không thêm SDK.
+`ChatContextBuilder` lấy recipe snapshot/state server, tách system instruction khỏi dữ liệu và giữ tối đa 6 cặp hội thoại gần nhất.
+Adapter/context builder đã nối `/messages`, kiểm chứng bằng HTTP provider giả.
+Context giữ nguyên recipe, thêm current instruction tách rõ; số lượng ingredients là tổng, instructions là phân bổ, dữ liệu null/ước lượng không được biến thành số chính xác.
+Các trial profile được chọn đặt temperature 0,1, không sửa top_p; Nemotron dùng thinking off, Super dùng `reasoning_effort=none`, Gemma không nhận kwargs của Nemotron.
+Ưu tiên câu trả lời ngắn, hỏi lại câu mơ hồ và tách rõ gợi ý.
+Header `Server-Timing` chỉ chứa số ms prepare/provider/persist/total để chẩn đoán, không chứa session ID hoặc nội dung.
+Compose forward config chỉ cho backend và thêm bridge egress; smoke Linux container/schema 3/restart đã qua trên Docker Desktop.
+Baseline Ultra fail latency; candidate Super hiện chạy local đã qua 50/50 HTTP/state, latency và usage, còn chờ human quality review; xem [Phase 10](../docs/plan/phase-10-llm.md).
+
+| Biến môi trường | Mặc định / giới hạn |
+| --- | --- |
+| `LLM_PROVIDER` | `openai`; giá trị khác trả `ASSISTANT_PROVIDER_UNSUPPORTED` khi dùng trợ lý |
+| `LLM_BASE_URL` | `https://integrate.api.nvidia.com/v1`; HTTPS, không credential/query/fragment; HTTP chỉ loopback cho mock hoặc local endpoint |
+| `LLM_MODEL` | `nvidia/nemotron-3-ultra-550b-a55b`, ID đối chiếu tài liệu NVIDIA |
+| `LLM_API_KEY` | Trống; chỉ cấp runtime backend, không đưa vào Git/client/image/log |
+| `LLM_TIMEOUT_SECONDS` | `20`, cho phép 1–20; connect tối đa 2 s |
+| `LLM_MAX_OUTPUT_TOKENS` | `512`, cho phép 1–512 |
+| `LLM_MAX_INPUT_TOKENS` | `6000`, cho phép 1–6000 estimated input tokens |
+
+Settings được kiểm tra khi dùng trợ lý, không làm startup/readiness ảnh/công thức thất bại do thiếu key hoặc giá trị cấu hình chat sai.
+Admission ước lượng mỗi message bằng `ceil(UTF-8 bytes / 3) + 16`, cộng 32 mỗi prompt; không dùng ước lượng này làm usage/billing thật.
+History tối đa 2.500 estimated tokens; toàn nội dung tối đa 20.000 byte UTF-8 và JSON request 64 KiB.
+Bỏ nguyên cặp history cũ để vừa trần; không cắt recipe/câu hỏi bắt buộc.
+Adapter không streaming/tools/redirect/retry/fallback; với model Nemotron 3 Ultra đặt `enable_thinking=false`.
+Response tối đa 1 MiB, chỉ nhận final content; reply rỗng/truncated/tool call, model sai hoặc usage sai bị từ chối với lỗi public cố định.
+Usage thiếu giữ null; usage hợp lệ đi kèm cả failure để orchestration có thể giữ chi phí của call thất bại hoặc stale.
+Xem [model](https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b) và [API](https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b/apireference) NVIDIA; API thật, chất lượng tiếng Việt và latency chưa được nghiệm thu.
+
+Pricing chỉ cho phép HTTPS `integrate.api.nvidia.com/v1/chat/completions` và whitelist trial: Ultra, Gemma 4 31B, Bolt E4B (canonical/staging alias), Lightning 30B-A3B và Super VL 120B-A12B.
+Whitelist billing không đồng nghĩa đã đạt chất lượng/latency: Gemma/Lightning có screen timeout, Bolt nhanh nhưng còn yếu history; xem [Phase 10](../docs/plan/phase-10-llm.md).
+Super endpoint báo model `private/nvidia/nemotron-3.5-super-120b-a12b`; chỉ pin cặp request/reported này và ghi đúng reported model, không khẳng định checkpoint/VL tương đương khi NVIDIA chưa xác nhận.
+Không tự fallback; mọi endpoint/model khác cần policy billing đã xác minh trước khi dùng chat HTTP.
+Ledger `llm_calls` lưu micro-USD và usage nullable, không prompt/reply/key; dùng key đã hash và tồn tại độc lập việc purge phiên.
+Reservation/rate admission và operation pending được nhận nguyên tử; provider chạy ngoài writer transaction, usage được lưu trước commit reply.
+Giới hạn 12 attempts/60 s/phiên gồm lỗi, không tính replay/command; tổng bốn request nghiệp vụ vẫn do RequestGuard quản lý.
+Cảnh báo $5 một lần mỗi tháng UTC qua log cố định và marker SQLite; từ chối tại $10 hoặc nếu reservation mới làm vượt $10.
+Usage thiếu giữ reservation, không suy ra 0 token/chi phí từ việc provider không trả usage.
+Các lệnh nguyên câu `bắt đầu`, `bước tiếp`, `bước trước`, `nhắc lại`, `kết thúc` sau trim/NFC/lowercase dùng chung action logic, không gọi LLM hoặc chiếm quota chat.
+Replay command phải giữ text/body/operation ID gốc; dùng lại ID qua route/body khác trả conflict.
+
 ## Docker
 
 Chạy toàn dự án từ root bằng `docker compose up`; truy cập qua http://localhost:8080/.
-Backend nằm trong mạng nội bộ, không publish cổng riêng. Dockerfile ở `backend/Dockerfile`;
+Backend nối mạng internal `application` và bridge `llm-egress`, không publish cổng riêng. Dockerfile ở `backend/Dockerfile`;
 [development.md](../docs/development.md) mô tả build source khi cần.
 
 OpenAPI/Swagger của backend giữ nội bộ. Với stack đang chạy,
