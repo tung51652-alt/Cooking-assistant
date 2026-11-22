@@ -37,8 +37,8 @@ Các quyết định bên dưới đã được người dùng chốt ngày 2026
 
 Provider/model:
 
-- Hai lựa chọn được phê duyệt: Anthropic `claude-haiku-5-5` ($0.10/$0.50 mỗi 1M tokens, trả phí) và NVIDIA Nemotron 3 Ultra (free tier / endpoint tương thích OpenAI).
-- Chính sách: chỉ kích hoạt một provider tại một thời điểm qua cấu hình runtime (không tự động fallback âm thầm sang provider khác); `LLM_API_KEY` chỉ cấp qua biến môi trường runtime ngoài Git, tài liệu plan, layer Docker image và client.
+- Người dùng chọn dùng trước NVIDIA Nemotron 3 Ultra (free tier / endpoint tương thích OpenAI); Anthropic `claude-haiku-5-5` ($0.10/$0.50 mỗi 1M tokens, trả phí) là lựa chọn trả phí đã phê duyệt.
+- Chính sách: chỉ kích hoạt một provider tại một thời điểm qua cấu hình runtime (không tự động fallback âm thầm sang provider khác); `LLM_API_KEY` chỉ cấp qua biến môi trường runtime ngoài Git, tài liệu plan, layer Docker image và client. Mẫu cấu hình mặc định cho NVIDIA Nemotron 3 Ultra đã được ghi trong [`.env.example`](../../.env.example) với `LLM_API_KEY=` để trống.
 
 Giới hạn phiên, request và ngân sách (Option 2A):
 
@@ -85,5 +85,5 @@ Provider/model/ngân sách, thiết bị Expo và tiêu chí đánh giá LLM v�
   - `Frontend design and real API / browser-and-docker`: PASS ([run 44997906862](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906862/job/137132902183)) — Playwright mocked + real API trên Compose stack.
   - `Recipes runtime / cpu-runtime`: PASS ([run 44997906857](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906857/job/137132824120)); `Mobile Expo / contracts-and-native-bundles`: PASS ([run 44997906872](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906872/job/137132824325)) sau khi cập nhật patch pins Expo SDK 58; `MVP input artifacts / verify-inputs`: PASS ([run 44997906890](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906890/job/137132824140)); `Recipe corpus / validate`: PASS ([run 44997906922](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/44997906922/job/137132824254)).
 - Rà tài liệu & bảo mật: 87 link nội bộ trong `docs/` hợp lệ (0 broken); `deploy/scripts/check_public_metadata.py` và `deploy/scripts/verify_mvp_inputs.py` PASS. PR #4 (`hung/rag`, `fea:add notebook rag`) vẫn mở ngoài scope — không sửa/merge.
-- Quyết định Phase 8 đã chốt (2026-11-22 +07): provider/model (Anthropic `claude-haiku-5-5` hoặc NVIDIA Nemotron 3 Ultra, một provider/lần qua runtime config, key ngoài Git/plan/image/client), Option 2A (timeout/output/lượt chat/rate limit/ngân sách $10/tháng), Option 3A (Android 10+ thật qua Expo Go SDK 58, không nghiệm thu iOS/emulation) và Option 4A Standard MVP (30 ca single-turn + 3 multi-turn, ngưỡng latency/pass rate/usage).
+- Quyết định Phase 8 đã chốt (2026-11-22 +07): chọn dùng trước NVIDIA Nemotron 3 Ultra (free, OpenAI-compatible; đã cung cấp mẫu trong `.env.example` với `LLM_API_KEY=` rỗng) cùng lựa chọn trả phí đã phê duyệt Anthropic `claude-haiku-5-5` (một provider/lần qua runtime config, key ngoài Git/plan/image/client), Option 2A (timeout/output/lượt chat/rate limit/ngân sách $10/tháng), Option 3A (Android 10+ thật qua Expo Go SDK 58, không nghiệm thu iOS/emulation) và Option 4A Standard MVP (30 ca single-turn + 3 multi-turn, ngưỡng latency/pass rate/usage).
 - Gates còn mở: GitHub review/approval và merge PR #21 vào `develop` (chưa đóng Phase 8 cho đến khi merge).
