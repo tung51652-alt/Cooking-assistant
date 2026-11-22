@@ -1,0 +1,24 @@
+{
+  "run_date": "2026-11-22",
+  "application_candidate": "2.0.0-rc.2",
+  "technical_acceptance_met": true,
+  "ready_for_pr_review": true,
+  "kitchen_verification_required": false,
+  "kitchen_verification_complete": false,
+  "external_recipe_review_complete": false,
+  "scope_decision": "User removed kitchen verification as a Phase 7 gate on 2026-11-22; implementation-agent recipe review is disclosed, PR review remains the handoff step.",
+  "final_release_published": false,
+  "evidence": [
+    "phase-7-vision.json",
+    "phase-7-flow.json",
+    "phase-7-runtime.json",
+    "phase-7-four-cpu.json",
+    "phase-7-regression.json",
+    "phase-7-recipe-review.json"
+  ],
+  "limitations": [
+    "Reacquired image names match the fixed split; byte identity with historical data is not established.",
+    "Four logical CPU workload tested on an eight logical CPU host; physical minimum hardware and minimum RAM are not established.",
+    "Kitchen verification removed from scope; independent recipe review is not claimed."
+  ]
+}

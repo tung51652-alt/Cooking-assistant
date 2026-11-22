@@ -326,6 +326,7 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
                 resources[service] = {
                     'image_size_bytes': image_info['Size'],
                     'memory_limit_bytes': state['HostConfig']['Memory'],
+                    'cpu_set': state['HostConfig']['CpusetCpus'],
                     'memory_peak_bytes': peaks[service],
                 }
             engine = json.loads(docker('info', '--format', '{{json .}}').stdout)

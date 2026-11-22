@@ -6,7 +6,7 @@ Hiện hỗ trợ 30 món, corpus 33 công thức; mỗi món trả tối đa ba
 
 ## Trạng thái phiên bản
 
-Phase 0–5 đã merge vào develop; Phase 6 đã phát hành bản ứng viên **2.0.0-rc.2** với bốn image public, có trọng số/model/corpus, và đã kiểm chứng pull ẩn danh trên runner sạch. [Báo cáo Phase 6](docs/phases/phase-6.md). Phase 7 và bản chính thức `v2.0.0` chưa hoàn tất.
+Phase 0–5 đã merge vào develop; Phase 6 đã phát hành bản ứng viên **2.0.0-rc.2** với bốn image public, có trọng số/model/corpus, và đã kiểm chứng pull ẩn danh trên runner sạch. [Báo cáo Phase 6](docs/phases/phase-6.md). [Phase 7 đạt nghiệm thu kỹ thuật, chờ review/merge](docs/phases/phase-7.md): CV Top-3 96,08% trên 5.004 ảnh, luồng 30 món và benchmark giới hạn 4 logical CPU đã qua; bản chính thức `v2.0.0` chưa phát hành.
 
 ## Chạy ngay bằng Docker
 

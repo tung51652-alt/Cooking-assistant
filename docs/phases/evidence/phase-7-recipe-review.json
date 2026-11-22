@@ -1,0 +1,30 @@
+{
+  "reviewed_at": "2026-11-22",
+  "reviewer": "implementation_agent",
+  "review_type": "separate_semantic_pass_same_agent",
+  "recipes": 33,
+  "dishes": 30,
+  "ai_authored_recipes": 12,
+  "schema_validation": "passed",
+  "external_review_complete": false,
+  "kitchen_verification_complete": false,
+  "checks": [
+    "Reviewed all recipe source and attribution records",
+    "Reviewed all 12 AI-authored ingredient lists and cooking instructions",
+    "Confirmed recipe variants disclose AI authorship and no kitchen verification",
+    "Confirmed nem chua recipe uses a controlled finished product, not instructions for raw fermentation"
+  ],
+  "findings": [
+    {
+      "recipe_id": "wb_banh_tet_ngu_sac",
+      "severity": "editorial",
+      "finding": "Source modification note repeats the same sentence. Published candidate is immutable; correction requires a new corpus and candidate version."
+    }
+  ],
+  "limitations": [
+    "Semantic inspection does not establish taste, actual preparation times, yield or shelf life.",
+    "Agent review is not independent external review."
+  ],
+  "kitchen_verification_required": false,
+  "scope_decision": "User removed kitchen verification from Phase 7 acceptance on 2026-11-22"
+}

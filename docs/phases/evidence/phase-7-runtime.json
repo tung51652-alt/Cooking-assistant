@@ -1,0 +1,69 @@
+{
+  "application_candidate": "2.0.0-rc.2",
+  "public_api_version": "1.0.0",
+  "images": {
+    "backend": "trantung2006/cooklens-backend:2.0.0-rc.2",
+    "frontend": "trantung2006/cooklens-frontend:2.0.0-rc.2",
+    "qdrant": "qdrant/qdrant:v1.19.2",
+    "recipe-init": "trantung2006/cooklens-recipes:2.0.0-rc.2",
+    "recipes": "trantung2006/cooklens-recipes:2.0.0-rc.2",
+    "vision": "trantung2006/cooklens-vision:2.0.0-rc.2"
+  },
+  "registry_pull_verified": false,
+  "registry_pull_seconds": null,
+  "artifact_versions_match": true,
+  "host": {
+    "logical_cpus": 8,
+    "memory_bytes": 8150302720,
+    "architecture": "x86_64",
+    "os": "linux"
+  },
+  "compose_version": "5.7.0",
+  "standalone_compose_without_source_mounts": true,
+  "fresh_volume_seed": true,
+  "repeat_seed_and_restart_persisted": true,
+  "version_upgrade_and_rollback": true,
+  "invalid_bundle_rejected": true,
+  "catalog_dishes_searched": 30,
+  "dependency_stop_recovery": true,
+  "offline_full_flow_through_frontend": true,
+  "only_frontend_published_on_loopback": true,
+  "cold_start_seconds": 37.336,
+  "seed_seconds": 1.278,
+  "warm_sequential_samples": 100,
+  "vision_median_seconds": 0.111,
+  "vision_max_seconds": 0.189,
+  "vision_p95_seconds": 0.16143219400009912,
+  "search_median_seconds": 0.065,
+  "search_max_seconds": 0.098,
+  "search_p95_seconds": 0.08870779200003653,
+  "warm_latency_targets_passed": true,
+  "services": {
+    "qdrant": {
+      "image_size_bytes": 285582337,
+      "memory_limit_bytes": 536870912,
+      "memory_peak_bytes": 74551296
+    },
+    "vision": {
+      "image_size_bytes": 1577484912,
+      "memory_limit_bytes": 1073741824,
+      "memory_peak_bytes": 558616576
+    },
+    "recipes": {
+      "image_size_bytes": 2469646173,
+      "memory_limit_bytes": 2147483648,
+      "memory_peak_bytes": 787546112
+    },
+    "backend": {
+      "image_size_bytes": 459001233,
+      "memory_limit_bytes": 536870912,
+      "memory_peak_bytes": 314122240
+    },
+    "frontend": {
+      "image_size_bytes": 93489914,
+      "memory_limit_bytes": 134217728,
+      "memory_peak_bytes": 16474112
+    }
+  },
+  "limitations": "CI CPU candidate sample, not minimum hardware or full release acceptance. P95 is reported only with at least 100 samples; the image is a smoke fixture, not an accuracy dataset. Images available locally; clean registry pull remains deferred. Memory peaks are per-service maxima across sampled container instances, not a simultaneous whole-stack peak."
+}

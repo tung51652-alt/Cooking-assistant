@@ -1,0 +1,36 @@
+{
+  "run_date": "2026-11-22",
+  "deploy_unit_tests": {
+    "passed": 28
+  },
+  "data_unit_tests": {
+    "passed": 7
+  },
+  "backend_java21_maven_tests": {
+    "passed": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "frontend_build": "passed",
+  "frontend_mocked_browser_tests": {
+    "passed": 20,
+    "projects": [
+      "desktop",
+      "mobile"
+    ]
+  },
+  "published_candidate_real_browser_tests": {
+    "passed": 10,
+    "projects": [
+      "desktop",
+      "mobile"
+    ],
+    "additional_cases": [
+      "non-food photo retains limitations and explicit confirmation",
+      "two-dish collage retains limitations and explicit confirmation"
+    ]
+  },
+  "metadata_scan": "passed",
+  "limitations": "Source tests supplement published-image acceptance; mocked browser cases do not prove real model quality."
+}

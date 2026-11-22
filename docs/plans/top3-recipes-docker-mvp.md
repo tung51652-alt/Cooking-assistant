@@ -414,6 +414,11 @@ Runbook phải ghi phiên bản Compose đã test có hỗ trợ các option nà
 
 ## 11. Phase 7 — Nghiệm thu end-to-end
 
+Tiến độ ngày 2026-11-22 và bằng chứng chạy lại: [báo cáo Phase 7](../phases/phase-7.md).
+Các mục kỹ thuật được đánh dấu theo kiểm thử thực tế. Ngày 2026-11-22, người dùng
+bỏ yêu cầu thử nấu khỏi nghiệm thu; không tiếp tục dùng thử nấu làm gate Phase 7.
+Review/merge PR và release chính thức vẫn theo luồng bàn giao hiện hành.
+
 Nhánh: `feature/mvp-acceptance` từ `develop` đã tích hợp; bug sửa tại nhánh service tương ứng và PR lại. Chỉ hoàn tất milestone sau test từ image phát hành.
 
 Nguyên tắc phối hợp: nghiệm thu bằng một bộ version tương thích, cùng thiết bị CPU và tập dữ liệu đã ghi nhận. Các ngưỡng dưới đây là mục tiêu đề xuất để chốt ở Phase 0; thay đổi phải có lý do và được ghi trước chạy nghiệm thu cuối.
@@ -430,21 +435,21 @@ Nguyên tắc phối hợp: nghiệm thu bằng một bộ version tương thíc
 | Khởi động | Máy sạch pull và up thành công; cold start/seed có số đo riêng, readiness không báo thành công sớm |
 | Offline | Sau pull, không cần API LLM, model hub hoặc tải checkpoint ngoài image để upload/chọn món/tra recipe |
 
-- [ ] Chạy tối thiểu 30 ảnh đại diện có quyền dùng, lưu expected assertions; kiểm thử upload → Top-3 → đổi món → recipe → detail.
-- [ ] Kiểm thử confidence thấp/món ngoài miền, ảnh nhiều món, file giả/ảnh lỗi/quá lớn; UI không tuyên bố model đã phát hiện món ngoài 30 lớp.
-- [ ] Kiểm thử đổi ảnh liên tục, response về sai thứ tự, retry, món rỗng và tên alias; không giữ kết quả cũ dưới lựa chọn mới.
-- [ ] Dừng/restart vision, recipes và Qdrant; backend/UI trả lỗi rõ ràng và hoạt động lại sau dependency hồi phục.
-- [ ] Khởi động volume mới, restart giữ volume, nâng corpus version, lỗi seed và rollback về release trước; kiểm chứng cặp image/index tương thích khi rollback.
-- [ ] Kiểm tra không lộ token, path máy dev, ảnh gốc trong logs, checkpoint trong Git hoặc runtime tải model ngầm.
-- [ ] Lưu báo cáo CV/retrieval/latency/resources, image version/tag và video/screenshot luồng UI trong tài liệu release.
-- [ ] Cập nhật README/checklist theo bằng chứng đã có, hướng dẫn lấy artifact cho developer và lệnh chạy cho người dùng.
+- [x] Chạy tối thiểu 30 ảnh đại diện có quyền dùng, lưu expected assertions; kiểm thử upload → Top-3 → đổi món → recipe → detail. Dùng 30 entry test cố định từ nguồn CC BY-NC-SA cho đánh giá cục bộ; luồng API đủ 30 lớp và browser desktop/mobile thật ghi riêng.
+- [x] Kiểm thử confidence thấp/món ngoài miền, ảnh nhiều món, file giả/ảnh lỗi/quá lớn; UI không tuyên bố model đã phát hiện món ngoài 30 lớp. Có 3 ảnh đại diện confidence dưới 0,3; thêm ảnh chó, ảnh ghép hai món và HTTP 400/413 trên bộ image thật.
+- [x] Kiểm thử đổi ảnh liên tục, response về sai thứ tự, retry, món rỗng và tên alias; không giữ kết quả cũ dưới lựa chọn mới. Fault/race được kiểm soát bằng API mô phỏng trong 20 browser cases; alias/catalog được kiểm tra với service thật.
+- [x] Dừng/restart vision, recipes và Qdrant; backend/UI trả lỗi rõ ràng và hoạt động lại sau dependency hồi phục. Bằng chứng runtime bộ image phát hành.
+- [x] Khởi động volume mới, restart giữ volume, nâng corpus version, lỗi seed và rollback về release trước; kiểm chứng cặp image/index tương thích khi rollback. Bằng chứng runtime dùng volume riêng, không can thiệp dữ liệu người dùng.
+- [x] Kiểm tra không lộ token, path máy dev, ảnh gốc trong logs, checkpoint trong Git hoặc runtime tải model ngầm. Scanner source/evidence, rà các lệnh ghi log và danh sách file Git, kiểm thử offline trên image ứng viên; phạm vi binary upstream giữ giới hạn audit Phase 6.
+- [x] Lưu báo cáo CV/retrieval/latency/resources, image version/tag và video/screenshot luồng UI trong tài liệu release. Báo cáo Phase 7 liên kết JSON và bốn ảnh UI, dùng chính ứng viên `2.0.0-rc.2`.
+- [x] Cập nhật README/checklist theo bằng chứng đã có, hướng dẫn lấy artifact cho developer và lệnh chạy cho người dùng. Runbook registry hiện hành được giữ; bổ sung runner và workflow nghiệm thu có thể chạy lại.
 
 ### Kết thúc Phase 7
 
 - [ ] Sau khi đủ gate chất lượng, promote bộ image ứng viên đã nghiệm thu sang tag `2.0.0` mà không rebuild, cập nhật Compose/notes và pull kiểm tra lại bộ cuối; chỉ sau đó công bố GitHub application release `v2.0.0`. Phase 6 chỉ phát hành prerelease để không gọi bản chưa nghiệm thu là release v2 hoàn chỉnh.
 
-- [ ] Rà tổng thể file thừa/test tạm và artifacts qua tất cả PR theo [cổng chung](#phase-closeout); giữ bộ test hồi quy và bằng chứng cần thiết, không xóa tài liệu/test hữu ích để làm sạch hình thức.
-- [ ] Chạy lại rà secrets và mọi giá trị mã/hash trên phạm vi commit sẽ phát hành, source, docs, fixtures, bundles và image cuối; báo kết quả/giới hạn, không in giá trị bí mật.
+- [x] Rà tổng thể file thừa/test tạm và artifacts qua tất cả PR theo [cổng chung](#phase-closeout); giữ bộ test hồi quy và bằng chứng cần thiết, không xóa tài liệu/test hữu ích để làm sạch hình thức. Thay đổi Phase 7 chỉ gồm runner, tests, workflow, tài liệu và bằng chứng; ảnh dataset/ZIP giữ ngoài Git.
+- [x] Chạy lại rà secrets và mọi giá trị mã/hash trên phạm vi commit sẽ phát hành, source, docs, fixtures, bundles và image cuối; báo kết quả/giới hạn, không in giá trị bí mật. Scanner toàn bộ file được stage/track; scanner bundle frontend trong kiểm thử image thật. Không build/promote bộ image khác ở bước này; audit phần binary upstream vẫn theo giới hạn Phase 6.
 - [ ] Tạo PR nghiệm thu và gửi báo cáo; người dùng merge, agent fetch xác nhận `origin/develop`, chỉ sau đó mới chuẩn bị PR release lên `main` để người dùng quyết định merge.
 
 Điều kiện kết thúc: tất cả gate đã chốt đạt trên release thực; các hạn chế còn lại được ghi cụ thể. Người dùng merge PR để `develop` chứa phiên bản tích hợp đã nghiệm thu trước khi đề xuất release lên `main`.

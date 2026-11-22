@@ -8,6 +8,7 @@ Nguồn tham chiếu chung cho quyết định kỹ thuật, dữ liệu, thí n
 - [Frontend và Phase 4](phases/phase-4.md): nguồn Stitch đúng, giao diện Docker và kiểm thử desktop/mobile với AI thật.
 - [Docker và Phase 5](phases/phase-5.md): Compose độc lập, candidate có version, lifecycle và kiểm tra offline.
 - [Registry và Phase 6](phases/phase-6.md): image public, runner pull sạch, gói prerelease, số đo và giới hạn.
+- [Nghiệm thu Phase 7](phases/phase-7.md): kiểm thử image phát hành, 30 luồng ảnh, retrieval, benchmark CPU và các gate chất lượng còn mở.
 - [Chạy gói Docker Hub](runbooks/registry.md): chỉ cần Docker, không cần source/trọng số riêng.
 - [Runbook Docker](runbooks/docker.md): build/chạy, dev/debug, volume, nâng/rollback và giới hạn phát hành.
 - [Contract MVP v1](contracts/mvp-v1.md): API public/nội bộ, errors, timeout, upload và quy tắc xếp hạng.

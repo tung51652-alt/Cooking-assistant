@@ -2,17 +2,20 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { resolve } from 'node:path';
+import { mkdir } from 'node:fs/promises';
 
 const photo = resolve('../ai/cv/inference/tests/fixtures/food.png');
 async function capture(page: Page, name: string) {
   if (process.env.COOKLENS_CAPTURE_BASELINES === '1') {
     await page.evaluate(() => document.fonts.ready);
-    await page.screenshot({ path: `docs/${name}.png`, fullPage: true });
+    const directory = process.env.COOKLENS_CAPTURE_DIRECTORY || 'docs';
+    await mkdir(directory, { recursive: true });
+    await page.screenshot({ path: resolve(directory, `${name}.png`), fullPage: true });
   }
 }
-async function recognize(page: Page) {
+async function recognize(page: Page, imagePath = photo) {
   await page.goto('/');
-  await page.locator('#imageInput').setInputFiles(photo);
+  await page.locator('#imageInput').setInputFiles(imagePath);
   const response = page.waitForResponse(r => r.url().endsWith('/api/vision/predict') && r.request().method() === 'POST');
   await page.locator('#predictBtn').click();
   const result = await response;
@@ -48,6 +51,19 @@ test('real photo, explicit second prediction, recipes and complete detail', asyn
   if (info.project.name === 'desktop') await capture(page, 'recipe-desktop');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+for (const [name, variable] of [['out-of-domain', 'COOKLENS_OOD_IMAGE'], ['multiple-dish', 'COOKLENS_MULTI_IMAGE']]) {
+  test(`${name} photo keeps model limitations and explicit confirmation`, async ({ page }) => {
+    test.skip(!process.env[variable], 'External acceptance photo supplied only by the acceptance runner');
+    await recognize(page, process.env[variable]!);
+    await expect(page.locator('.privacy-note')).toContainText('Model hỗ trợ 30 món Việt');
+    await expect(page.locator('.privacy-note')).toContainText('ngoài danh mục');
+    await expect(page.locator('#confidence')).toContainText('không phải xác nhận món ăn');
+    await expect(page.locator('#confirmButton')).toBeDisabled();
+    await page.getByRole('button', { name: 'Sửa món trong danh mục' }).click();
+    await expect(page.locator('#dishSelect option')).toHaveCount(31);
+  });
+}
 
 test('real catalog correction, scoped query, and disclosed AI-authored recipe', async ({ page }) => {
   await recognize(page);
