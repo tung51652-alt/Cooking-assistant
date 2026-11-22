@@ -175,7 +175,7 @@ class GatewayIntegrationTest {
         error(get("/api/recipes/INVALID"),422,"VALIDATION_ERROR");
         mode="missing"; error(get("/api/recipes/missing"),404,"RECIPE_NOT_FOUND"); mode="normal";
         var spec=body(get("/v3/api-docs")); assertEquals("1.0.0",spec.path("info").path("version").asText());
-        assertEquals(5,spec.path("paths").size());
+        assertEquals(9,spec.path("paths").size());
         for (String path:List.of("/api/vision/predict","/api/recipes/search","/api/dishes","/api/recipes/{id}","/api/health")) {
             var operation=spec.path("paths").path(path).path(path.contains("predict") || path.endsWith("search") ? "post" : "get");
             assertTrue(operation.path("responses").has("200"),path);
