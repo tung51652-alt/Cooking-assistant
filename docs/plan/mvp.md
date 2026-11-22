@@ -1,7 +1,7 @@
 # Lộ trình hoàn thiện và release MVP
 
 Phạm vi đích: ảnh → Top-3 → xác nhận món → công thức → trò chuyện/hướng dẫn nấu.
-Phần ảnh/công thức đã có số đo; trợ lý chưa triển khai.
+Phần ảnh/công thức đã có số đo; source có API phiên/bước nấu kiểm chứng local, chat/provider/giao diện chưa triển khai.
 Nối tiếp các phase trước, Phase 8–14 dưới đây là kế hoạch còn lại, chưa được đánh dấu hoàn thành.
 
 ## Thứ tự thực hiện

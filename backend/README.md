@@ -10,7 +10,10 @@ Java 21, Spring Boot 3.5.16, Maven 3.9.11, springdoc 2.9.1; multipart streaming 
 - `config`: tải manifest/taxonomy từ cùng file nguồn của AI, CORS allowlist, nonblocking receive guard và probe Docker chỉ dùng JDK.
 - `exception`: status/code/message public, không trả message/stack/path upstream.
 
-Không thêm database, JPA, tài khoản, lưu ảnh, chatbot hoặc state xác nhận. Hai AI service không gọi ngược backend. Không hardcode danh mục món trong Java; Maven đưa hai file authoritative vào classpath khi build.
+Phiên nấu dùng SQLite JDBC 3.51.0.0, không thêm JPA hoặc container database.
+Không thêm tài khoản, lưu ảnh hoặc state xác nhận.
+Hai AI service không gọi ngược backend.
+Không hardcode danh mục món trong Java; Maven đưa hai file authoritative vào classpath khi build.
 
 ## Chạy local
 
@@ -25,6 +28,22 @@ VISION_URL=http://127.0.0.1:8000 RECIPES_URL=http://127.0.0.1:8001 \
 Swagger: http://127.0.0.1:8080/swagger-ui/index.html. OpenAPI sinh từ controller/DTO tại `/v3/api-docs`; không duy trì YAML riêng. Routes `/api/vision/predict`, `/api/dishes`, `/api/recipes/search`, `/api/recipes/{id}`, `/api/health`. Frontend vẫn dùng `/api` relative; Phase 4 nối và nghiệm thu UI.
 
 Release dùng cùng origin; mặc định CORS trống. Nếu chạy Vite khác origin, đặt `CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173`. Không wildcard/credentials. Không tin Forwarded headers từ caller; reverse proxy Nginx được cấu hình trong Compose gốc.
+
+## Phiên nấu (source Phase 9)
+
+`/api/assistant/sessions`, `/{id}`, `/{id}/actions` và `/{id}/messages` được mô tả trong [contract](../docs/contracts/mvp-v1.md#phiên-trợ-lý-phase-89).
+Phiên lấy snapshot công thức từ gateway, tồn tại 24 giờ và giữ tối đa 100 action có operation ID/version.
+Hỏi đáp hiện trả `ASSISTANT_NOT_CONFIGURED`; điều khiển bước không cần key/LLM.
+Web/Expo chưa có giao diện phiên; dùng client chung `getRecipeDocument`, `createSession`, `getSession`, `sessionAction`, `sessionMessage`.
+`getRecipeDocument` giữ corpus version cần cho tạo phiên; `getRecipe` cũ vẫn trả recipe như trước.
+
+`ASSISTANT_DB_PATH` mặc định là `${user.home}/.cooklens/assistant.sqlite` khi chạy Spring trực tiếp.
+Trong Compose, backend dùng `/app/data/assistant.sqlite` trên volume `assistant-sessions`.
+Schema khởi tạo khi truy cập phiên lần đầu; schema lạ hoặc lỗi ghi chỉ ảnh hưởng API trợ lý.
+Mỗi lần load kiểm tra snapshot và bất biến state/history trước khi trả dữ liệu hoặc ghi action; dữ liệu lưu sai trả storage 503, không tự sửa.
+Snapshot hợp lệ từ corpus cũ được giữ nguyên, không so version với manifest hiện tại khi đọc.
+Không log session ID/nội dung hội thoại hoặc chia sẻ ID phiên vì ID là quyền truy cập phiên.
+Native library SQLite được đóng gói tại `/app/sqlite` để dùng được với `/tmp` noexec và root filesystem read-only.
 
 ## Docker
 

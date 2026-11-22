@@ -17,6 +17,9 @@ Nó phản ánh kết quả đang có trong repository, không thay thế issue,
 
 ### Added
 
+- Source backend có API phiên nấu lưu SQLite, snapshot recipe/version, điều khiển bước và chống request trùng/ghi đè state.
+- Bổ sung contract/OpenAPI/type/client phiên dùng chung cho web và Expo; messages trả lỗi chưa cấu hình cho tới Phase 10.
+- Thêm volume phiên và native library SQLite trong image backend; kiểm chứng Docker còn mở.
 - Bổ sung kết quả nghiệm thu nhận diện, retrieval, latency và tài nguyên trong `docs/acceptance.md`.
 - Bổ sung kế hoạch Phase 8–14 với checklist triển khai, kiểm thử và release MVP có trợ lý qua API LLM.
 - Bổ sung workflow chung tại `docs/WORKFLOW.md` và cấu hình cổng/IP tùy chọn trong `.env.example`.

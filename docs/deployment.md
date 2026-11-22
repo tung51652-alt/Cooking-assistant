@@ -67,3 +67,19 @@ Giữ notices khi phân phối. Không đưa ảnh gốc, credential hoặc log 
 
 Gói `2.0.0-rc.2` đã phát hành trước đợt tổ chức này còn dùng tên file
 `compose.release.yaml`; chạy bằng `docker compose -f compose.release.yaml up` trong gói cũ.
+
+## SQLite phiên nấu trong source mới
+
+Image `2.0.0-rc.2` chưa chứa API phiên; cần build backend từ source theo [development.md](development.md) để thử phần này.
+Compose vẫn một project `cooklens`, thêm volume `assistant-sessions` tại `/app/data` của backend.
+Dockerfile tạo thư mục với UID/GID 10001 và quyền 0700; root filesystem giữ read-only.
+`ASSISTANT_DB_PATH=/app/data/assistant.sqlite` do Compose cấp, không publish thêm cổng.
+Native SQLite library nằm ở `/app/sqlite`, load bằng `org.sqlite.lib.path`, không giải nén thư viện vào `/tmp` noexec.
+Các điều kiện Linux/non-root/volume này chưa được chạy Docker trong lần triển khai local Phase 8–9 vì máy thiếu Docker.
+
+`docker compose down` giữ cả index và phiên; `down -v` xóa cả hai nên không dùng để rollback.
+Khi backup, dừng backend và sao lưu toàn bộ volume `assistant-sessions` bằng công cụ quản trị volume, giữ bản riêng trước mỗi nâng schema.
+Khôi phục bằng cách dừng backend, phục hồi nguyên volume cùng quyền UID/GID, rồi chạy đúng image/schema tương thích.
+Không copy riêng file database khi backend đang ghi.
+Schema hiện tại là 1; schema khác bị từ chối tại API phiên, không tự xóa/hạ schema hoặc làm hỏng readiness ảnh/công thức.
+Khi rollback về image cũ chưa hỗ trợ phiên, giữ nguyên backup/volume để nâng lại; không tuyên bố image cũ có thể đọc phiên.

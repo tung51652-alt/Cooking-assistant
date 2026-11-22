@@ -5,7 +5,9 @@ import json
 import os
 from pathlib import Path
 import socket
+import sqlite3
 import subprocess
+import tempfile
 import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -48,10 +50,10 @@ def run(args):
                 assert payload['api_version'] == '1.0.0' and payload['request_id'] == identifier
             return payload
 
-    def internal_request(path):
+    def internal_request(path, service='recipes'):
         # Swagger and liveness remain internal; no extra host ports or Compose overlay.
         script = "from urllib.request import urlopen; import json,sys; print(json.dumps(json.load(urlopen('http://backend:8080'+sys.argv[1],timeout=5))))"
-        return json.loads(command('exec', '-T', 'recipes', 'python', '-c', script, path))
+        return json.loads(command('exec', '-T', service, 'python', '-c', script, path))
 
     def ready():
         deadline = time.monotonic() + 90
@@ -99,7 +101,7 @@ def run(args):
         bad, mime = image(b'not an image')
         assert request('/api/vision/predict', bad, mime, 400)['code'] == 'INVALID_IMAGE'
         spec = internal_request('/v3/api-docs')
-        assert spec['info']['version'] == '1.0.0' and len(spec['paths']) == 5
+        assert spec['info']['version'] == '1.0.0' and len(spec['paths']) == 9
         command('exec', '-T', 'recipes', 'python', '-c',
                 "from urllib.request import urlopen; assert urlopen('http://backend:8080/swagger-ui/index.html').status == 200")
 
@@ -114,15 +116,83 @@ def run(args):
         command('stop', 'recipes')
         assert search(selected, expected=503)['code'] == 'DEPENDENCY_NOT_READY'
         request('/api/recipes/' + detail['id'], expected=503)
-        internal_request('/actuator/health/liveness')
+        internal_request('/actuator/health/liveness', service='vision')
         command('start', 'recipes')
         ready()
+
+        def post_json(path, payload, expected=200):
+            return request(path, json.dumps(payload).encode(), 'application/json', expected)
+
+        created = post_json('/api/assistant/sessions', {
+            'recipe_id': detail['id'],
+            'corpus_version': chosen['corpus_version'],
+            'operation_id': str(uuid4()),
+        })['session']
+        session_id = created['id']
+        assert created['recipe']['id'] == detail['id']
+        assert created['corpus_version'] == chosen['corpus_version']
+        assert created['status'] == 'ready' and created['current_step'] == 0 and created['version'] == 0
+        assert created['total_steps'] == len(detail['instructions']) and created['messages'] == []
+
+        started = post_json(f'/api/assistant/sessions/{session_id}/actions', {
+            'action': 'start',
+            'expected_version': 0,
+            'operation_id': str(uuid4()),
+        })['session']
+        assert started['status'] == 'cooking' and started['current_step'] == 1 and started['version'] == 1
+        assert len(started['history']) == 1 and started['history'][0]['action'] == 'start'
+
+        msg_err = post_json(f'/api/assistant/sessions/{session_id}/messages', {
+            'text': 'Can I adjust the seasoning?',
+            'expected_version': 1,
+            'operation_id': str(uuid4()),
+        }, expected=503)
+        assert msg_err['code'] == 'ASSISTANT_NOT_CONFIGURED'
+        before_restart = request(f'/api/assistant/sessions/{session_id}')['session']
+        assert before_restart['version'] == 1 and before_restart['current_step'] == 1
+        assert before_restart['status'] == 'cooking' and before_restart['messages'] == []
+        assert len(before_restart['history']) == 1
 
         backend = command('ps', '-q', 'backend')
         def docker(*parts):
             return subprocess.check_output(['docker', *parts], text=True).strip()
         assert docker('inspect', '--format', '{{.Config.User}}', backend) == '10001:10001'
         assert docker('inspect', '--format', '{{.HostConfig.ReadonlyRootfs}}', backend) == 'true'
+        assert docker('exec', backend, 'id', '-u') == '10001'
+        assert docker('exec', backend, 'id', '-g') == '10001'
+        assert subprocess.run(['docker', 'exec', backend, 'sh', '-c', 'touch /app/ro-check 2>/dev/null'],
+                              capture_output=True).returncode != 0
+        mounts = json.loads(docker('inspect', '--format', '{{json .Mounts}}', backend))
+        data_mount = next(m for m in mounts if m['Destination'] == '/app/data')
+        assert data_mount['Type'] == 'volume' and data_mount['RW'] is True and data_mount['Name']
+        db_stat = docker('exec', backend, 'stat', '-c', '%u:%g %s', '/app/data/assistant.sqlite').split()
+        assert db_stat[0] == '10001:10001' and int(db_stat[1]) > 0
+        with tempfile.TemporaryDirectory(prefix='cooklens-sqlite-check-') as tmpdir:
+            subprocess.run(['docker', 'cp', backend + ':/app/data/.', tmpdir], check=True, capture_output=True)
+            with sqlite3.connect(Path(tmpdir) / 'assistant.sqlite') as conn:
+                schema_version = conn.execute('PRAGMA user_version').fetchone()[0]
+                assert schema_version == 1, schema_version
+
+        command('restart', 'backend')
+        ready()
+        backend = command('ps', '-q', 'backend')
+        after_mounts = json.loads(docker('inspect', '--format', '{{json .Mounts}}', backend))
+        after_data_mount = next(m for m in after_mounts if m['Destination'] == '/app/data')
+        assert after_data_mount['Name'] == data_mount['Name']
+        after_restart = request(f'/api/assistant/sessions/{session_id}')['session']
+        assert after_restart['id'] == session_id and after_restart['version'] == 1
+        assert after_restart['status'] == 'cooking' and after_restart['current_step'] == 1
+        assert after_restart['recipe']['id'] == detail['id']
+        assert after_restart['corpus_version'] == chosen['corpus_version']
+        assert len(after_restart['history']) == 1
+        expected_next_step = 2 if after_restart['total_steps'] > 1 else 1
+        advanced = post_json(f'/api/assistant/sessions/{session_id}/actions', {
+            'action': 'next',
+            'expected_version': 1,
+            'operation_id': str(uuid4()),
+        })['session']
+        assert advanced['version'] == 2 and advanced['status'] == 'cooking'
+        assert advanced['current_step'] == expected_next_step and len(advanced['history']) == 2
         for service in ('vision', 'recipes', 'qdrant'):
             identifier = command('ps', '-q', service)
             assert json.loads(docker('inspect', '--format', '{{json .HostConfig.PortBindings}}', identifier)) in ({}, None)
@@ -163,6 +233,10 @@ assert recipe['normalized_dish']==dish and recipe['ingredients'] and recipe['ins
                   'request_ids_preserved': True, 'only_frontend_published_on_loopback': True,
                   'ai_services_only_internal_networks': True, 'full_flow_without_external_network': True, 'backend_non_root': True,
                   'backend_read_only': True, 'backend_memory_peak_bytes': peak,
+                  'assistant_sqlite_volume_persisted': True,
+                  'assistant_sqlite_schema_version': schema_version,
+                  'assistant_restart_survived': True,
+                  'assistant_messages_unconfigured_503_no_mutation': True,
                   'limitation': 'Integration smoke; not a throughput benchmark or independent recipe evaluation.'}
         if args.report:
             args.report.parent.mkdir(parents=True, exist_ok=True)

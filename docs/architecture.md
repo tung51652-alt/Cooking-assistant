@@ -52,14 +52,18 @@ bundle vector tạo trước khi build image. Init kiểm tra version và giữ 
 Spring sinh OpenAPI tại `/v3/api-docs`; client dùng [schema TypeScript sinh tự động](../frontend/src/generated/api.d.ts).
 Web và Expo chia sẻ [client API](../packages/cooklens-api/).
 
-Chưa có PostgreSQL/JPA hoặc LangGraph trong runtime. State xác nhận nằm ở client;
+Chưa có PostgreSQL/JPA hoặc LangGraph trong runtime.
+Source backend có SQLite schema v1 lưu phiên nấu và snapshot recipe; điều khiển bước độc lập LLM.
+Volume `assistant-sessions` chỉ backend ghi, native SQLite library nằm trong image để không phụ thuộc `/tmp` executable.
+State xác nhận nằm ở client;
 đổi ảnh/món hoặc điều hướng phải hủy và bỏ qua response cũ.
 Giao diện dùng font/icon local; không chạy HTML demo hoặc CDN của nguồn thiết kế.
 
 ## Bổ sung cho MVP tiếp theo — chưa triển khai
 
 Chat/hướng dẫn đi qua backend hiện có → adapter API Gemini/OpenAI/Anthropic.
-Backend quản lý phiên và bước nấu; dự kiến lưu SQLite trong volume backend.
+Source backend đã có API phiên/bước nấu với SQLite trong volume backend; image `2.0.0-rc.2` chưa có phần này.
+Route messages đã chốt contract nhưng hiện trả 503 chưa cấu hình; adapter/provider thuộc Phase 10.
 Không thêm service chat riêng; giữ một Compose. Cần cấp key server và đường mạng
 ra API LLM; phần nhận diện/tra công thức vẫn hoạt động khi LLM không sẵn sàng.
 Contract và thứ tự triển khai ở [plan/assistant.md](plan/assistant.md).

@@ -42,6 +42,7 @@ springdoc:
     path: /swagger-ui.html
   paths-to-match: /api/**
 cooklens:
+  assistant-db-path: ${ASSISTANT_DB_PATH:${user.home}/.cooklens/assistant.sqlite}
   vision-url: ${VISION_URL:http://127.0.0.1:8000}
   recipes-url: ${RECIPES_URL:http://127.0.0.1:8001}
   cors-origins: ${CORS_ORIGINS:}

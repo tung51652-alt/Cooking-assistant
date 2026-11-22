@@ -2,7 +2,9 @@
 
 ## Mục tiêu và trạng thái
 
-Bổ sung vào phạm vi MVP theo yêu cầu người dùng ngày 2026-11-22; **chưa triển khai**.
+Bổ sung vào phạm vi MVP theo yêu cầu người dùng ngày 2026-11-22.
+Source Phase 9 đã có API phiên/bước nấu lưu SQLite và kiểm chứng local; chat/provider và giao diện web/Expo chưa triển khai.
+Image `2.0.0-rc.2` chưa có phần mở rộng này; gate Phase 8–9 còn mở.
 Luồng đích: ảnh → xác nhận món → chọn công thức → hỏi đáp và hướng dẫn từng bước.
 Dùng API LLM có sẵn, không huấn luyện/chạy model hội thoại local.
 
@@ -43,7 +45,7 @@ Không tự chuyển provider khi lỗi.
   Nếu nhận lệnh chuyển bước qua chat, chỉ cập nhật sau khi ánh xạ/kiểm tra action hợp lệ; không vượt bước đầu/cuối.
 - Công thức gốc là nguồn chuẩn.
   Gợi ý bổ sung phải ghi rõ; thiếu dữ kiện thì hỏi lại, không tự tạo nguồn, định lượng hoặc thời gian như thể có trong công thức.
-- Dự kiến SQLite một file trong volume backend để lưu phiên, không thêm container database.
+- SQLite một file trong volume backend lưu phiên, không thêm container database.
   State tối thiểu: session ID khó đoán, recipe ID/version, bước hiện tại, trạng thái, hội thoại và thời điểm cập nhật.
 - Client giữ ID phiên để khôi phục; đổi công thức tạo phiên mới.
   Cần giới hạn độ dài/tuổi phiên, xử lý lệnh gửi trùng và chặn response muộn thay đổi phiên/bước mới.
