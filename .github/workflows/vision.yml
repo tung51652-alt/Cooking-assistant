@@ -7,7 +7,7 @@ on:
       - 'data/processed/**'
       - 'docs/contracts/fixtures/vision-predict.json'
       - 'deploy/artifacts/**'
-      - 'deploy/docker/Dockerfile.vision'
+      - 'ai/cv/Dockerfile'
       - 'deploy/scripts/smoke_vision_container.py'
       - '.dockerignore'
       - '.github/workflows/vision.yml'
@@ -18,7 +18,7 @@ on:
       - 'data/processed/**'
       - 'docs/contracts/fixtures/vision-predict.json'
       - 'deploy/artifacts/**'
-      - 'deploy/docker/Dockerfile.vision'
+      - 'ai/cv/Dockerfile'
       - 'deploy/scripts/smoke_vision_container.py'
       - '.dockerignore'
       - '.github/workflows/vision.yml'
@@ -53,6 +53,6 @@ jobs:
           python -m unittest discover -s data/tests -v
           python -m unittest discover -s ai/cv/inference/tests -v
       - name: Build experimental CPU image
-        run: docker build -f deploy/docker/Dockerfile.vision -t cooklens-vision:phase1 .
+        run: docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
       - name: Verify offline read-only image
-        run: python3 deploy/scripts/smoke_vision_container.py
+        run: python3 deploy/scripts/smoke_vision_container.py --image cooklens-vision:local

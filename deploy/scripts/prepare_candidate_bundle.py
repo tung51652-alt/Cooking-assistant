@@ -77,7 +77,7 @@ def prepare(config, output):
         'images_included': False,
     }
     sources = {
-        'README.md': 'docs/runbooks/candidate.md',
+        'README.md': 'deploy/artifacts/candidate-guide.md',
         'notices/vision-model-v1.md': 'deploy/artifacts/vision-model-v1.md',
         'notices/torchvision-LICENSE.txt': 'deploy/artifacts/notices/torchvision-LICENSE.txt',
         'notices/embedding-model-v1.md': 'deploy/artifacts/embedding-model-v1.md',
@@ -88,7 +88,7 @@ def prepare(config, output):
     for notice in ('Epilogue-OFL.txt', 'Plus-Jakarta-Sans-OFL.txt', 'Phosphor-MIT.txt', 'React-MIT.txt'):
         sources['notices/' + notice] = 'frontend/public/notices/' + notice
     texts = {target: (ROOT / source).read_text(encoding='utf-8') for target, source in sources.items()}
-    texts['compose.release.yaml'] = json.dumps(config, ensure_ascii=False, indent=2) + '\n'
+    texts['compose.yaml'] = json.dumps(config, ensure_ascii=False, indent=2) + '\n'
     texts['candidate.json'] = json.dumps(metadata, ensure_ascii=False, indent=2) + '\n'
     texts['RELEASE_NOTES.md'] = (
         f'# CookLens candidate {version}\n\n'

@@ -1,8 +1,8 @@
 # CookLens frontend
 
-React/TypeScript/Vite cho luồng ảnh → Top-3 → xác nhận/sửa món → công thức. Phase 4 dùng **nguồn đúng** `/home/trantung/ict/stitch_giao_di_n_chatbot_m_th_c`; xem [snapshot và đối chiếu thiết kế](../docs/frontend-reference/stitch/README.md). Nguồn FrontEndCookLens trước đây được giữ như lịch sử Phase 0, không còn là baseline giao diện.
+React/TypeScript/Vite cho luồng ảnh → Top-3 → xác nhận/sửa món → công thức. Giao diện CookLens dùng font/icon local, nền kem và accent cam; xem [kiến trúc](../docs/architecture.md).
 
-Web responsive cho máy tính và trình duyệt điện thoại. App Expo dùng chung API đang ở PR #17, chưa merge; không APK. Không chatbot, tài khoản, lưu bộ sưu tập hoặc cooking assistant. Panel trợ lý trong nguồn chuyển thành hướng dẫn ba bước đúng chức năng hiện tại.
+Web responsive cho máy tính và trình duyệt điện thoại. App Expo dùng chung API đã tích hợp qua PR #17; upload đã được xác nhận trên điện thoại, nghiệm thu Android/iOS đầy đủ còn mở; không APK. Không chatbot, tài khoản, lưu bộ sưu tập hoặc cooking assistant. Panel trợ lý trong nguồn chuyển thành hướng dẫn ba bước đúng chức năng hiện tại.
 
 ## Thiết kế và tổ chức
 
@@ -18,32 +18,17 @@ Design read: sản phẩm nấu ăn tiếng Việt, ưu tiên bảo toàn thiế
 
 Giữ URL /index.html, /recognition.html, /recipe.html và /. Back/Forward hoạt động; reload/deep-link không có state sẽ hướng dẫn bắt đầu lại. Ảnh chỉ ở RAM, object URL được giải phóng; không localStorage/sessionStorage/base64 persistence.
 
-## Chạy Docker với AI thật
+## Docker
 
-Từ root repository, sau khi đã build các image Phase 1–3 và image frontend:
+Từ root: `docker compose up`, mở http://localhost:8080/.
+Dockerfile riêng tại `frontend/Dockerfile`; Nginx config tại `frontend/nginx/`.
+Cách build source ở [development.md](../docs/development.md).
 
-```bash
-docker build -f deploy/docker/Dockerfile.frontend -t cooklens-frontend:phase4 .
-docker compose -p cooklens-phase4-local \
-  -f deploy/compose/recipes.phase2.yml \
-  -f deploy/compose/backend.phase3.yml \
-  -f deploy/compose/frontend.phase4.yml up -d
-```
-
-Mở http://127.0.0.1:5173/. Đây là overlay dev/review của web Phase 4; hướng dẫn build/stage model của từng service nằm trong README backend/AI. Compose Phase 5 đã có image candidate; Docker Hub release và pull trên máy sạch thuộc Phase 6. Chưa phát hành `v2.0.0`.
-
-Nginx phục vụ bundle và proxy /api cùng origin tới backend theo DNS Compose. Chỉ frontend publish loopback; backend/AI/Qdrant ở network internal. Runtime user 10001, read-only, tmpfs, budget 128 MiB/1 CPU. Không COPY source/tests/docs/node_modules vào runtime image. Liveness tại /health/live; readiness toàn stack tại /api/health.
-
-Proxy giới hạn multipart 11 MiB và JSON search 8 KiB, stream body, không retry. Lỗi transport của Nginx trả JSON/request ID; lỗi nghiệp vụ backend được giữ nguyên. Kết nối không lập được trả 503; upstream đã kết nối nhưng phản hồi quá chậm trả 504. Backend và CV tiếp tục kiểm tra kích thước file/deadline/định dạng.
-
-Dừng riêng stack review, giữ volumes:
-
-```bash
-docker compose -p cooklens-phase4-local \
-  -f deploy/compose/recipes.phase2.yml \
-  -f deploy/compose/backend.phase3.yml \
-  -f deploy/compose/frontend.phase4.yml down
-```
+Nginx phục vụ web và proxy `/api` cùng origin tới backend. Chỉ frontend mở cổng;
+backend/AI/Qdrant giữ nội bộ. Runtime non-root, read-only, không chứa source/tests/node_modules.
+Liveness tại `/health/live`; readiness toàn stack tại `/api/health`.
+Proxy giới hạn multipart 11 MiB và JSON search 8 KiB, giữ JSON/request ID khi lỗi.
+Dừng stack bằng `docker compose down`; volume công thức được giữ.
 
 ## Phát triển
 
@@ -57,7 +42,7 @@ npm run dev
 
 Dev proxy /api về http://127.0.0.1:8080. Có thể copy .env.example thành .env.local và sửa VITE_API_PROXY_TARGET; không đặt token trong VITE_*. npm run build tạo dist; npm run preview chỉ dành kiểm tra build, không là production server.
 
-Sau khi đổi controller/DTO, chạy deploy/scripts/generate_frontend_contract.sh từ root với backend đang chạy, rồi build frontend. Script pin generator và CI kiểm tra kết quả sinh lại. Phase 4 sửa OpenAPI thiếu schema 200/camelCase sai để khớp snake_case wire API v1.0.0 vốn có.
+Sau khi đổi controller/DTO, chạy deploy/scripts/generate_frontend_contract.sh từ root với backend đang chạy, rồi build frontend. Script pin generator và CI kiểm tra kết quả sinh lại. Gateway sửa OpenAPI thiếu schema 200/camelCase sai để khớp snake_case wire API v1.0.0 vốn có.
 
 ## Ranh giới dữ liệu
 
@@ -72,13 +57,13 @@ cd frontend
 npx playwright install chromium
 npm run build
 npm run test:e2e
-COOKLENS_REAL_API=1 COOKLENS_BASE_URL=http://127.0.0.1:5173 npm run test:e2e
+COOKLENS_REAL_API=1 COOKLENS_BASE_URL=http://127.0.0.1:8080 npm run test:e2e
 ```
 
 20 mocked tests và 6 tests với Docker/CV/E5/Qdrant thật ở desktop 1440×900, mobile 390×844. Bao gồm xác nhận thủ công, sửa món/query, đủ detail/provenance, lỗi/empty/timeout, navigation race, ảnh thay thế, escaping, keyboard, deep-link, không overflow hoặc request CDN. Mobile là emulation, chưa thử camera trên điện thoại thật. Có thể truyền PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH khi máy có Chromium tương thích; không hardcode đường dẫn thành viên.
 
 Bốn baseline upload desktop/mobile, recognition desktop, recipe desktop trong docs được chụp bằng API thật. COOKLENS_CAPTURE_BASELINES=1 trong suite thật mới ghi đè chúng; test mặc định không ghi ảnh. Hai stitch-reference screenshots được chụp từ HTML tham chiếu tại cùng viewport để đối chiếu, có dùng CDN của nguồn khi chụp; CDN không có trong app runtime.
 
-Từ root, python3 deploy/scripts/check_frontend_build.py kiểm tra bundle và notices. python3 deploy/scripts/smoke_frontend_container.py kiểm tra image/proxy và cố ý dừng rồi phục hồi backend của project review; không chạy harness fault trên project khác. Báo cáo đầy đủ tại docs/phases/phase-4.md.
+Từ root, python3 deploy/scripts/check_frontend_build.py kiểm tra bundle và notices. python3 deploy/scripts/smoke_frontend_container.py kiểm tra image/proxy và cố ý dừng rồi phục hồi backend của project review; không chạy harness fault trên project khác. Báo cáo đầy đủ tại docs/acceptance.md.
 
 Trước PR phải rà file/test tạm, build output, secrets và mọi literal mã/hash bị cấm, cả lockfile/static bundle. Không commit integrity metadata do npm sinh lại, không source maps, asset filenames ổn định. Giữ tests hồi quy có mục đích; không đưa trace/log/test-results vào Git hoặc image.

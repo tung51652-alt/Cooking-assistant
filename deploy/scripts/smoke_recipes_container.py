@@ -80,7 +80,7 @@ def docker(*arguments, **kwargs):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--image", default="cooklens-recipes:phase2")
+    parser.add_argument("--image", default="cooklens-recipes:local")
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
     prefix = f"cooklens-recipes-smoke-{os.getpid()}"

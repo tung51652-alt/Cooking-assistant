@@ -58,7 +58,7 @@ class RegistryReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / 'candidate'
             prepare(registry_config(), output)
-            config = json.loads((output / 'compose.release.yaml').read_text())
+            config = json.loads((output / 'compose.yaml').read_text())
             metadata = json.loads((output / 'candidate.json').read_text())
             valid = report(metadata)
             changes = [
@@ -86,7 +86,7 @@ class RegistryReleaseTests(unittest.TestCase):
             package(output, archive)
             with tarfile.open(archive) as source:
                 names = source.getnames()
-                self.assertIn('compose.release.yaml', names)
+                self.assertIn('compose.yaml', names)
                 self.assertIn('notices/AUTHORSHIP.md', names)
                 published = json.load(source.extractfile('candidate.json'))
                 self.assertTrue(published['registry_pull_verified'])

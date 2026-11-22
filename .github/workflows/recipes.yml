@@ -1,10 +1,10 @@
 name: Recipes runtime
 on:
   pull_request:
-    paths: ['ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', '.github/workflows/recipes.yml']
+    paths: ['ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', 'compose.yaml', '.github/workflows/recipes.yml']
   push:
     branches: [develop, main]
-    paths: ['ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', '.github/workflows/recipes.yml']
+    paths: ['ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', 'compose.yaml', '.github/workflows/recipes.yml']
 permissions:
   contents: read
 jobs:
@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      COOKLENS_IMAGE_PREFIX: cooklens
+      COOKLENS_IMAGE_TAG: local
       QDRANT_URL: http://127.0.0.1:6333
       RECIPES_BUNDLE_DIR: deploy/artifacts/staging/recipes
       EMBEDDING_MODEL_DIR: deploy/artifacts/staging/embedding
@@ -32,26 +34,21 @@ jobs:
       - run: python -m ai.rag.ingestion.bundle --model "$EMBEDDING_MODEL_DIR" --output "$RECIPES_BUNDLE_DIR"
       - run: docker run -d --name cooklens-recipes-ci-qdrant -p 127.0.0.1:6333:6333 -e QDRANT__TELEMETRY_DISABLED=true qdrant/qdrant:v1.19.2 > /dev/null
       - run: python -m unittest discover -s ai/rag/tests -v
-      - run: docker build -f deploy/docker/Dockerfile.recipes -t cooklens-recipes:phase2 .
+      - run: docker build -f ai/rag/Dockerfile -t cooklens-recipes:local .
       - run: python deploy/scripts/smoke_recipes_container.py
-      - run: docker compose -p cooklens-recipes-ci -f deploy/compose/recipes.phase2.yml up -d
-      - name: Check Compose readiness
+      - run: docker compose -p cooklens-recipes-ci up -d --wait --wait-timeout 240 recipes
+      - name: Evaluate the real recipes container without publishing AI ports
         run: |
-          python - <<'PY'
-          import time
-          from urllib.request import urlopen
-          for attempt in range(60):
-              try:
-                  with urlopen('http://127.0.0.1:8001/health/ready', timeout=2) as response:
-                      assert response.status == 200
-                  break
-              except OSError:
-                  time.sleep(.5)
-          else:
-              raise RuntimeError('Recipe Compose is not ready')
-          PY
-      - run: python -m ai.rag.evaluation.evaluate --url http://127.0.0.1:8001 --require-technical-gate
+          python - <<'PYTHON'
+          import json, subprocess, sys
+          sys.path.insert(0, 'deploy/scripts')
+          from recipe_evaluation import evaluate_in_container
+          container = subprocess.check_output(['docker', 'compose', '-p', 'cooklens-recipes-ci', 'ps', '-q', 'recipes'], text=True).strip()
+          report = evaluate_in_container(container)
+          assert report['technical_gate_met']
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          PYTHON
       - if: always()
         run: docker rm -f cooklens-recipes-ci-qdrant > /dev/null 2>&1 || true
       - if: always()
-        run: docker compose -p cooklens-recipes-ci -f deploy/compose/recipes.phase2.yml down --volumes > /dev/null 2>&1 || true
+        run: docker compose -p cooklens-recipes-ci -f compose.yaml down --volumes > /dev/null 2>&1 || true

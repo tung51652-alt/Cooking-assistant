@@ -1,10 +1,10 @@
 name: Frontend design and real API
 on:
   pull_request:
-    paths: ['frontend/**', 'packages/cooklens-api/**', 'backend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', '.dockerignore', '.github/workflows/frontend.yml']
+    paths: ['frontend/**', 'packages/cooklens-api/**', 'backend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', '.dockerignore', '.github/workflows/frontend.yml']
   push:
     branches: [develop, main]
-    paths: ['frontend/**', 'packages/cooklens-api/**', 'backend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', '.dockerignore', '.github/workflows/frontend.yml']
+    paths: ['frontend/**', 'packages/cooklens-api/**', 'backend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', '.dockerignore', '.github/workflows/frontend.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -14,6 +14,9 @@ concurrency:
 jobs:
   browser-and-docker:
     runs-on: ubuntu-24.04
+    env:
+      COOKLENS_IMAGE_PREFIX: cooklens
+      COOKLENS_IMAGE_TAG: local
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
@@ -43,11 +46,11 @@ jobs:
       - run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
       - run: python -m pip install -r ai/rag/requirements.txt
       - run: python -m ai.rag.ingestion.bundle --model deploy/artifacts/staging/embedding --output deploy/artifacts/staging/recipes
-      - run: docker build -f deploy/docker/Dockerfile.vision -t cooklens-vision:phase1 .
-      - run: docker build -f deploy/docker/Dockerfile.recipes -t cooklens-recipes:phase2 .
-      - run: docker build -f deploy/docker/Dockerfile.backend -t cooklens-backend:phase3 .
-      - run: docker build -f deploy/docker/Dockerfile.frontend -t cooklens-frontend:phase4 .
-      - run: docker compose -p cooklens-web-ci -f deploy/compose/recipes.phase2.yml -f deploy/compose/backend.phase3.yml -f deploy/compose/frontend.phase4.yml up -d
+      - run: docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
+      - run: docker build -f ai/rag/Dockerfile -t cooklens-recipes:local .
+      - run: docker build -f backend/Dockerfile -t cooklens-backend:local .
+      - run: docker build -f frontend/Dockerfile -t cooklens-frontend:local .
+      - run: docker compose -p cooklens-web-ci -f compose.yaml up -d
       - name: Wait for web and real dependencies
         run: |
           python - <<'PY'
@@ -55,7 +58,7 @@ jobs:
           from urllib.request import urlopen
           for attempt in range(90):
               try:
-                  with urlopen('http://127.0.0.1:5173/api/health',timeout=3) as response:
+                  with urlopen('http://127.0.0.1:8080/api/health',timeout=3) as response:
                       assert response.status == 200
                   break
               except (OSError,AssertionError): time.sleep(.5)
@@ -64,8 +67,8 @@ jobs:
       - name: Desktop and mobile with actual CV and recipes
         env:
           COOKLENS_REAL_API: '1'
-          COOKLENS_BASE_URL: http://127.0.0.1:5173
+          COOKLENS_BASE_URL: http://127.0.0.1:8080
         run: npm --prefix frontend run test:e2e
       - run: python deploy/scripts/smoke_frontend_container.py --project cooklens-web-ci
       - if: always()
-        run: docker compose -p cooklens-web-ci -f deploy/compose/recipes.phase2.yml -f deploy/compose/backend.phase3.yml -f deploy/compose/frontend.phase4.yml down --volumes > /dev/null 2>&1 || true
+        run: docker compose -p cooklens-web-ci -f compose.yaml down --volumes > /dev/null 2>&1 || true

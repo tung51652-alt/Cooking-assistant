@@ -18,10 +18,9 @@ def run(args):
     with socket.socket() as probe:
         probe.bind(('127.0.0.1', 0))
         port = args.port or probe.getsockname()[1]
-    env = {**os.environ, 'BACKEND_PORT': str(port)}
+    env = {**os.environ, 'HOST_PORT': str(port)}
     project = args.project or 'cooklens-gateway-smoke-' + str(os.getpid())
-    compose = ['docker', 'compose', '-p', project, '-f', 'deploy/compose/recipes.phase2.yml',
-               '-f', 'deploy/compose/backend.phase3.yml']
+    compose = ['docker', 'compose', '-p', project, '-f', 'compose.yaml']
 
     def command(*parts):
         result = subprocess.run([*compose, *parts], cwd=ROOT, env=env, capture_output=True, text=True)
@@ -49,6 +48,11 @@ def run(args):
                 assert payload['api_version'] == '1.0.0' and payload['request_id'] == identifier
             return payload
 
+    def internal_request(path):
+        # Swagger and liveness remain internal; no extra host ports or Compose overlay.
+        script = "from urllib.request import urlopen; import json,sys; print(json.dumps(json.load(urlopen('http://backend:8080'+sys.argv[1],timeout=5))))"
+        return json.loads(command('exec', '-T', 'recipes', 'python', '-c', script, path))
+
     def ready():
         deadline = time.monotonic() + 90
         while time.monotonic() < deadline:
@@ -70,7 +74,7 @@ def run(args):
                        'application/json', expected)
 
     try:
-        command('up', '-d')
+        command('up', '-d', '--wait', '--wait-timeout', '240')
         ready()
         catalog = request('/api/dishes')['dishes']
         assert len(catalog) == 30
@@ -94,15 +98,15 @@ def run(args):
         search('pizza', expected=422)
         bad, mime = image(b'not an image')
         assert request('/api/vision/predict', bad, mime, 400)['code'] == 'INVALID_IMAGE'
-        spec = request('/v3/api-docs')
+        spec = internal_request('/v3/api-docs')
         assert spec['info']['version'] == '1.0.0' and len(spec['paths']) == 5
-        with urlopen(base + '/swagger-ui/index.html', timeout=5) as response:
-            assert response.status == 200
+        command('exec', '-T', 'recipes', 'python', '-c',
+                "from urllib.request import urlopen; assert urlopen('http://backend:8080/swagger-ui/index.html').status == 200")
 
         command('stop', 'vision')
         time.sleep(1.1)  # Expire the documented one-second dependency cache.
         assert request('/api/health', expected=503)['dependencies']['vision']['status'] == 'not_ready'
-        request('/actuator/health/liveness')
+        internal_request('/actuator/health/liveness')
         request('/api/dishes')
         assert request('/api/vision/predict', data, mime, 503)['code'] == 'DEPENDENCY_NOT_READY'
         command('start', 'vision')
@@ -110,7 +114,7 @@ def run(args):
         command('stop', 'recipes')
         assert search(selected, expected=503)['code'] == 'DEPENDENCY_NOT_READY'
         request('/api/recipes/' + detail['id'], expected=503)
-        request('/actuator/health/liveness')
+        internal_request('/actuator/health/liveness')
         command('start', 'recipes')
         ready()
 
@@ -132,13 +136,7 @@ def run(args):
         assert subprocess.run(['docker', 'exec', backend, 'java', '-cp', '/app/health',
                                'com.cooklens.config.HealthProbe'], capture_output=True).returncode == 0
         peak = int(docker('exec', backend, 'cat', '/sys/fs/cgroup/memory.peak'))
-        # Docker disables published ports when every attached network is internal.
-        # Temporarily detach the browser bridge and run a full transaction from an AI container.
-        networks = json.loads(docker('inspect', '--format', '{{json .NetworkSettings.Networks}}', backend))
-        browser = next(name for name in networks if docker('network', 'inspect', '--format', '{{.Internal}}', name) == 'false')
-        docker('network', 'disconnect', browser, backend)
-        try:
-            offline_script = '''
+        offline_script = '''
 import json,sys
 from urllib.request import Request,urlopen
 base='http://backend:8080'
@@ -153,20 +151,16 @@ results=call('/api/recipes/search',json.dumps({'confirmed_dish':dish}).encode())
 recipe=call('/api/recipes/'+results['recipes'][0]['id'])['recipe']
 assert recipe['normalized_dish']==dish and recipe['ingredients'] and recipe['instructions']
 '''
-            result = subprocess.run(['docker', 'exec', '-i', command('ps', '-q', 'recipes'), 'python', '-c', offline_script],
-                                    input=(ROOT / 'ai/cv/inference/tests/fixtures/food.png').read_bytes(), capture_output=True)
-            assert result.returncode == 0, 'Full gateway flow failed without external network'
-            networks = json.loads(docker('inspect', '--format', '{{json .NetworkSettings.Networks}}', backend))
-            assert all(docker('network', 'inspect', '--format', '{{.Internal}}', name) == 'true' for name in networks)
-            peak = max(peak, int(docker('exec', backend, 'cat', '/sys/fs/cgroup/memory.peak')))
-        finally:
-            # Recreate only the gateway to restore the loopback port for local Swagger.
-            command('up', '-d', '--no-deps', '--force-recreate', 'backend')
-            ready()
+        result = subprocess.run(['docker', 'exec', '-i', command('ps', '-q', 'recipes'), 'python', '-c', offline_script],
+                                input=(ROOT / 'ai/cv/inference/tests/fixtures/food.png').read_bytes(), capture_output=True)
+        assert result.returncode == 0, 'Full gateway flow failed without external network'
+        networks = json.loads(docker('inspect', '--format', '{{json .NetworkSettings.Networks}}', backend))
+        assert all(docker('network', 'inspect', '--format', '{{.Internal}}', name) == 'true' for name in networks)
+        peak = max(peak, int(docker('exec', backend, 'cat', '/sys/fs/cgroup/memory.peak')))
         report = {'public_api_version': '1.0.0', 'corpus_version': chosen['corpus_version'],
                   'real_model_flow': True, 'explicit_second_prediction_confirmed': True,
                   'catalog_dishes_searched': 30, 'dependency_stop_recovery': True,
-                  'request_ids_preserved': True, 'only_gateway_published_on_loopback': True,
+                  'request_ids_preserved': True, 'only_frontend_published_on_loopback': True,
                   'ai_services_only_internal_networks': True, 'full_flow_without_external_network': True, 'backend_non_root': True,
                   'backend_read_only': True, 'backend_memory_peak_bytes': peak,
                   'limitation': 'Integration smoke; not a throughput benchmark or independent recipe evaluation.'}
@@ -175,7 +169,7 @@ assert recipe['normalized_dish']==dish and recipe['ingredients'] and recipe['ins
             args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
         print(json.dumps(report, ensure_ascii=False, indent=2))
         if args.keep_running:
-            print('Swagger: ' + base + '/swagger-ui/index.html')
+            print('Web: ' + base)
     finally:
         if not args.keep_running:
             command('down', '--volumes')

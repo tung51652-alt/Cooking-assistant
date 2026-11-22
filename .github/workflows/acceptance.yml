@@ -28,7 +28,7 @@ jobs:
       - run: npm --prefix frontend run test:e2e
       - name: Pull the published candidate
         run: |
-          docker compose -f deploy/compose/compose.release.yaml pull
+          docker compose -f compose.yaml pull
           docker pull nginx:1.30.6-alpine3.24
       - name: Reacquire external evaluation images
         run: |

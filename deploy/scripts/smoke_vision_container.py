@@ -13,8 +13,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--image', default='cooklens-vision:phase1')
-    parser.add_argument('--name', default='cooklens-vision-phase1-smoke')
+    parser.add_argument('--image', default='cooklens-vision:local')
+    parser.add_argument('--name', default='cooklens-vision-smoke')
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     image = json.loads(subprocess.check_output(['docker', 'image', 'inspect', args.image], text=True))[0]

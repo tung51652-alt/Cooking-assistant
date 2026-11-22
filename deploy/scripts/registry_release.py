@@ -110,10 +110,10 @@ def verified_metadata(config, metadata, report):
 
 def package(bundle, archive):
     bundle, archive = Path(bundle), Path(archive)
-    config = json.loads((bundle / 'compose.release.yaml').read_text())
+    config = json.loads((bundle / 'compose.yaml').read_text())
     metadata, version = verified_metadata(config, json.loads((bundle / 'candidate.json').read_text()),
                                           json.loads((bundle / 'verification.json').read_text()))
-    expected = {'README.md', 'RELEASE_NOTES.md', 'candidate.json', 'compose.release.yaml', 'verification.json'}
+    expected = {'README.md', 'RELEASE_NOTES.md', 'candidate.json', 'compose.yaml', 'verification.json'}
     if {p.name for p in bundle.iterdir() if p.is_file()} != expected:
         raise ValueError('Unexpected release bundle files')
     if archive.resolve().is_relative_to(ROOT.resolve()) or archive.resolve().is_relative_to(bundle.resolve()):
@@ -121,7 +121,7 @@ def package(bundle, archive):
     if archive.exists():
         raise FileExistsError('Do not overwrite an existing release archive')
     (bundle / 'candidate.json').write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + '\n')
-    (bundle / 'README.md').write_text((ROOT / 'docs/runbooks/registry.md').read_text())
+    (bundle / 'README.md').write_text((ROOT / 'docs/deployment.md').read_text())
     (bundle / 'RELEASE_NOTES.md').write_text(
         f'# CookLens {version} — Phase 6 registry candidate\n\n'
         'Public Docker Hub images for linux/amd64 and CPU; includes model weights, embedding model and recipe bundle.\n\n'
@@ -147,7 +147,7 @@ def github_release(archive, tag):
     with tarfile.open(archive, 'r:gz') as source:
         notes = source.extractfile('RELEASE_NOTES.md').read().decode()
         metadata = json.load(source.extractfile('candidate.json'))
-        config = json.load(source.extractfile('compose.release.yaml'))
+        config = json.load(source.extractfile('compose.yaml'))
         report = json.load(source.extractfile('verification.json'))
         _, verified_version = verified_metadata(config, metadata, report)
         if verified_version != version or violations(notes):

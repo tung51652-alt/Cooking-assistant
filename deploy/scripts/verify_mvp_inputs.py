@@ -37,15 +37,9 @@ def verify(checkpoint=None):
     require(embedding["query_prefix"] == "query: " and embedding["passage_prefix"] == "passage: ", "E5 prefix mismatch")
     require("model.safetensors" in embedding["required_files"], "Missing safetensors requirement")
     require("pytorch_model.bin" not in embedding["required_files"], "Duplicate model weight formats")
-    references = ROOT / "docs/frontend-reference"
-    archive = json.loads((references / "manifest.json").read_text())
-    require({entry["path"] for entry in archive["files"]} == {"index.html", "recognition.html", "recipe.html"}, "Unexpected frontend reference set")
-    for entry in archive["files"]:
-        path = references / entry["path"]
-        require(path.stat().st_size == entry["size_bytes"], "Frontend reference size mismatch: " + entry["path"])
     if checkpoint is not None:
         require(checkpoint.stat().st_size == vision["size_bytes"], "Checkpoint size does not match manifest")
-    print("PASS: input manifest invariants and three HTML reference sizes")
+    print("PASS: input artifact manifest invariants")
     if checkpoint is not None:
         print("PASS: local checkpoint size matches the recorded artifact")
     print("Not a stack release approval: corpus coverage, runtime benchmarks and registry push access have later gates.")

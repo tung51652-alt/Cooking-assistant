@@ -32,16 +32,16 @@ Có thể đặt `FOOD_MODEL_PATH` trỏ file checkpoint đã có thay vì dùng
 Sau khi chuẩn bị staging:
 
 ```bash
-docker build -f deploy/docker/Dockerfile.vision -t cooklens-vision:phase1 .
+docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
 python3 deploy/scripts/smoke_vision_container.py
 ```
 
-Image chứa đúng runtime, checkpoint, mapping, manifest và notices; checkpoint được copy read-only cho user runtime độc lập với permission file staging; chạy non-root, một worker, không có tests/notebook/dataset/frontend. Smoke chạy network `none`, root filesystem read-only, tmpfs cho upload, giới hạn 4 CPU/2 GiB RAM, kiểm tra health và ảnh thật; tự xóa container test. Tag `phase1` chỉ dùng kiểm tra, chưa publish Docker Hub hoặc gọi là application release v2.
+Image chứa đúng runtime, checkpoint, mapping, manifest và notices; checkpoint được copy read-only cho user runtime độc lập với permission file staging; chạy non-root, một worker, không có tests/notebook/dataset/frontend. Smoke chạy network `none`, root filesystem read-only, tmpfs cho upload, giới hạn 4 CPU/2 GiB RAM, kiểm tra health và ảnh thật; tự xóa container test. Tag `local` dùng khi build source; mặc định `docker compose up` dùng image đã đóng gói trên Docker Hub.
 
 Để mở Swagger bằng image vừa build:
 
 ```bash
-docker run --rm --name cooklens-vision-dev -p 127.0.0.1:8000:8000 cooklens-vision:phase1
+docker run --rm --name cooklens-vision-dev -p 127.0.0.1:8000:8000 cooklens-vision:local
 ```
 
 ## Kiểm tra và bằng chứng
@@ -56,4 +56,4 @@ python -m ai.cv.evaluation.benchmark_api --image ai/cv/inference/tests/fixtures/
 
 Ảnh test là figure đã có trong notebook được nhóm cung cấp, có nhãn dự đoán trên hình, chỉ phục vụ smoke/regression/latency; không là accuracy evaluation. Notebook đã dọn outputs và execution metadata, vẫn giữ source thí nghiệm. Không ghi giá trị mã/hash vào source, fixtures, manifests, docs hoặc logs; chỉ dùng version/tag, kiểm tra toàn vẹn artifact tạm trong bộ nhớ.
 
-[Contract](../../../docs/contracts/mvp-v1.md), [báo cáo Phase 1](../../../docs/phases/phase-1.md), [preset torchvision](https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.efficientnet_b2.html), [FastAPI lifespan](https://fastapi.tiangolo.com/advanced/events/).
+[Contract](../../../docs/contracts/mvp-v1.md), [báo cáo Phase 1](../../../docs/acceptance.md), [preset torchvision](https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.efficientnet_b2.html), [FastAPI lifespan](https://fastapi.tiangolo.com/advanced/events/).

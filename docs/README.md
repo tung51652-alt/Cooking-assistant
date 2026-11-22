@@ -1,21 +1,22 @@
 # Tài liệu CookLens
 
-Nguồn tham chiếu chung cho quyết định kỹ thuật, dữ liệu, thí nghiệm và kết quả đánh giá. Phase 0–5 đã có trên `origin/develop`; Phase 6 có registry/prerelease và pull ẩn danh đã kiểm chứng qua PR #19. Phase 7 và v2.0.0 chính thức chưa hoàn tất. Expo được tích hợp qua PR #17 theo yêu cầu merge trực tiếp của người dùng; upload ảnh trên điện thoại thật đã được xác nhận ngày 2026-10-26, nghiệm thu đầy đủ Android/iOS còn mở.
+Mỗi chủ đề có một tài liệu chính. Đọc theo nhu cầu:
 
-- [Kế hoạch MVP Top-3 món, công thức và Docker](plans/top3-recipes-docker-mvp.md): trạng thái từng phase, kiến trúc service, checklist file/test/secrets và phát hành.
-- [Trạng thái Phase 0](phases/phase-0.md): kết quả audit thật, phần đã làm và đầu vào còn thiếu.
-- [Backend và Phase 3](phases/phase-3.md): public gateway, Swagger, kiểm thử HTTP/AI thật và hợp đồng frontend sinh từ OpenAPI.
-- [Frontend và Phase 4](phases/phase-4.md): nguồn Stitch đúng, giao diện Docker và kiểm thử desktop/mobile với AI thật.
-- [Docker và Phase 5](phases/phase-5.md): Compose độc lập, candidate có version, lifecycle và kiểm tra offline.
-- [Registry và Phase 6](phases/phase-6.md): image public, runner pull sạch, gói prerelease, số đo và giới hạn.
-- [Nghiệm thu Phase 7](phases/phase-7.md): kiểm thử image phát hành, 30 luồng ảnh, retrieval, benchmark CPU và các gate chất lượng còn mở.
-- [Chạy gói Docker Hub](runbooks/registry.md): chỉ cần Docker, không cần source/trọng số riêng.
-- [Runbook Docker](runbooks/docker.md): build/chạy, dev/debug, volume, nâng/rollback và giới hạn phát hành.
-- [Contract MVP v1](contracts/mvp-v1.md): API public/nội bộ, errors, timeout, upload và quy tắc xếp hạng.
-- [Quyết định runtime/artifact](decisions/mvp-runtime.md): embedding bundle có version, nguồn recipe, nghiệm thu CPU và giới hạn phát hành.
-- [Nguồn Stitch frontend](frontend-reference/stitch/README.md): snapshot chuẩn, tokens và đối chiếu desktop/mobile; snapshot cũ giữ cho lịch sử.
-- [CV](cv/README.md)
-- [Mobile Expo](phases/mobile-expo.md): client native dùng chung API, Expo Go, kiểm thử bundle/contract và phần chờ nghiệm thu trên thiết bị.
-- [LangGraph](langgraph/README.md)
-- [Data & RAG](data/README.md)
-- [Chuẩn kỹ thuật MVP](technical-architecture.md): contract CV–RAG, API, persistence, observability và evaluation gates.
+| Tài liệu | Nội dung |
+| --- | --- |
+| [WORKFLOW.md](WORKFLOW.md) | Quy ước làm việc, kiểm tra, tài liệu và Git |
+| [product.md](product.md) | Chức năng, luồng sử dụng và giới hạn |
+| [architecture.md](architecture.md) | Service, dữ liệu, model và ranh giới API |
+| [development.md](development.md) | Môi trường, build và quy trình đóng góp |
+| [deployment.md](deployment.md) | Chạy Docker, theo dõi, nâng cấp và rollback |
+| [testing.md](testing.md) | Các lớp kiểm thử, lệnh chạy và tiêu chí đạt |
+| [acceptance.md](acceptance.md) | Kết quả nghiệm thu, chỉ số và giới hạn đo |
+
+Chỉ dùng thư mục cho tài liệu nhiều thành phần:
+
+- [contracts/](contracts/mvp-v1.md): quy ước API và fixture dùng chung với test.
+- [plan/](plan/README.md): lộ trình Phase 8–14 tới release, mỗi phase có checklist và kiểm thử.
+
+Khi đổi chức năng, cập nhật tài liệu chủ đề tương ứng. Kế hoạch mô tả việc cần làm;
+kết quả và chỉ số đã kiểm chứng ghi trực tiếp trong `acceptance.md`.
+Không đưa dataset, trọng số, secret, log thô hoặc build output vào docs.

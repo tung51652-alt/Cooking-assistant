@@ -61,7 +61,7 @@ def latency_summary(values):
             'p95_seconds': sorted(values)[math.ceil(len(values) * .95) - 1] if len(values) >= 100 else None}
 
 
-def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', samples=10, pull_registry=False):
+def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_registry=False):
     samples = sample_count(samples)
     project = 'cooklens-release-test-' + uuid4().hex[:12]
     with socket.socket() as probe:
@@ -77,8 +77,8 @@ def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', 
             public_config.mkdir()
             (public_config / 'config.json').write_text('{}')
             env['DOCKER_CONFIG'] = str(public_config)
-        shutil.copyfile(compose_path, directory / 'compose.release.yaml')
-        compose = ['docker', 'compose', '-p', project, '-f', 'compose.release.yaml']
+        shutil.copyfile(compose_path, directory / 'compose.yaml')
+        compose = ['docker', 'compose', '-p', project, '-f', 'compose.yaml']
 
         def dc(*parts, success=True):
             return command([*compose, *parts], cwd=directory, env=env, success=success)
@@ -150,7 +150,7 @@ def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', 
                     assert image_info['Architecture'] == 'amd64' and image_info['Os'] == 'linux'
                 registry_pull_seconds = round(time.monotonic() - tick, 3)
                 # History verification needs the exact upstream runtime, not a rebuilt app image.
-                dockerfile = (ROOT / 'deploy/docker/Dockerfile.frontend').read_text()
+                dockerfile = (ROOT / 'frontend/Dockerfile').read_text()
                 base_image = [line.split()[1] for line in dockerfile.splitlines() if line.startswith('FROM ')][-1]
                 docker('pull', base_image)
             assert set(config['services']) == {*SERVICES, 'recipe-init'}
@@ -193,9 +193,8 @@ def run(report_path, compose_path=ROOT / 'deploy/compose/compose.release.yaml', 
                                      state['Config']['Image']).stdout.decode().splitlines()
                     project_commands = []
                     if service == 'frontend':
-                        # Its Nginx runtime stage has no WORKDIR boundary. The debug
-                        # profile has already pulled this exact upstream runtime tag.
-                        dockerfile = (ROOT / 'deploy/docker/Dockerfile.frontend').read_text()
+                        # Audit project layers against the pinned upstream runtime.
+                        dockerfile = (ROOT / 'frontend/Dockerfile').read_text()
                         base_image = [line.split()[1] for line in dockerfile.splitlines()
                                       if line.startswith('FROM ')][-1]
                         base_history = docker('history', '--no-trunc', '--format', '{{.CreatedBy}}',
@@ -251,7 +250,7 @@ with tempfile.TemporaryDirectory() as tmp:
         path=target/name
         path.chmod(0o600)
         value=json.loads(path.read_text())
-        value['corpus_version']='cooklens-recipes-phase5-check'
+        value['corpus_version']='cooklens-recipes-upgrade-check'
         path.write_text(json.dumps(value))
     os.environ['RECIPES_BUNDLE_DIR']=str(target)
     main()
@@ -261,7 +260,7 @@ with tempfile.TemporaryDirectory() as tmp:
             api('/api/health', expected=503)
             dc('run', '--rm', '-T', '--no-deps', 'recipe-init')
             ready()
-            corrupt = upgrade.replace("value['corpus_version']='cooklens-recipes-phase5-check'",
+            corrupt = upgrade.replace("value['corpus_version']='cooklens-recipes-upgrade-check'",
                                       "value['corpus_version']='invalid version'")
             assert dc('run', '--rm', '-T', '--no-deps', 'recipe-init', 'python', '-c',
                       corrupt, success=False).returncode != 0
@@ -380,7 +379,7 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report', type=Path, required=True)
-    parser.add_argument('--compose', type=Path, default=ROOT / 'deploy/compose/compose.release.yaml')
+    parser.add_argument('--compose', type=Path, default=ROOT / 'compose.yaml')
     parser.add_argument('--samples', type=sample_count, default=10)
     parser.add_argument('--pull-registry', action='store_true', help='Require absent app images, then pull anonymously before testing')
     args = parser.parse_args()

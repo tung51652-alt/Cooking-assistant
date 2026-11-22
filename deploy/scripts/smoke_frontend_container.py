@@ -19,8 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def run(args):
-    compose = ['docker', 'compose', '-p', args.project, '-f', 'deploy/compose/recipes.phase2.yml',
-               '-f', 'deploy/compose/backend.phase3.yml', '-f', 'deploy/compose/frontend.phase4.yml']
+    compose = ['docker', 'compose', '-p', args.project, '-f', 'compose.yaml']
     def command(*parts):
         result = subprocess.run([*compose, *parts], cwd=ROOT, capture_output=True, text=True)
         if result.returncode:
@@ -100,7 +99,7 @@ def run(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--url', default='http://127.0.0.1:5173')
-    parser.add_argument('--project',default='cooklens-phase4-local')
+    parser.add_argument('--url', default='http://127.0.0.1:8080')
+    parser.add_argument('--project', required=True, help='Explicit disposable Compose project for fault injection')
     parser.add_argument('--report',type=Path)
     run(parser.parse_args())

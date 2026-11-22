@@ -1,10 +1,10 @@
 name: Backend public API
 on:
   pull_request:
-    paths: ['backend/**', 'frontend/src/generated/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', 'docs/contracts/**', '.dockerignore', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'frontend/src/generated/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', 'docs/contracts/**', '.dockerignore', '.github/workflows/backend.yml']
   push:
     branches: [develop, main]
-    paths: ['backend/**', 'frontend/src/generated/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', 'docs/contracts/**', '.dockerignore', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'frontend/src/generated/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/recipes/**', 'data/processed/**', 'deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', 'docs/contracts/**', '.dockerignore', '.github/workflows/backend.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -14,6 +14,9 @@ concurrency:
 jobs:
   gateway-and-real-stack:
     runs-on: ubuntu-24.04
+    env:
+      COOKLENS_IMAGE_PREFIX: cooklens
+      COOKLENS_IMAGE_TAG: local
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -42,12 +45,13 @@ jobs:
       - run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
       - run: python -m pip install -r ai/rag/requirements.txt
       - run: python -m ai.rag.ingestion.bundle --model deploy/artifacts/staging/embedding --output deploy/artifacts/staging/recipes
-      - run: docker build -f deploy/docker/Dockerfile.vision -t cooklens-vision:phase1 .
-      - run: docker build -f deploy/docker/Dockerfile.recipes -t cooklens-recipes:phase2 .
-      - run: docker build -f deploy/docker/Dockerfile.backend -t cooklens-backend:phase3 .
+      - run: docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
+      - run: docker build -f ai/rag/Dockerfile -t cooklens-recipes:local .
+      - run: docker build -f backend/Dockerfile -t cooklens-backend:local .
+      - run: docker build -f frontend/Dockerfile -t cooklens-frontend:local .
       - name: Public API with real dependencies and failure recovery
         run: python deploy/scripts/smoke_backend_stack.py --project cooklens-gateway-ci --port 8080 --keep-running
-      - run: sh deploy/scripts/generate_frontend_contract.sh
+      - run: COMPOSE_PROJECT_NAME=cooklens-gateway-ci sh deploy/scripts/generate_frontend_contract.sh
       - run: git diff --quiet -- frontend/src/generated/api.d.ts
       - if: always()
-        run: docker compose -p cooklens-gateway-ci -f deploy/compose/recipes.phase2.yml -f deploy/compose/backend.phase3.yml down --volumes > /dev/null 2>&1 || true
+        run: docker compose -p cooklens-gateway-ci -f compose.yaml down --volumes > /dev/null 2>&1 || true

@@ -8,16 +8,17 @@ Expo SDK 58, React Native 0.88 và các thư viện được chọn qua `expo in
 
 Điện thoại và máy Docker cần cùng mạng LAN, hoặc dùng URL HTTPS của gateway đã triển khai. Không dùng `127.0.0.1` trên điện thoại để chỉ máy tính. Metro/QR và gateway là hai kết nối riêng; quét QR thành công chưa chứng minh API truy cập được.
 
-Với các image Phase 3 đã build theo README gốc, từ root repo trong PowerShell:
+Từ root repo trong PowerShell:
 
 ```powershell
-$env:COOKLENS_LAN_IP = '192.168.1.10'
-docker compose -p cooklens-mobile-dev -f deploy/compose/recipes.phase2.yml -f deploy/compose/backend.phase3.yml -f deploy/compose/mobile.lan.yml up -d
+$env:HOST_BIND = '192.168.1.10'
+docker compose up -d
 ```
 
-Thay IP ví dụ bằng địa chỉ LAN riêng của máy Docker. Overlay bắt buộc khai báo IP, chỉ publish gateway; CV/recipes/Qdrant giữ nội bộ. Mặc định các Compose hiện có vẫn bind loopback. Chỉ cho phép cổng 8080 trên mạng riêng trong firewall khi cần; không bind toàn Internet. Trong trình duyệt điện thoại kiểm tra `http://192.168.1.10:8080/api/health` trả trạng thái ready trước khi dùng app.
-
-Khi dùng frontend/proxy Phase 5 đã cấu hình truy cập được trên LAN/HTTPS, có thể dùng chính origin đó cộng `/api`; không dựng backend mobile riêng. Overlay ở đây dành riêng stack Phase 3, không ghép vào Compose release Phase 5.
+Thay IP ví dụ bằng IP LAN của máy Docker. Dùng cùng stack và public origin với web;
+chỉ frontend/proxy mở cổng 8080, AI/backend/Qdrant giữ nội bộ. Mặc định Compose bind loopback.
+Chỉ cho phép truy cập trên mạng riêng. Trên điện thoại kiểm tra
+`http://192.168.1.10:8080/api/health` sẵn sàng trước khi mở app.
 
 ## 2. Cài và chạy Expo
 
@@ -52,4 +53,4 @@ npm run export
 
 Lệnh export chỉ kiểm chứng bundling Android/iOS, không phát hành bundle hoặc native app. Output `dist`, Metro cache và metadata tự sinh không commit/upload làm release. Font Epilogue/Plus Jakarta Sans được đóng gói local; giấy phép tại `notices/`.
 
-Từ root repo, kiểm tra client dùng chung: `node --experimental-strip-types --test packages/cooklens-api/client.test.mjs`. Web vẫn có bộ Playwright desktop/mobile riêng. Các kiểm tra build/contract không thay thế camera, permission, gesture/Back, safe area hoặc screen reader trên thiết bị thật. Xem [báo cáo Expo](../docs/phases/mobile-expo.md); Người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26; kiểm thử đầy đủ Android/iOS, quyền camera, HEIC, Back và accessibility còn mở, không đánh dấu pass từ web emulation.
+Từ root repo, kiểm tra client dùng chung: `node --experimental-strip-types --test packages/cooklens-api/client.test.mjs`. Web vẫn có bộ Playwright desktop/mobile riêng. Các kiểm tra build/contract không thay thế camera, permission, gesture/Back, safe area hoặc screen reader trên thiết bị thật. Xem [báo cáo Expo](../docs/acceptance.md); Người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26; kiểm thử đầy đủ Android/iOS, quyền camera, HEIC, Back và accessibility còn mở, không đánh dấu pass từ web emulation.
