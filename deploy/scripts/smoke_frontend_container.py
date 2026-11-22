@@ -3,6 +3,7 @@
 import argparse
 from http.client import HTTPResponse
 import json
+import os
 from pathlib import Path
 import socket
 import subprocess
@@ -21,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def run(args):
     compose = ['docker', 'compose', '-p', args.project, '-f', 'compose.yaml']
     def command(*parts):
-        result = subprocess.run([*compose, *parts], cwd=ROOT, capture_output=True, text=True)
+        result = subprocess.run([*compose, *parts], cwd=ROOT, env={**os.environ, 'LLM_API_KEY': ''}, capture_output=True, text=True)
         if result.returncode:
             raise RuntimeError('Compose operation failed (inspect local service): ' + parts[0])
         return result.stdout.strip()
@@ -60,7 +61,11 @@ def run(args):
         identifier = command('ps','-q',service)
         assert json.loads(docker('inspect','--format','{{json .HostConfig.PortBindings}}',identifier)) in ({},None)
         networks = json.loads(docker('inspect','--format','{{json .NetworkSettings.Networks}}',identifier))
-        assert all(docker('network','inspect','--format','{{.Internal}}',name) == 'true' for name in networks)
+        if service == 'backend':
+            assert len(networks) == 2
+            assert sum(docker('network','inspect','--format','{{.Internal}}',name) == 'false' for name in networks) == 1
+        else:
+            assert all(docker('network','inspect','--format','{{.Internal}}',name) == 'true' for name in networks)
     assert request('/api/recipes/search', b'x'*8193, 413)['code'] == 'UPLOAD_TOO_LARGE'
     # A large declared upload must get an envelope before sending any image bytes.
     address = urlsplit(args.url)
@@ -85,7 +90,7 @@ def run(args):
         ready()
     peak = int(docker('exec',frontend,'cat','/sys/fs/cgroup/memory.peak'))
     report = {'public_api_version':'1.0.0','static_nginx_non_root':True,'read_only':True,
-              'only_frontend_published_on_loopback':True,'backend_and_ai_networks_internal':True,
+              'only_frontend_published_on_loopback':True,'ai_networks_internal':True,'backend_dedicated_llm_egress':True,
               'proxy_upload_and_json_limits':True,'proxy_errors_json_with_uuid':True,
               'upstream_business_errors_preserved':True,'backend_stop_recovery':True,
               'self_hosted_fonts_and_notices':True,'published_artifacts_policy_checked':True,

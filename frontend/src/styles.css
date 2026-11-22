@@ -228,3 +228,47 @@ footer { border-top: 1px solid var(--line); background: #f3e6d3; }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 @media (prefers-reduced-transparency: reduce) { .header { background: #faf0e1; backdrop-filter: none; } }
+
+.assistant-entry, .assistant-toolbar, .assistant-compose-footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.assistant-entry { padding: 24px; margin: 12px 0 26px; border: 1px solid var(--line); border-radius: var(--radius); background: #f5e5d0; }
+.assistant-entry h2, .assistant-entry p { margin: 0; }
+.assistant-entry p { margin-top: 8px; color: var(--muted); }
+.assistant-toolbar { margin-bottom: 20px; flex-wrap: wrap; }
+.assistant-grid { display: grid; grid-template-columns: minmax(270px, .8fr) minmax(0, 1.2fr); gap: 24px; align-items: start; }
+.assistant-grid > * { min-width: 0; padding: 26px; }
+.assistant-grid h2 { margin-top: 0; font-size: 24px; overflow-wrap: anywhere; }
+.assistant-eyebrow { color: var(--accent); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.assistant-step-count { font-weight: 800; color: var(--green); }
+.assistant-cooking progress { width: 100%; accent-color: var(--green); }
+.assistant-current-step { background: var(--soft); border-radius: 16px; padding: 18px; margin: 18px 0; overflow-wrap: anywhere; }
+.assistant-current-step h3 { margin-top: 0; }
+.assistant-controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.assistant-original { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; overflow-wrap: anywhere; }
+.assistant-original summary { cursor: pointer; font-weight: 700; }
+.assistant-original li { margin: 10px 0; }
+.assistant-messages { max-height: 58vh; min-height: 150px; overflow-y: auto; overscroll-behavior: contain; padding: 4px; }
+.assistant-message { border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin: 12px 0; }
+.assistant-message p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0 0; line-height: 1.75; }
+.assistant-message-user { background: #f5e5d0; margin-left: 24px; }
+.assistant-message-assistant { background: var(--soft); margin-right: 12px; }
+.assistant-message > strong { font-size: 12px; color: var(--accent); }
+.assistant-empty-chat { color: var(--muted); }
+.assistant-form { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 18px; }
+.assistant-form label { display: block; font-weight: 700; margin-bottom: 10px; }
+.assistant-form textarea { width: 100%; resize: vertical; font: inherit; line-height: 1.6; border: 1px solid var(--line); border-radius: 12px; background: white; padding: 12px; color: inherit; }
+.assistant-form textarea:disabled { background: var(--soft); }
+.assistant-compose-footer { margin-top: 12px; flex-wrap: wrap; }
+.assistant-compose-footer small { color: var(--muted); font-size: 11px; }
+.assistant-notice { padding: 14px 18px; background: var(--soft); border: 1px solid var(--line); border-radius: 12px; }
+.assistant-error-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 850px) { .assistant-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) {
+  .nav-links { flex-wrap: wrap; }
+  .nav-links a { padding-left: 10px; padding-right: 10px; }
+  .assistant-entry { flex-direction: column; align-items: stretch; padding: 20px; }
+  .assistant-grid > * { padding: 20px; }
+  .assistant-grid h2 { font-size: 21px; }
+  .assistant-message-user { margin-left: 12px; }
+  .assistant-message-assistant { margin-right: 0; }
+  .assistant-controls > button { flex: 1 1 40%; }
+}

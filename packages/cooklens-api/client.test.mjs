@@ -12,6 +12,79 @@ function response(data, status = 200) {
   return new Response(JSON.stringify(envelope(data)), { status, headers: { 'Content-Type': 'application/json', 'X-Request-ID': requestId() } });
 }
 
+const sessionId='22222222-2222-4222-8222-222222222222';
+const startOperation='33333333-3333-4333-8333-333333333333';
+const nextOperation='44444444-4444-4444-8444-444444444444';
+function chatSession() {
+  const recipe=corpus.find(item => item.instructions.length>=2);
+  const timestamp='2026-11-22T00:00:00Z';
+  return { id: sessionId, corpus_version: 'test-corpus', recipe_version: recipe.updated_at, recipe,
+    status: 'cooking', current_step: 2, total_steps: recipe.instructions.length, version: 3,
+    created_at: timestamp, updated_at: timestamp, expires_at: '2026-11-23T00:00:00Z',
+    history: [
+      { operation_id: startOperation, action: 'start', version: 1, current_step: 1, created_at: timestamp },
+      { operation_id: nextOperation, action: 'next', version: 3, current_step: 2, created_at: timestamp },
+    ], messages: [{ role: 'user', text: 'Giải thích bước này' }, { role: 'assistant', text: 'Theo công thức…' }] };
+}
+
+test('assistant accepts mixed chat/action revisions, canonicalizes IDs and preserves retry payload', async t => {
+  const value=chatSession();
+  const operation='AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA';
+  t.mock.method(globalThis,'fetch',async (url, init) => {
+    assert.equal(url,`http://localhost:8080/api/assistant/sessions/${sessionId}/messages`);
+    assert.deepEqual(JSON.parse(init.body),{ text:'Giải thích bước này', expected_version:1, operation_id:operation.toLowerCase() });
+    return response({ session:value });
+  });
+  const result=await api.sessionMessage(sessionId.toUpperCase(),{ text:'Giải thích bước này', expected_version:1, operation_id:operation },new AbortController().signal);
+  assert.deepEqual(result,value);
+});
+
+test('assistant rejects broken message pairs, impossible revisions and invalid cooking history', async t => {
+  let value=chatSession();
+  t.mock.method(globalThis,'fetch',async () => response({ session:value }));
+  const mutations=[
+    s => { s.messages.pop(); },
+    s => { s.messages.reverse(); },
+    s => { s.messages[1].text=' '; },
+    s => { s.messages[0].text='x'.repeat(2001); },
+    s => { s.messages=Array.from({length:31},()=>s.messages).flat(); s.version=33; },
+    s => { s.version=4; },
+    s => { s.history[1].version=1; },
+    s => { s.history.reverse(); },
+    s => { s.history[1].operation_id=s.history[0].operation_id; },
+    s => { s.history[1].current_step=1; },
+    s => { s.history[0].action='next'; },
+    s => { s.history[1].action='finish'; s.status='finished'; s.version=4; s.messages.push(...s.messages); },
+  ];
+  for (const mutate of mutations) {
+    value=structuredClone(chatSession()); mutate(value);
+    await assert.rejects(api.getSession(sessionId,new AbortController().signal));
+  }
+});
+
+test('assistant rejects wrong session and stale successful replies', async t => {
+  let value=chatSession();
+  t.mock.method(globalThis,'fetch',async () => response({ session:value }));
+  await assert.rejects(api.getSession(sessionId,new AbortController().signal,4));
+  value.id=startOperation;
+  await assert.rejects(api.getSession(sessionId,new AbortController().signal));
+});
+
+test('assistant still accepts legacy action-only sessions', async t => {
+  const value=chatSession();
+  value.messages=[]; value.version=2; value.history[1].version=2;
+  t.mock.method(globalThis,'fetch',async () => response({ session:value }));
+  assert.deepEqual(await api.getSession(sessionId,new AbortController().signal),value);
+});
+
+test('assistant persistence errors retain their machine-readable code', async t => {
+  for (const [status,code] of [[409,'ASSISTANT_REQUEST_IN_PROGRESS'],[409,'SESSION_MESSAGE_LIMIT'],[503,'ASSISTANT_OUTCOME_UNKNOWN'],[504,'ASSISTANT_PROVIDER_TIMEOUT'],
+    [503,'ASSISTANT_PROVIDER_AUTH_FAILED'],[503,'ASSISTANT_PROVIDER_UNSUPPORTED'],[429,'ASSISTANT_RATE_LIMITED'],[503,'ASSISTANT_BUDGET_EXCEEDED'],[422,'ASSISTANT_CONTEXT_TOO_LARGE']]) {
+    t.mock.method(globalThis,'fetch',async () => response({ code, message:'Không lộ nội dung provider' },status));
+    await assert.rejects(api.getSession(sessionId,new AbortController().signal),error => error.code===code && error.status===status);
+  }
+});
+
 test('absolute gateway URL rejects credentials, query strings and non-API paths', () => {
   assert.equal(normalizeBaseUrl('http://localhost:8080/api/'), 'http://localhost:8080/api');
   assert.equal(normalizeBaseUrl('/api'), '/api');

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise the public gateway with real CV, E5 and Qdrant in an isolated Compose project."""
 import argparse
+from contextlib import closing
 import json
 import os
 from pathlib import Path
@@ -20,7 +21,7 @@ def run(args):
     with socket.socket() as probe:
         probe.bind(('127.0.0.1', 0))
         port = args.port or probe.getsockname()[1]
-    env = {**os.environ, 'HOST_PORT': str(port)}
+    env = {**os.environ, 'HOST_PORT': str(port), 'LLM_API_KEY': ''}
     project = args.project or 'cooklens-gateway-smoke-' + str(os.getpid())
     compose = ['docker', 'compose', '-p', project, '-f', 'compose.yaml']
 
@@ -167,13 +168,42 @@ def run(args):
         assert data_mount['Type'] == 'volume' and data_mount['RW'] is True and data_mount['Name']
         db_stat = docker('exec', backend, 'stat', '-c', '%u:%g %s', '/app/data/assistant.sqlite').split()
         assert db_stat[0] == '10001:10001' and int(db_stat[1]) > 0
+        command('stop', 'backend')
         with tempfile.TemporaryDirectory(prefix='cooklens-sqlite-check-') as tmpdir:
             subprocess.run(['docker', 'cp', backend + ':/app/data/.', tmpdir], check=True, capture_output=True)
-            with sqlite3.connect(Path(tmpdir) / 'assistant.sqlite') as conn:
+            with closing(sqlite3.connect(Path(tmpdir) / 'assistant.sqlite')) as conn:
                 schema_version = conn.execute('PRAGMA user_version').fetchone()[0]
-                assert schema_version == 1, schema_version
+                assert schema_version == 3, schema_version
 
-        command('restart', 'backend')
+        recipes_image = docker('inspect', '--format', '{{.Config.Image}}', command('ps', '-q', 'recipes'))
+        def volume_python(script, *arguments, readonly=False):
+            mount = 'type=volume,source=' + data_mount['Name'] + ',target=/data' + (',readonly' if readonly else '')
+            result = subprocess.run(['docker', 'run', '--rm', '--network', 'none', '--read-only', '--user', '10001:10001',
+                                     '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--mount', mount,
+                                     '--entrypoint', 'python', recipes_image, '-c', script, *arguments], capture_output=True)
+            if result.returncode:
+                raise RuntimeError('Assistant volume check failed; raw database output withheld')
+            return json.loads(result.stdout)
+
+        # Seed only a disposable orphan/reservation, never real usage or a provider call.
+        pending_text = 'Restart pending check'
+        pending_operation = str(uuid4())
+        volume_python('''
+import hashlib,json,sqlite3,sys,time
+from datetime import datetime,timezone
+session,operation,text=sys.argv[1:]
+def fp(kind,value,version):
+    return hashlib.sha256(json.dumps([kind,value,version],ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
+stamp=int(time.time()*1000)-30000
+with sqlite3.connect('/data/assistant.sqlite') as db:
+    db.execute('PRAGMA foreign_keys=ON')
+    db.execute("INSERT INTO session_operations(session_id,operation_id,kind,fingerprint,expected_version,created_at,deadline,status) VALUES (?,?,'message',?,1,?,?,'pending')",
+               (session,operation,fp('message',text,1),stamp,stamp+25000))
+    db.execute("INSERT INTO llm_calls(call_key,session_key,month,admitted_at,model,reserved_micros,input_rate,output_rate,status) VALUES (?,?,?,?,?,1000,1000000,1000000,'reserved')",
+               (fp('billing',session+':'+operation,0),fp('session',session,0),datetime.now(timezone.utc).strftime('%Y-%m'),stamp,'mock-reservation'))
+print('{}')
+''', session_id, pending_operation, pending_text)
+        command('start', 'backend')
         ready()
         backend = command('ps', '-q', 'backend')
         after_mounts = json.loads(docker('inspect', '--format', '{{json .Mounts}}', backend))
@@ -185,6 +215,15 @@ def run(args):
         assert after_restart['recipe']['id'] == detail['id']
         assert after_restart['corpus_version'] == chosen['corpus_version']
         assert len(after_restart['history']) == 1
+        replay = {'text': pending_text, 'expected_version': 1, 'operation_id': pending_operation}
+        assert post_json(f'/api/assistant/sessions/{session_id}/messages', replay, expected=503)['code'] == 'ASSISTANT_OUTCOME_UNKNOWN'
+        accounting = volume_python('''
+import json,sqlite3
+with sqlite3.connect('file:/data/assistant.sqlite?mode=ro',uri=True) as db:
+    count,total,unknown=db.execute("SELECT COUNT(*),SUM(COALESCE(charged_micros,reserved_micros)),SUM(status='unknown' AND charged_micros IS NULL) FROM llm_calls").fetchone()
+print(json.dumps({'calls':count,'reserved_total':total,'unknown':unknown}))
+''', readonly=True)
+        assert accounting == {'calls': 1, 'reserved_total': 1000, 'unknown': 1}
         expected_next_step = 2 if after_restart['total_steps'] > 1 else 1
         advanced = post_json(f'/api/assistant/sessions/{session_id}/actions', {
             'action': 'next',
@@ -221,21 +260,32 @@ results=call('/api/recipes/search',json.dumps({'confirmed_dish':dish}).encode())
 recipe=call('/api/recipes/'+results['recipes'][0]['id'])['recipe']
 assert recipe['normalized_dish']==dish and recipe['ingredients'] and recipe['instructions']
 '''
-        result = subprocess.run(['docker', 'exec', '-i', command('ps', '-q', 'recipes'), 'python', '-c', offline_script],
-                                input=(ROOT / 'ai/cv/inference/tests/fixtures/food.png').read_bytes(), capture_output=True)
-        assert result.returncode == 0, 'Full gateway flow failed without external network'
         networks = json.loads(docker('inspect', '--format', '{{json .NetworkSettings.Networks}}', backend))
-        assert all(docker('network', 'inspect', '--format', '{{.Internal}}', name) == 'true' for name in networks)
+        external = [name for name in networks if docker('network', 'inspect', '--format', '{{.Internal}}', name) == 'false']
+        assert len(networks) == 2 and len(external) == 1
+        docker('network', 'disconnect', external[0], backend)
+        try:
+            networks = json.loads(docker('inspect', '--format', '{{json .NetworkSettings.Networks}}', backend))
+            assert networks and all(docker('network', 'inspect', '--format', '{{.Internal}}', name) == 'true' for name in networks)
+            result = subprocess.run(['docker', 'exec', '-i', command('ps', '-q', 'recipes'), 'python', '-c', offline_script],
+                                    input=(ROOT / 'ai/cv/inference/tests/fixtures/food.png').read_bytes(), capture_output=True)
+            assert result.returncode == 0, 'Full gateway flow failed without external network'
+        finally:
+            docker('network', 'connect', external[0], backend)
         peak = max(peak, int(docker('exec', backend, 'cat', '/sys/fs/cgroup/memory.peak')))
         report = {'public_api_version': '1.0.0', 'corpus_version': chosen['corpus_version'],
                   'real_model_flow': True, 'explicit_second_prediction_confirmed': True,
                   'catalog_dishes_searched': 30, 'dependency_stop_recovery': True,
                   'request_ids_preserved': True, 'only_frontend_published_on_loopback': True,
                   'ai_services_only_internal_networks': True, 'full_flow_without_external_network': True, 'backend_non_root': True,
+                  'backend_dedicated_llm_egress': True,
                   'backend_read_only': True, 'backend_memory_peak_bytes': peak,
                   'assistant_sqlite_volume_persisted': True,
                   'assistant_sqlite_schema_version': schema_version,
                   'assistant_restart_survived': True,
+                  'assistant_pending_reservation_restart_survived': True,
+                  'assistant_expired_pending_replay_without_key': True,
+                  'assistant_reservation_fault_fixture': True,
                   'assistant_messages_unconfigured_503_no_mutation': True,
                   'limitation': 'Integration smoke; not a throughput benchmark or independent recipe evaluation.'}
         if args.report:

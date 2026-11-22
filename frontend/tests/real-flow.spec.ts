@@ -65,6 +65,35 @@ for (const [name, variable] of [['out-of-domain', 'COOKLENS_OOD_IMAGE'], ['multi
   });
 }
 
+test('real assistant photo to chat, cooking controls, reload and finish', async ({ page }, info) => {
+  test.skip(process.env.COOKLENS_REAL_ASSISTANT !== '1', 'Requires the Phase 10/11 candidate and a backend LLM key');
+  test.setTimeout(90_000);
+  await recognize(page);
+  await page.getByRole('radio').first().check(); await page.locator('#confirmButton').click();
+  await page.getByRole('button', { name: /^Xem công thức / }).first().click();
+  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
+  await expect(page.getByRole('button', { name: 'Bắt đầu nấu', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
+  await expect(page.locator('.assistant-step-count')).toHaveText(/^Bước 1\//);
+  const input = page.getByLabel('Câu hỏi về công thức', { exact: true });
+  await input.fill('Theo công thức, bước đầu tiên cần làm gì?');
+  const reply = page.waitForResponse(r => r.url().endsWith('/messages') && r.request().method() === 'POST');
+  await input.press('Enter'); const response = await reply; expect(response.status()).toBe(200);
+  const result = await response.json(); expect(result.session.messages).toHaveLength(2);
+  await expect(page.getByRole('article', { name: 'Câu trả lời của CookLens' })).toBeVisible();
+  await expect(input).toBeFocused();
+  await page.getByRole('button', { name: 'Bước tiếp', exact: true }).click();
+  await expect(page.locator('.assistant-step-count')).toHaveText(/^Bước 2\//);
+  await capture(page, `assistant-${info.project.name}`);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.reload();
+  await expect(page.getByRole('article')).toHaveCount(2);
+  await expect(page.locator('.assistant-step-count')).toHaveText(/^Bước 2\//);
+  await page.getByRole('button', { name: 'Kết thúc nấu', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Đã kết thúc phiên nấu' })).toBeVisible();
+  await expect(input).toBeDisabled();
+});
+
 test('real catalog correction, scoped query, and disclosed AI-authored recipe', async ({ page }) => {
   await recognize(page);
   await page.getByRole('button', { name: 'Sửa món trong danh mục' }).click();

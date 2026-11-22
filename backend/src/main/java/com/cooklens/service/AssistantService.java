@@ -5,6 +5,11 @@ import com.cooklens.dto.ApiModels.Recipe;
 import com.cooklens.dto.AssistantModels.*;
 import com.cooklens.exception.ApiFailure;
 import com.cooklens.repository.SessionStore;
+import com.cooklens.repository.SessionOperations;
+import com.cooklens.repository.SessionOperations.Operation;
+import com.cooklens.repository.ChatAdmission;
+import com.cooklens.client.ChatProvider;
+import com.cooklens.config.LlmSettings;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.cfg.*;
@@ -14,6 +19,7 @@ import java.sql.*;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class AssistantService {
@@ -27,8 +33,19 @@ public class AssistantService {
     private final ObjectMapper persisted;
     private final PersistedSessionValidator storedValidator;
     private final Validator validator;
+    private final ChatProvider provider;
+    private final ChatContextBuilder context;
+    private final LlmSettings llm;
+    private final ChatPricing pricing;
+    private final ChatAdmission admission=new ChatAdmission();
     public AssistantService(SessionStore store, GatewayService gateway, RuntimeContract contract, ObjectMapper mapper, Validator validator) {
+        this(store,gateway,contract,mapper,validator,null,null,null,null);
+    }
+    @Autowired
+    public AssistantService(SessionStore store, GatewayService gateway, RuntimeContract contract, ObjectMapper mapper, Validator validator,
+                            ChatProvider provider, ChatContextBuilder context, LlmSettings llm, ChatPricing pricing) {
         this.store=store; this.gateway=gateway; this.contract=contract; this.mapper=mapper; this.validator=validator;
+        this.provider=provider; this.context=context; this.llm=llm; this.pricing=pricing;
         input=mapper.copy().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
                 .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
@@ -111,17 +128,16 @@ public class AssistantService {
     }
     public SessionResponse act(String id, SessionAction request, String requestId) {
         String sessionId=uuid(id), operation=uuid(request.operationId());
-        return response(store.transact(c -> {
+        return response(store.transact(c -> applyAction(c,sessionId,operation,request,"action",request.action().name())),requestId);
+    }
+    private Session applyAction(Connection c, String sessionId, String operation, SessionAction request, String kind, String value) throws Exception {
             var session=load(c,sessionId);
-            try (var query=c.prepareStatement("SELECT action, expected_version FROM session_actions WHERE session_id=? AND operation_id=?")) {
-                query.setString(1,sessionId); query.setString(2,operation);
-                try (var result=query.executeQuery()) {
-                    if (result.next()) {
-                        if (!request.action().name().equals(result.getString("action")) || request.expectedVersion() != result.getLong("expected_version"))
-                            throw new ApiFailure(409,"OPERATION_CONFLICT");
-                        return session;
-                    }
-                }
+            var operationRecord=findOperation(c,sessionId,operation);
+            if (operationRecord != null) {
+                if (!operationRecord.kind().equals(kind)
+                        || !operationRecord.fingerprint().equals(SessionOperations.fingerprint(kind,value,request.expectedVersion())))
+                    throw new ApiFailure(409,"OPERATION_CONFLICT");
+                return session;
             }
             requireVersion(session,request.expectedVersion());
             if (session.status() == Status.finished) throw new ApiFailure(409,"SESSION_FINISHED");
@@ -151,19 +167,174 @@ public class AssistantService {
                 insert.setString(1,sessionId); insert.setString(2,operation); insert.setString(3,request.action().name());
                 insert.setLong(4,request.expectedVersion()); insert.setLong(5,version); insert.setInt(6,step); insert.setLong(7,now); insert.executeUpdate();
             }
+            if (kind.equals("action")) SessionOperations.completedAction(c,sessionId,operation,request.action(),request.expectedVersion(),now);
+            else SessionOperations.completedCommand(c,sessionId,operation,value,request.expectedVersion(),now);
             return load(c,sessionId);
-        }), requestId);
     }
     public SessionResponse message(String id, SessionMessage request, String requestId) {
-        uuid(request.operationId());
+        return message(id,request,requestId,new AssistantTiming());
+    }
+    public SessionResponse message(String id, SessionMessage request, String requestId, AssistantTiming timing) {
+        String operation=uuid(request.operationId());
         String sessionId=uuid(id);
-        store.transact(c -> {
+        Action command=CookingCommands.parse(request.text());
+        if (command!=null) return timing.measure(AssistantTiming.Stage.prepare,() -> response(store.transact(c -> applyAction(c,sessionId,operation,
+                new SessionAction(command,request.expectedVersion(),operation),"message_action",request.text())),requestId));
+        var prepared=timing.measure(AssistantTiming.Stage.prepare,() -> prepareMessage(sessionId,request,true));
+        if (prepared.replay()) return response(prepared.session(),requestId);
+        ChatProvider.Completion result;
+        try { result=timing.measure(AssistantTiming.Stage.provider,() -> provider.complete(prepared.prompt())); }
+        catch (RuntimeException error) {
+            ApiFailure failure=error instanceof ApiFailure known ? known : new ApiFailure(503,"ASSISTANT_PROVIDER_UNAVAILABLE");
+            var usage=error instanceof ChatProvider.Failure known ? known.usage() : ChatProvider.Usage.unknown();
+            timing.measure(AssistantTiming.Stage.persist,() -> {
+                settleMessage(sessionId,request,usage,failure.code());
+                failMessage(sessionId,request,failure);
+                return null;
+            });
+            throw failure;
+        }
+        return timing.measure(AssistantTiming.Stage.persist,() -> persistCompletion(sessionId,operation,request,requestId,result));
+    }
+    private SessionResponse persistCompletion(String sessionId, String operation, SessionMessage request, String requestId, ChatProvider.Completion result) {
+        var usage=result==null ? ChatProvider.Usage.unknown() : result.usage();
+        settleMessage(sessionId,request,usage,"PROVIDER_COMPLETED");
+        try {
+            var reply=result==null ? null : new StoredReply(result.text(),result.provider(),result.model(),
+                    usage==null ? null : usage.inputTokens(),usage==null ? null : usage.outputTokens());
+            return response(completeMessage(sessionId,request,reply).session(),requestId);
+        } catch (ApiFailure failure) {
+            store.transact(c -> { admission.outcome(c,sessionId,operation,failure.code()); return null; });
+            throw failure;
+        }
+    }
+    private void settleMessage(String session, SessionMessage request, ChatProvider.Usage usage, String outcome) {
+        store.transact(c -> { admission.settle(c,session,uuid(request.operationId()),usage,outcome); return null; });
+    }
+    record PreparedMessage(Session session, boolean replay, ChatProvider.Prompt prompt) {}
+    record StoredReply(String text, String provider, String model, Long inputTokens, Long outputTokens) {}
+    private record MessageOutcome(Session session, boolean replay, ApiFailure failure, ChatProvider.Prompt prompt) {
+        MessageOutcome(Session session, boolean replay, ApiFailure failure) { this(session,replay,failure,null); }
+        PreparedMessage checked() {
+            if (failure != null) throw failure;
+            return new PreparedMessage(session,replay,prompt);
+        }
+    }
+    // Called by the provider orchestration only after configuration/context/admission checks.
+    PreparedMessage prepareMessage(String id, SessionMessage request) {
+        return prepareMessage(id,request,false);
+    }
+    private PreparedMessage prepareMessage(String id, SessionMessage request, boolean providerCall) {
+        String sessionId=uuid(id), operation=uuid(request.operationId());
+        return store.transact(c -> {
             var session=load(c,sessionId);
+            expirePending(c,sessionId);
+            var prior=findOperation(c,sessionId,operation);
+            if (prior != null) return replayMessage(session,prior,request);
             requireVersion(session,request.expectedVersion());
             if (session.status() == Status.finished) throw new ApiFailure(409,"SESSION_FINISHED");
-            throw new ApiFailure(503,"ASSISTANT_NOT_CONFIGURED");
+            if (session.messages().size()>=60) throw new ApiFailure(409,"SESSION_MESSAGE_LIMIT");
+            if (SessionOperations.read(c,sessionId).stream().anyMatch(op -> op.status().equals("pending")))
+                return new MessageOutcome(session,false,new ApiFailure(409,"ASSISTANT_REQUEST_IN_PROGRESS"));
+            long now=System.currentTimeMillis();
+            ChatProvider.Prompt prompt=null;
+            if (providerCall) {
+                if (provider==null) throw new ApiFailure(503,"ASSISTANT_NOT_CONFIGURED");
+                provider.requireConfigured();
+                var config=llm.requireConfigured();
+                prompt=context.build(session,request.text());
+                provider.validate(prompt);
+                admission.reserve(c,sessionId,operation,config.model(),pricing.quote(config,prompt),now);
+            }
+            try (var insert=c.prepareStatement("""
+                    INSERT INTO session_operations(session_id,operation_id,kind,fingerprint,expected_version,created_at,deadline,status)
+                    VALUES (?,?,'message',?,?,?,?,'pending')
+                    """)) {
+                insert.setString(1,sessionId); insert.setString(2,operation);
+                insert.setString(3,SessionOperations.fingerprint("message",request.text(),request.expectedVersion()));
+                insert.setLong(4,request.expectedVersion()); insert.setLong(5,now); insert.setLong(6,now+25000); insert.executeUpdate();
+            }
+            return new MessageOutcome(session,false,null,prompt);
+        }).checked();
+    }
+    PreparedMessage completeMessage(String id, SessionMessage request, StoredReply reply) {
+        String sessionId=uuid(id), operation=uuid(request.operationId());
+        return store.transact(c -> {
+            var session=readStoredSession(c,sessionId);
+            expirePending(c,sessionId);
+            var prior=findOperation(c,sessionId,operation);
+            if (prior == null) throw PersistedSessionValidator.unavailable();
+            matchMessage(prior,request);
+            if (!prior.status().equals("pending")) return replayMessage(session,prior,request);
+            ApiFailure rejected=null;
+            if (Instant.parse(session.expiresAt()).toEpochMilli()<=System.currentTimeMillis()) rejected=new ApiFailure(410,"SESSION_EXPIRED");
+            else if (session.version()!=request.expectedVersion()) rejected=new ApiFailure(409,"SESSION_VERSION_CONFLICT");
+            else if (reply == null || reply.text() == null || reply.text().isBlank() || reply.text().length()>16384
+                    || reply.provider() == null || reply.provider().isBlank() || reply.provider().length()>100
+                    || reply.model() == null || reply.model().isBlank() || reply.model().length()>200
+                    || (reply.inputTokens()!=null && reply.inputTokens()<0) || (reply.outputTokens()!=null && reply.outputTokens()<0))
+                rejected=new ApiFailure(503,"ASSISTANT_PROVIDER_UNAVAILABLE");
+            if (rejected != null) {
+                recordFailure(c,sessionId,operation,rejected);
+                return new MessageOutcome(session,false,rejected);
+            }
+            long now=System.currentTimeMillis(), version=session.version()+1;
+            try (var update=c.prepareStatement("UPDATE session_operations SET status='completed',committed_version=? WHERE session_id=? AND operation_id=? AND status='pending'")) {
+                update.setLong(1,version); update.setString(2,sessionId); update.setString(3,operation);
+                if (update.executeUpdate()!=1) throw PersistedSessionValidator.unavailable();
+            }
+            try (var insert=c.prepareStatement("INSERT INTO session_chat_turns VALUES (?,?,?,?,?,?,?,?,?,?,?)")) {
+                insert.setString(1,sessionId); insert.setLong(2,version); insert.setString(3,operation); insert.setLong(4,request.expectedVersion());
+                insert.setString(5,request.text()); insert.setString(6,reply.text()); insert.setLong(7,now);
+                insert.setString(8,reply.provider()); insert.setString(9,reply.model());
+                insert.setObject(10,reply.inputTokens()); insert.setObject(11,reply.outputTokens()); insert.executeUpdate();
+            }
+            try (var update=c.prepareStatement("UPDATE sessions SET version=?,updated_at=? WHERE id=? AND version=?")) {
+                update.setLong(1,version); update.setLong(2,now); update.setString(3,sessionId); update.setLong(4,request.expectedVersion());
+                if (update.executeUpdate()!=1) throw new ApiFailure(409,"SESSION_VERSION_CONFLICT");
+            }
+            return new MessageOutcome(load(c,sessionId),false,null);
+        }).checked();
+    }
+    void failMessage(String id, SessionMessage request, ApiFailure failure) {
+        String sessionId=uuid(id), operation=uuid(request.operationId());
+        store.transact(c -> {
+            readStoredSession(c,sessionId);
+            expirePending(c,sessionId);
+            var prior=findOperation(c,sessionId,operation);
+            if (prior == null) throw PersistedSessionValidator.unavailable();
+            matchMessage(prior,request);
+            if (prior.status().equals("pending")) recordFailure(c,sessionId,operation,failure);
+            return null;
         });
-        throw new ApiFailure(503,"ASSISTANT_NOT_CONFIGURED");
+    }
+    private Operation findOperation(Connection c, String session, String operation) throws SQLException {
+        return SessionOperations.read(c,session).stream().filter(op -> op.id().equals(operation)).findFirst().orElse(null);
+    }
+    private void matchMessage(Operation prior, SessionMessage request) {
+        if (!prior.kind().equals("message") || !prior.fingerprint().equals(SessionOperations.fingerprint("message",request.text(),request.expectedVersion())))
+            throw new ApiFailure(409,"OPERATION_CONFLICT");
+    }
+    private MessageOutcome replayMessage(Session session, Operation prior, SessionMessage request) {
+        matchMessage(prior,request);
+        requireActive(session);
+        if (prior.status().equals("completed")) return new MessageOutcome(session,true,null);
+        if (prior.status().equals("failed")) return new MessageOutcome(session,false,new ApiFailure(prior.errorStatus(),prior.errorCode()));
+        return new MessageOutcome(session,false,new ApiFailure(409,"ASSISTANT_REQUEST_IN_PROGRESS"));
+    }
+    private void expirePending(Connection c, String session) throws SQLException {
+        admission.unknown(c,session,System.currentTimeMillis());
+        try (var update=c.prepareStatement("""
+                UPDATE session_operations SET status='failed',error_status=503,error_code='ASSISTANT_OUTCOME_UNKNOWN'
+                WHERE session_id=? AND status='pending' AND deadline<=?
+                """)) {
+            update.setString(1,session); update.setLong(2,System.currentTimeMillis()); update.executeUpdate();
+        }
+    }
+    private void recordFailure(Connection c, String session, String operation, ApiFailure failure) throws SQLException {
+        try (var update=c.prepareStatement("UPDATE session_operations SET status='failed',error_status=?,error_code=? WHERE session_id=? AND operation_id=? AND status='pending'")) {
+            update.setInt(1,failure.status()); update.setString(2,failure.code()); update.setString(3,session); update.setString(4,operation); update.executeUpdate();
+        }
     }
     private void requireVersion(Session session, long expected) {
         if (session.version() != expected) throw new ApiFailure(409,"SESSION_VERSION_CONFLICT");
@@ -196,10 +367,23 @@ public class AssistantService {
                                 Math.toIntExact(storedInteger(rows,"current_step")),storedInteger(rows,"created_at")));
                     }
                 }
-                storedValidator.validate(state,history);
+                var turns=new ArrayList<PersistedSessionValidator.Turn>();
+                try (var queryTurns=c.prepareStatement("SELECT * FROM session_chat_turns WHERE session_id=? ORDER BY version LIMIT 31")) {
+                    queryTurns.setString(1,id);
+                    try (var rows=queryTurns.executeQuery()) {
+                        while (rows.next()) turns.add(new PersistedSessionValidator.Turn(storedText(rows,"operation_id"),
+                                storedInteger(rows,"expected_version"),storedInteger(rows,"version"),storedText(rows,"user_text"),storedText(rows,"assistant_text"),
+                                storedInteger(rows,"created_at"),storedText(rows,"provider"),storedText(rows,"model"),
+                                SessionOperations.nullableInteger(rows,"input_tokens"),SessionOperations.nullableInteger(rows,"output_tokens")));
+                    }
+                }
+                storedValidator.validate(state,history,turns);
+                storedValidator.validateOperations(state,history,turns,SessionOperations.read(c,id));
                 var events=history.stream().map(event -> new ActionEvent(event.operationId(),event.action(),event.version(),event.currentStep(),instant(event.createdAt()))).toList();
+                var messages=new ArrayList<Message>();
+                for (var turn : turns) { messages.add(new Message("user",turn.userText())); messages.add(new Message("assistant",turn.assistantText())); }
                 return new Session(id,state.corpusVersion(),recipe.updatedAt(),recipe,state.status(),state.currentStep(),recipe.instructions().size(),state.version(),
-                        instant(state.createdAt()),instant(state.updatedAt()),instant(state.expiresAt()),events,List.of());
+                        instant(state.createdAt()),instant(state.updatedAt()),instant(state.expiresAt()),events,messages);
             }
         } catch (ApiFailure e) { throw e; }
         catch (Exception e) { throw PersistedSessionValidator.unavailable(); }

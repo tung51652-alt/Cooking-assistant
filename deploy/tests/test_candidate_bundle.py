@@ -26,6 +26,19 @@ def compose():
 
 
 class CandidateBundleTests(unittest.TestCase):
+    def test_llm_credentials_are_rejected_and_runtime_placeholders_are_preserved(self):
+        from uuid import uuid4
+        config = compose()
+        config['services']['backend']['environment'] = {'LLM_API_KEY': 'test-' + str(uuid4())}
+        with self.assertRaises(ValueError):
+            candidate_config(config)
+        config['services']['backend']['environment']['LLM_API_KEY'] = ''
+        prepared, _ = candidate_config(config)
+        environment = prepared['services']['backend']['environment']
+        self.assertEqual(environment['LLM_API_KEY'], '${LLM_API_KEY:-}')
+        self.assertEqual(environment['LLM_MODEL'], '${LLM_MODEL:-nvidia/nemotron-3-ultra-550b-a55b}')
+        self.assertEqual(config['services']['backend']['environment'], {'LLM_API_KEY': ''})
+
     def test_port_override_and_project_isolation_survive_packaging(self):
         original = compose()
         snapshot = deepcopy(original)

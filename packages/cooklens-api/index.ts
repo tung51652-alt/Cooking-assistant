@@ -76,6 +76,16 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
           SESSION_HISTORY_LIMIT: 'Phiên đã đạt giới hạn thao tác. Hãy tạo phiên mới.',
           ASSISTANT_NOT_CONFIGURED: 'Hỏi đáp chưa được cấu hình. Bạn vẫn có thể điều khiển bước nấu.',
           ASSISTANT_STORAGE_UNAVAILABLE: 'Kho lưu phiên chưa sẵn sàng. Vui lòng thử lại sau.',
+          ASSISTANT_REQUEST_IN_PROGRESS: 'Trợ lý đang trả lời. Hãy đợi rồi tải lại phiên.',
+          SESSION_MESSAGE_LIMIT: 'Phiên đã đạt giới hạn hỏi đáp. Bạn vẫn có thể điều khiển bước nấu.',
+          ASSISTANT_OUTCOME_UNKNOWN: 'Chưa xác định được kết quả hỏi đáp. Hãy tải lại phiên trước khi thử lại.',
+          ASSISTANT_PROVIDER_UNAVAILABLE: 'Trợ lý chưa trả lời được. Vui lòng thử lại sau.',
+          ASSISTANT_PROVIDER_TIMEOUT: 'Trợ lý phản hồi quá lâu. Hãy tải lại phiên trước khi thử lại.',
+          ASSISTANT_PROVIDER_AUTH_FAILED: 'Cấu hình xác thực trợ lý chưa hợp lệ. Bạn vẫn có thể điều khiển bước nấu.',
+          ASSISTANT_PROVIDER_UNSUPPORTED: 'Nhà cung cấp trợ lý này chưa được hỗ trợ.',
+          ASSISTANT_RATE_LIMITED: 'Trợ lý đang giới hạn lượt hỏi. Vui lòng thử lại sau.',
+          ASSISTANT_BUDGET_EXCEEDED: 'Trợ lý đã hết ngân sách. Bạn vẫn có thể điều khiển bước nấu.',
+          ASSISTANT_CONTEXT_TOO_LARGE: 'Ngữ cảnh hỏi đáp quá dài. Hãy rút ngắn câu hỏi hoặc chọn công thức khác.',
         };
         if (record(error) && error.api_version === '1.0.0' && uuid(error.request_id)
           && response.headers.get('X-Request-ID') === error.request_id && typeof error.code === 'string'
@@ -160,12 +170,32 @@ function session(data: Record<string, unknown>, id?: string, minimumVersion = 0)
     || (v.status === 'ready' && v.current_step !== 0) || (v.status === 'cooking' && v.current_step === 0)
     || ![v.created_at, v.updated_at, v.expires_at].every(t => typeof t === 'string' && Number.isFinite(Date.parse(t)))
     || !Array.isArray(v.history) || v.history.length > 100
-    || !v.history.every((event,i) => record(event) && uuid(event.operation_id) && event.version === i+1
+    || !v.history.every(event => record(event) && uuid(event.operation_id) && Number.isSafeInteger(event.version)
+      && finite(event.version) && event.version > 0 && event.version <= (v.version as number)
       && ['start', 'next', 'previous', 'repeat', 'finish'].includes(event.action as string)
       && Number.isInteger(event.current_step) && finite(event.current_step) && event.current_step >= 0
-      && event.current_step <= (v.total_steps as number) && text(event.created_at))
-    || v.version !== v.history.length || !Array.isArray(v.messages) || v.messages.length > 100
-    || !v.messages.every(message => record(message) && ['user', 'assistant'].includes(message.role as string) && text(message.text))) malformed();
+      && event.current_step <= (v.total_steps as number) && typeof event.created_at === 'string' && Number.isFinite(Date.parse(event.created_at)))
+    || !Array.isArray(v.messages) || v.messages.length > 60 || v.messages.length % 2 !== 0
+    || v.version !== v.history.length + v.messages.length / 2
+    || !v.messages.every((message,i) => record(message) && message.role === (i % 2 === 0 ? 'user' : 'assistant')
+      && text(message.text) && message.text.length <= (i % 2 === 0 ? 2000 : 16384))) malformed();
+  let previousVersion = 0, step = 0, status = 'ready';
+  const operations = new Set<string>();
+  for (const [index, event] of v.history.entries()) {
+    if (event.version <= previousVersion || operations.has(event.operation_id.toLowerCase()) || status === 'finished'
+      || (index === 99 && event.action !== 'finish')) malformed();
+    operations.add(event.operation_id.toLowerCase()); previousVersion = event.version;
+    switch (event.action) {
+      case 'start': if (status !== 'ready') malformed(); status = 'cooking'; step = 1; break;
+      case 'finish': status = 'finished'; if (event.version !== v.version) malformed(); break;
+      default:
+        if (status !== 'cooking') malformed();
+        if (event.action === 'next') step = Math.min(step + 1, v.total_steps as number);
+        if (event.action === 'previous') step = Math.max(step - 1, 1);
+    }
+    if (event.current_step !== step) malformed();
+  }
+  if (v.current_step !== step || v.status !== status) malformed();
   return v as AssistantSession;
 }
 async function createSession(body: CreateSession, signal: AbortSignal): Promise<AssistantSession> {
@@ -188,7 +218,7 @@ async function sessionMessage(id: string, body: SessionMessageRequest, signal: A
   id = canonicalUuid(id);
   const payload = { ...body, operation_id: canonicalUuid(body.operation_id) };
   return session(await request(`/assistant/sessions/${encodeURIComponent(id)}/messages`, signal,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }), id, payload.expected_version + 1);
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, 25_000), id, payload.expected_version + 1);
 }
 return { predict, getDishes, searchRecipes, getRecipe, getRecipeDocument, createSession, getSession, sessionAction, sessionMessage };
 }

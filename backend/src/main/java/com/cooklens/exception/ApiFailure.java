@@ -20,6 +20,16 @@ public class ApiFailure extends RuntimeException {
             case "SESSION_FINISHED" -> "Phiên nấu ăn đã kết thúc.";
             case "INVALID_SESSION_ACTION" -> "Thao tác không phù hợp với trạng thái phiên.";
             case "SESSION_HISTORY_LIMIT" -> "Phiên đã đạt giới hạn thao tác. Hãy tạo phiên mới.";
+            case "SESSION_MESSAGE_LIMIT" -> "Phiên đã đạt giới hạn hỏi đáp. Bạn vẫn có thể điều khiển bước nấu.";
+            case "ASSISTANT_REQUEST_IN_PROGRESS" -> "Trợ lý đang trả lời. Hãy đợi rồi đọc lại phiên.";
+            case "ASSISTANT_OUTCOME_UNKNOWN" -> "Chưa xác định được kết quả hỏi đáp. Hãy đọc lại phiên trước khi thử lại.";
+            case "ASSISTANT_PROVIDER_UNAVAILABLE" -> "Trợ lý chưa trả lời được. Vui lòng thử lại sau.";
+            case "ASSISTANT_PROVIDER_TIMEOUT" -> "Trợ lý phản hồi quá lâu. Hãy đọc lại phiên trước khi thử lại.";
+            case "ASSISTANT_PROVIDER_AUTH_FAILED" -> "Cấu hình xác thực trợ lý chưa hợp lệ. Bạn vẫn có thể điều khiển bước nấu.";
+            case "ASSISTANT_PROVIDER_UNSUPPORTED" -> "Nhà cung cấp trợ lý này chưa được hỗ trợ.";
+            case "ASSISTANT_RATE_LIMITED" -> "Trợ lý đang giới hạn lượt hỏi. Vui lòng thử lại sau.";
+            case "ASSISTANT_BUDGET_EXCEEDED" -> "Trợ lý đã hết ngân sách. Bạn vẫn có thể điều khiển bước nấu.";
+            case "ASSISTANT_CONTEXT_TOO_LARGE" -> "Ngữ cảnh hỏi đáp quá dài. Hãy rút ngắn câu hỏi hoặc chọn công thức khác.";
             case "ASSISTANT_STORAGE_UNAVAILABLE" -> "Kho lưu phiên chưa sẵn sàng. Vui lòng thử lại sau.";
             case "ASSISTANT_NOT_CONFIGURED" -> "Hỏi đáp chưa được cấu hình. Bạn vẫn có thể điều khiển bước nấu.";
             case "INVALID_IMAGE" -> "Không đọc được ảnh. Vui lòng chọn ảnh JPG hoặc PNG hợp lệ.";

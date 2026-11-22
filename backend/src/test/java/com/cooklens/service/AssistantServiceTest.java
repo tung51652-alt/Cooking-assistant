@@ -6,6 +6,8 @@ import com.cooklens.dto.ApiModels.*;
 import com.cooklens.dto.AssistantModels.*;
 import com.cooklens.exception.ApiFailure;
 import com.cooklens.repository.SessionStore;
+import com.cooklens.client.ChatProvider;
+import com.cooklens.config.LlmSettings;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Validation;
@@ -93,6 +95,296 @@ class AssistantServiceTest {
 
     private static String uuid() {
         return UUID.randomUUID().toString();
+    }
+
+    private void restartService() throws Exception {
+        ObjectMapper mapper=new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
+        Validator beanValidator=Validation.buildDefaultValidatorFactory().getValidator();
+        service=new AssistantService(new SessionStore(dbPath.toString()),
+                new GatewayService(contract,null,recipesClient,beanValidator,mapper),contract,mapper,beanValidator);
+    }
+    private Session freshSession() {
+        Recipe r=recipe("pho-chat","pho",3);
+        stubRecipe(r);
+        return service.create(new CreateSession(r.id(),contract.corpusVersion,uuid()),uuid()).session();
+    }
+    private AssistantService.StoredReply reply() {
+        return new AssistantService.StoredReply("Theo công thức, hãy thực hiện bước hiện tại.","mock","test-model",120L,20L);
+    }
+
+    @Test
+    void chatAndActionsShareRevisionsAndReplayAcrossRestart() throws Exception {
+        Session session=freshSession();
+        String start=uuid();
+        service.act(session.id(),new SessionAction(Action.start,0L,start),uuid());
+        var message=new SessionMessage("Giải thích bước này",1L,uuid());
+        assertFalse(service.prepareMessage(session.id(),message).replay());
+        assertEquals(0,service.get(session.id(),uuid()).session().messages().size());
+        Session answered=service.completeMessage(session.id(),message,reply()).session();
+        assertEquals(2,answered.version());
+        assertEquals(List.of(new Message("user",message.text()),new Message("assistant",reply().text())),answered.messages());
+        Session next=service.act(session.id(),new SessionAction(Action.next,2L,uuid()),uuid()).session();
+        assertEquals(List.of(1L,3L),next.history().stream().map(ActionEvent::version).toList());
+        assertEquals(2,next.currentStep());
+        restartService();
+        assertEquals(next,service.get(session.id(),uuid()).session());
+        assertTrue(service.prepareMessage(session.id(),message).replay());
+        assertEquals(next,service.completeMessage(session.id(),message,reply()).session());
+        assertEquals(next,service.message(session.id(),message,uuid()).session());
+        assertEquals(next,service.act(session.id(),new SessionAction(Action.start,0L,start),uuid()).session());
+        service.act(session.id(),new SessionAction(Action.finish,3L,uuid()),uuid());
+        assertTrue(service.prepareMessage(session.id(),message).replay());
+        assertFailure(409,"OPERATION_CONFLICT",() -> service.prepareMessage(session.id(),new SessionMessage("khác",1L,message.operationId())));
+        assertFailure(409,"OPERATION_CONFLICT",() -> service.act(session.id(),new SessionAction(Action.next,1L,message.operationId()),uuid()));
+        assertFailure(409,"OPERATION_CONFLICT",() -> service.message(session.id(),new SessionMessage("x",0L,start),uuid()));
+    }
+
+    @Test
+    void pendingChatDoesNotBlockActionsAndStaleAnswerIsNeverCommitted() throws Exception {
+        Session session=freshSession();
+        var message=new SessionMessage("Hỏi bước hiện tại",0L,uuid());
+        service.prepareMessage(session.id(),message);
+        assertFailure(409,"ASSISTANT_REQUEST_IN_PROGRESS",() -> service.prepareMessage(session.id(),message));
+        assertFailure(409,"ASSISTANT_REQUEST_IN_PROGRESS",() -> service.prepareMessage(session.id(),new SessionMessage("khác",0L,uuid())));
+        Session started=service.act(session.id(),new SessionAction(Action.start,0L,uuid()),uuid()).session();
+        assertFailure(409,"SESSION_VERSION_CONFLICT",() -> service.completeMessage(session.id(),message,reply()));
+        assertEquals(started,service.get(session.id(),uuid()).session());
+        restartService();
+        assertFailure(409,"SESSION_VERSION_CONFLICT",() -> service.prepareMessage(session.id(),message));
+        assertEquals(started,service.get(session.id(),uuid()).session());
+        var retry=new SessionMessage("Hỏi lại",1L,uuid());
+        service.prepareMessage(session.id(),retry);
+        service.failMessage(session.id(),retry,new ApiFailure(504,"ASSISTANT_PROVIDER_TIMEOUT"));
+        assertFailure(504,"ASSISTANT_PROVIDER_TIMEOUT",() -> service.prepareMessage(session.id(),retry));
+        assertFailure(504,"ASSISTANT_PROVIDER_TIMEOUT",() -> service.completeMessage(session.id(),retry,reply()));
+        assertEquals(started,service.get(session.id(),uuid()).session());
+    }
+
+    @Test
+    void abandonedPendingSurvivesRestartAndFencesLateCompletion() throws Exception {
+        Session session=freshSession();
+        var message=new SessionMessage("Hỏi",0L,uuid());
+        service.prepareMessage(session.id(),message);
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var update=c.prepareStatement(
+                "UPDATE session_operations SET created_at=created_at-30000,deadline=deadline-30000 WHERE session_id=?")) {
+            update.setString(1,session.id()); update.executeUpdate();
+        }
+        restartService();
+        assertFailure(503,"ASSISTANT_OUTCOME_UNKNOWN",() -> service.prepareMessage(session.id(),message));
+        assertFailure(503,"ASSISTANT_OUTCOME_UNKNOWN",() -> service.completeMessage(session.id(),message,reply()));
+        assertEquals(session,service.get(session.id(),uuid()).session());
+        var fresh=new SessionMessage("Hỏi mới",0L,uuid());
+        service.prepareMessage(session.id(),fresh);
+        assertEquals(1,service.completeMessage(session.id(),fresh,reply()).session().version());
+    }
+
+    @Test
+    void chatQuotaIsIndependentOfActionQuotaAndSessionsRemainIsolated() {
+        Session session=freshSession(), other=freshSession();
+        var otherMessage=new SessionMessage("Câu hỏi phiên hai",0L,uuid());
+        service.prepareMessage(other.id(),otherMessage);
+        for (long version=0;version<30;version++) {
+            var message=new SessionMessage("Câu hỏi "+version,version,uuid());
+            service.prepareMessage(session.id(),message);
+            service.completeMessage(session.id(),message,reply());
+        }
+        assertFailure(409,"SESSION_MESSAGE_LIMIT",() -> service.prepareMessage(session.id(),new SessionMessage("vượt quota",30L,uuid())));
+        service.act(session.id(),new SessionAction(Action.start,30L,uuid()),uuid());
+        for (long version=31;version<129;version++) service.act(session.id(),new SessionAction(Action.repeat,version,uuid()),uuid());
+        Session finished=service.act(session.id(),new SessionAction(Action.finish,129L,uuid()),uuid()).session();
+        assertEquals(130,finished.version());
+        assertEquals(100,finished.history().size());
+        assertEquals(60,finished.messages().size());
+        assertEquals(other,service.get(other.id(),uuid()).session());
+        assertEquals(1,service.completeMessage(other.id(),otherMessage,reply()).session().version());
+    }
+
+    @Test
+    void rejectsInvalidReplyAndCorruptTurnOrOperationWithoutMutatingState() throws Exception {
+        Session session=freshSession();
+        var invalid=new SessionMessage("Hỏi",0L,uuid());
+        service.prepareMessage(session.id(),invalid);
+        assertFailure(503,"ASSISTANT_PROVIDER_UNAVAILABLE",() -> service.completeMessage(session.id(),invalid,
+                new AssistantService.StoredReply(" ","mock","model",null,null)));
+        assertEquals(session,service.get(session.id(),uuid()).session());
+        var valid=new SessionMessage("Câu hỏi hợp lệ",0L,uuid());
+        service.prepareMessage(session.id(),valid);
+        service.completeMessage(session.id(),valid,reply());
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement()) {
+            st.executeUpdate("UPDATE session_chat_turns SET user_text='changed'");
+        }
+        assertFailure(503,"ASSISTANT_STORAGE_UNAVAILABLE",() -> service.get(session.id(),uuid()));
+        assertFailure(503,"ASSISTANT_STORAGE_UNAVAILABLE",() -> service.act(session.id(),new SessionAction(Action.start,1L,uuid()),uuid()));
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement()) {
+            st.executeUpdate("UPDATE session_chat_turns SET user_text='Câu hỏi hợp lệ'");
+            st.executeUpdate("UPDATE session_operations SET fingerprint='"+"0".repeat(64)+"' WHERE status='completed'");
+        }
+        assertFailure(503,"ASSISTANT_STORAGE_UNAVAILABLE",() -> service.get(session.id(),uuid()));
+    }
+
+    @Test
+    void migratesLegacyActionsAndRollsBackBrokenLegacyRevisions() throws Exception {
+        Session session=freshSession();
+        String operation=uuid();
+        Session started=service.act(session.id(),new SessionAction(Action.start,0L,operation),uuid()).session();
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement()) {
+            st.execute("DROP TABLE llm_calls"); st.execute("DROP TABLE llm_budget_warnings");
+            st.execute("DROP TABLE session_chat_turns"); st.execute("DROP TABLE session_operations"); st.execute("PRAGMA user_version=1");
+        }
+        restartService();
+        assertEquals(started,service.get(session.id(),uuid()).session());
+        assertEquals(started,service.act(session.id(),new SessionAction(Action.start,0L,operation),uuid()).session());
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement()) {
+            try (var rows=st.executeQuery("PRAGMA user_version")) { rows.next(); assertEquals(3,rows.getInt(1)); }
+            st.execute("DROP TABLE llm_calls"); st.execute("DROP TABLE llm_budget_warnings");
+            st.execute("DROP TABLE session_chat_turns"); st.execute("DROP TABLE session_operations"); st.execute("PRAGMA user_version=1");
+            st.executeUpdate("UPDATE session_actions SET version=2");
+        }
+        restartService();
+        assertFailure(503,"ASSISTANT_STORAGE_UNAVAILABLE",() -> service.get(session.id(),uuid()));
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement()) {
+            try (var rows=st.executeQuery("PRAGMA user_version")) { rows.next(); assertEquals(1,rows.getInt(1)); }
+            try (var rows=st.executeQuery("SELECT COUNT(*) FROM sqlite_master WHERE name='session_operations'")) { rows.next(); assertEquals(0,rows.getInt(1)); }
+        }
+    }
+
+    @Test
+    void migrationFailureAfterCreatingTablesRollsBackAllDdl() throws Exception {
+        Session session=freshSession();
+        service.act(session.id(),new SessionAction(Action.start,0L,uuid()),uuid());
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement()) {
+            st.execute("DROP TABLE llm_calls"); st.execute("DROP TABLE llm_budget_warnings");
+            st.execute("DROP TABLE session_chat_turns"); st.execute("DROP TABLE session_operations"); st.execute("PRAGMA user_version=1");
+            st.executeUpdate("UPDATE session_actions SET action='unsupported'");
+        }
+        restartService();
+        assertFailure(503,"ASSISTANT_STORAGE_UNAVAILABLE",() -> service.get(session.id(),uuid()));
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement()) {
+            try (var rows=st.executeQuery("PRAGMA user_version")) { rows.next(); assertEquals(1,rows.getInt(1)); }
+            try (var rows=st.executeQuery("SELECT COUNT(*) FROM sqlite_master WHERE name IN ('session_operations','session_chat_turns','session_pending_message')")) {
+                rows.next(); assertEquals(0,rows.getInt(1));
+            }
+        }
+    }
+
+    @Test
+    void migratesSchemaTwoChatTurnsWithoutChangingSnapshotsOrReplay() throws Exception {
+        Session session=freshSession();
+        var request=new SessionMessage("Câu hỏi cũ",0L,uuid());
+        service.prepareMessage(session.id(),request);
+        Session answered=service.completeMessage(session.id(),request,reply()).session();
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement()) {
+            st.execute("DROP TABLE llm_calls"); st.execute("DROP TABLE llm_budget_warnings");
+            st.execute("ALTER TABLE session_operations DROP COLUMN command_text"); st.execute("PRAGMA user_version=2");
+        }
+        restartService();
+        assertEquals(answered,service.get(session.id(),uuid()).session());
+        assertTrue(service.prepareMessage(session.id(),request).replay());
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement(); var rows=st.executeQuery("PRAGMA user_version")) {
+            rows.next(); assertEquals(3,rows.getInt(1));
+        }
+    }
+
+    @Test
+    void commandsWorkWithoutProviderAndCorruptedCommandMetadataIsRejected() throws Exception {
+        Session session=freshSession();
+        String operation=uuid();
+        var command=new SessionMessage("  BẮT ĐẦU  ",0L,operation);
+        Session started=service.message(session.id(),command,uuid()).session();
+        assertEquals(1,started.currentStep()); assertTrue(started.messages().isEmpty());
+        assertEquals(started,service.message(session.id(),command,uuid()).session());
+        assertFailure(409,"OPERATION_CONFLICT",() -> service.message(session.id(),new SessionMessage("bắt đầu",0L,operation),uuid()));
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement()) {
+            st.executeUpdate("UPDATE session_operations SET command_text='bước tiếp'");
+        }
+        assertFailure(503,"ASSISTANT_STORAGE_UNAVAILABLE",() -> service.get(session.id(),uuid()));
+    }
+
+    private AssistantService configured(LlmSettings settings, ChatProvider provider) {
+        ObjectMapper mapper=new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        Validator validator=Validation.buildDefaultValidatorFactory().getValidator();
+        return new AssistantService(new SessionStore(dbPath.toString()),new GatewayService(contract,null,recipesClient,validator,mapper),
+                contract,mapper,validator,provider,new ChatContextBuilder(mapper,settings),settings,new ChatPricing());
+    }
+
+    @Test
+    void missingKeyUnsupportedProviderAndUnverifiedPricingDoNotClaimAnOperation() throws Exception {
+        Session session=freshSession(); var provider=mock(ChatProvider.class);
+        String model=LlmSettings.NVIDIA_MODEL;
+        for (var settings:List.of(
+                new LlmSettings("openai","https://integrate.api.nvidia.com/v1",model,"","20","512","6000"),
+                new LlmSettings("anthropic","https://integrate.api.nvidia.com/v1",model,"test","20","512","6000"),
+                new LlmSettings("openai","https://example.com/v1",model,"test","20","512","6000"))) {
+            var configured=configured(settings,provider);
+            assertEquals(503,assertThrows(ApiFailure.class,() -> configured.message(session.id(),new SessionMessage("Câu hỏi",0L,uuid()),uuid())).status());
+            assertEquals(session,configured.get(session.id(),uuid()).session());
+        }
+        verify(provider,never()).complete(any());
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement(); var rows=st.executeQuery(
+                "SELECT (SELECT COUNT(*) FROM llm_calls)+(SELECT COUNT(*) FROM session_operations)")) {
+            rows.next(); assertEquals(0,rows.getInt(1));
+        }
+    }
+
+    @Test
+    void unexpectedProviderExceptionIsSanitizedAndDurablyRecorded() throws Exception {
+        Session session=freshSession(); var provider=mock(ChatProvider.class);
+        String secret="test-"+uuid();
+        when(provider.complete(any())).thenThrow(new IllegalStateException(secret));
+        var configured=configured(new LlmSettings("openai","https://integrate.api.nvidia.com/v1",LlmSettings.NVIDIA_MODEL,secret,"20","512","6000"),provider);
+        var request=new SessionMessage("Câu hỏi",0L,uuid());
+        var failure=assertFailure(503,"ASSISTANT_PROVIDER_UNAVAILABLE",() -> configured.message(session.id(),request,uuid()));
+        assertFalse(failure.toString().contains(secret)); assertNull(failure.getCause());
+        assertFailure(503,"ASSISTANT_PROVIDER_UNAVAILABLE",() -> configured.message(session.id(),request,uuid()));
+        verify(provider,times(1)).complete(any());
+        assertEquals(session,configured.get(session.id(),uuid()).session());
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement(); var rows=st.executeQuery(
+                "SELECT status,input_tokens,output_tokens,charged_micros FROM llm_calls")) {
+            rows.next(); assertEquals("unknown",rows.getString("status"));
+            assertNull(rows.getObject("input_tokens")); assertNull(rows.getObject("output_tokens")); assertNull(rows.getObject("charged_micros"));
+        }
+    }
+
+    @Test
+    void competingChatReservationsAdmitOnlyOneWithoutMixingMessages() throws Exception {
+        Session session=freshSession();
+        var first=new SessionMessage("Câu hỏi một",0L,uuid());
+        var second=new SessionMessage("Câu hỏi hai",0L,uuid());
+        var start=new CountDownLatch(1);
+        try (var pool=Executors.newFixedThreadPool(2)) {
+            var tasks=new ArrayList<Future<SessionMessage>>();
+            for (var request:List.of(first,second)) tasks.add(pool.submit(() -> {
+                start.await();
+                try { service.prepareMessage(session.id(),request); return request; }
+                catch (ApiFailure failure) { assertEquals("ASSISTANT_REQUEST_IN_PROGRESS",failure.code()); return null; }
+            }));
+            start.countDown();
+            var winners=new ArrayList<SessionMessage>();
+            for (var task:tasks) { var winner=task.get(5,TimeUnit.SECONDS); if (winner!=null) winners.add(winner); }
+            assertEquals(1,winners.size());
+            Session answered=service.completeMessage(session.id(),winners.getFirst(),reply()).session();
+            assertEquals(1,answered.version());
+            assertEquals(winners.getFirst().text(),answered.messages().getFirst().text());
+        }
+    }
+
+    @Test
+    void expiredSessionCannotCommitAnInFlightReply() throws Exception {
+        Session session=freshSession();
+        var message=new SessionMessage("Câu hỏi",0L,uuid());
+        service.prepareMessage(session.id(),message);
+        long created=System.currentTimeMillis()-Duration.ofHours(25).toMillis();
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var update=c.prepareStatement(
+                "UPDATE sessions SET created_at=?,updated_at=?,expires_at=? WHERE id=?")) {
+            update.setLong(1,created); update.setLong(2,created); update.setLong(3,created+Duration.ofHours(24).toMillis());
+            update.setString(4,session.id()); update.executeUpdate();
+        }
+        assertFailure(410,"SESSION_EXPIRED",() -> service.completeMessage(session.id(),message,reply()));
+        try (var c=DriverManager.getConnection("jdbc:sqlite:"+dbPath); var st=c.createStatement()) {
+            try (var rows=st.executeQuery("SELECT version,(SELECT COUNT(*) FROM session_chat_turns) AS turns FROM sessions")) {
+                rows.next(); assertEquals(0,rows.getLong("version")); assertEquals(0,rows.getLong("turns"));
+            }
+        }
     }
 
     @Test
@@ -498,7 +790,7 @@ class AssistantServiceTest {
         Path badSchemaDb = tempDir.resolve("bad-schema.sqlite");
         try (Connection c = DriverManager.getConnection("jdbc:sqlite:" + badSchemaDb);
              var st = c.createStatement()) {
-            st.execute("PRAGMA user_version=2");
+            st.execute("PRAGMA user_version=4");
         }
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         Validator beanValidator = Validation.buildDefaultValidatorFactory().getValidator();
@@ -512,7 +804,7 @@ class AssistantServiceTest {
              var st = c.createStatement();
              var rs = st.executeQuery("PRAGMA user_version")) {
             assertTrue(rs.next());
-            assertEquals(2, rs.getInt(1));
+            assertEquals(4, rs.getInt(1));
         }
     }
 
