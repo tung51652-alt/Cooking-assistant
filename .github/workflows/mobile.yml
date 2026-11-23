@@ -1,14 +1,15 @@
 name: Mobile Expo
 on:
+  workflow_call:
   pull_request:
-    paths: ['mobile/**', 'packages/cooklens-api/**', 'frontend/src/generated/**', '.github/workflows/mobile.yml']
+    paths: ['mobile/**', 'packages/cooklens-api/**', 'frontend/src/generated/**', 'deploy/scripts/check_public_metadata.py', '.github/workflows/mobile.yml']
   push:
     branches: [feature/mobile-expo, develop, main]
-    paths: ['mobile/**', 'packages/cooklens-api/**', 'frontend/src/generated/**', '.github/workflows/mobile.yml']
+    paths: ['mobile/**', 'packages/cooklens-api/**', 'frontend/src/generated/**', 'deploy/scripts/check_public_metadata.py', '.github/workflows/mobile.yml']
 permissions:
   contents: read
 concurrency:
-  group: expo-${{ github.ref }}
+  group: expo-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   contracts-and-native-bundles:
@@ -23,6 +24,7 @@ jobs:
         with: {python-version: '3.12'}
       - run: python deploy/scripts/check_public_metadata.py
       - run: node --experimental-strip-types --test packages/cooklens-api/client.test.mjs
+      - run: npm --prefix mobile run test:assistant
       - run: npm --prefix mobile ci --ignore-scripts --no-audit --no-fund
       - run: npx expo install --check
         working-directory: mobile

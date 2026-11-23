@@ -1,6 +1,6 @@
 # Phase 13 — Nghiệm thu toàn bộ MVP
 
-Trạng thái: chưa bắt đầu.
+Trạng thái: đã triển khai tooling và gate ứng viên local. Nghiệm thu cùng ứng viên và phát hành còn mở.
 Phụ thuộc [Phase 12](phase-12-mobile.md).
 
 ## Mục tiêu
@@ -14,7 +14,7 @@ Kiểm chứng cùng một bộ phiên bản có cả trợ lý, sẵn sàng đ�
 - [ ] SQLite ghi được trên volume với backend non-root/read-only; chỉ backend cần đường ra LLM.
 - [ ] Cấu hình key riêng ở runtime, không đưa vào build args/layers hoặc gói phân phối.
 - [ ] Bổ sung gate trợ lý vào CI; push ứng viên sau kiểm tra nội bộ đạt, chuẩn bị gói cho runner sạch và chỉ công bố prerelease sau khi pull/kiểm thử gói thành công.
-- [ ] Cập nhật hướng dẫn khởi động, cấu hình provider, dữ liệu phiên, backup và rollback.
+- [x] Cập nhật hướng dẫn khởi động, cấu hình provider, dữ liệu phiên, backup và rollback.
 
 ## Kiểm thử
 
@@ -38,3 +38,10 @@ Kiểm chứng cùng một bộ phiên bản có cả trợ lý, sẵn sàng đ�
 - [ ] Không yêu cầu thử nấu hoặc cả ba provider cùng chạy thật để đóng phase.
 
 ## Kết quả kiểm tra
+
+Ngày 2026-11-23, triển khai local workflow ứng viên và bước công bố sau review.
+Gate gắn kết quả CV, retrieval, runtime và live/review với cùng bundle, tag và digest đã kiểm tra.
+Smoke có thêm ca mất key/ngoại tuyến, ghi SQLite, giữ phiên qua restart/recreate và khôi phục backup vào volume thử.
+Kiểm tra local Windows: 73 Maven tests, 44 Playwright dùng API mô phỏng, 52 deploy tests gồm Compose config, 7 data tests và validator 33 công thức/30 món đạt. OpenAPI sinh từ backend trùng type client đã lưu.
+Máy Windows local xác minh source và test. Lệnh khởi động Docker Desktop không tạo được Linux engine và `wsl --status` báo WSL 2 không chạy vì cấu hình ảo hóa hiện tại.
+Gói pull sạch, CV/retrieval/API warm, web/Android với LLM thật, review nội dung, CI/PR và prerelease cần runner Linux hoặc host của nhóm trên ứng viên được duyệt.

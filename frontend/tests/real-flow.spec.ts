@@ -67,7 +67,7 @@ for (const [name, variable] of [['out-of-domain', 'COOKLENS_OOD_IMAGE'], ['multi
 
 test('real assistant photo to chat, cooking controls, reload and finish', async ({ page }, info) => {
   test.skip(process.env.COOKLENS_REAL_ASSISTANT !== '1', 'Requires the Phase 10/11 candidate and a backend LLM key');
-  test.setTimeout(90_000);
+  test.setTimeout(120_000);
   await recognize(page);
   await page.getByRole('radio').first().check(); await page.locator('#confirmButton').click();
   await page.getByRole('button', { name: /^Xem công thức / }).first().click();
@@ -82,12 +82,21 @@ test('real assistant photo to chat, cooking controls, reload and finish', async 
   const result = await response.json(); expect(result.session.messages).toHaveLength(2);
   await expect(page.getByRole('article', { name: 'Câu trả lời của CookLens' })).toBeVisible();
   await expect(input).toBeFocused();
+  await input.fill('Dựa vào lời giải thích vừa rồi, có điểm nào cần lưu ý thêm không?');
+  const followUp = page.waitForResponse(r => r.url().endsWith('/messages') && r.request().method() === 'POST');
+  await input.press('Enter');
+  const nextResponse = await followUp;
+  expect(nextResponse.status()).toBe(200);
+  const nextResult = await nextResponse.json();
+  expect(nextResult.session.id).toBe(result.session.id);
+  expect(nextResult.session.messages).toHaveLength(4);
+  expect(nextResult.session.messages.slice(0, 2)).toEqual(result.session.messages);
   await page.getByRole('button', { name: 'Bước tiếp', exact: true }).click();
   await expect(page.locator('.assistant-step-count')).toHaveText(/^Bước 2\//);
   await capture(page, `assistant-${info.project.name}`);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.reload();
-  await expect(page.getByRole('article')).toHaveCount(2);
+  await expect(page.getByRole('article')).toHaveCount(4);
   await expect(page.locator('.assistant-step-count')).toHaveText(/^Bước 2\//);
   await page.getByRole('button', { name: 'Kết thúc nấu', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Đã kết thúc phiên nấu' })).toBeVisible();

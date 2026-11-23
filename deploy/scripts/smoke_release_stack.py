@@ -61,13 +61,13 @@ def latency_summary(values):
             'p95_seconds': sorted(values)[math.ceil(len(values) * .95) - 1] if len(values) >= 100 else None}
 
 
-def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_registry=False):
+def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_registry=False, assistant=False, contract_check=False):
     samples = sample_count(samples)
     project = 'cooklens-release-test-' + uuid4().hex[:12]
     with socket.socket() as probe:
         probe.bind(('127.0.0.1', 0))
         port = probe.getsockname()[1]
-    env = {**os.environ, 'HOST_PORT': str(port), 'LLM_API_KEY': ''}
+    env = {**os.environ, 'HOST_BIND': '127.0.0.1', 'HOST_PORT': str(port), 'LLM_API_KEY': ''}
     base = f'http://127.0.0.1:{port}'
     with tempfile.TemporaryDirectory(prefix='cooklens-standalone-') as directory:
         directory = Path(directory)
@@ -95,14 +95,17 @@ def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_regist
 
         def api(path, data=None, expected=200, mime='application/json'):
             request_id = str(uuid4())
+            route = re.sub(r'^(/api/assistant/sessions/)[^/]+', r'\1<session>', path)
             try:
                 response = urlopen(Request(base + path, data=data, headers={
                     'Content-Type': mime, 'X-Request-ID': request_id}), timeout=25)
             except HTTPError as error:
                 response = error
+            except OSError:
+                raise OSError('Gateway request failed: ' + route) from None
             with response:
                 value = json.load(response)
-                assert response.status == expected, (path, response.status)
+                assert response.status == expected, (route, response.status)
                 assert value['api_version'] == '1.0.0'
                 assert value['request_id'] == response.headers['X-Request-ID'] == request_id
                 return value
@@ -113,7 +116,7 @@ def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_regist
                 try:
                     api('/api/health')
                     return
-                except (OSError, AssertionError):
+                except (OSError, AssertionError, ValueError):
                     time.sleep(.5)
             raise RuntimeError('Release API not ready within startup budget')
 
@@ -133,6 +136,7 @@ def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_regist
                 peak = int(docker('exec', identifier(service), 'cat', '/sys/fs/cgroup/memory.peak').stdout)
                 peaks[service] = max(peaks.get(service, 0), peak)
 
+        restored_volume = None
         try:
             config = json.loads(dc('config', '--format', 'json').stdout)
             _, candidate_version = candidate_config(config)
@@ -163,6 +167,14 @@ def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_regist
             dc('up', '-d', '--wait', '--wait-timeout', '240')
             ready()
             cold_start = time.monotonic() - started
+            if contract_check:
+                schema_path = directory / 'openapi.json'
+                schema_path.write_bytes(dc('exec', '-T', 'recipes', 'python', '-c',
+                    "from urllib.request import urlopen; import sys; "
+                    "sys.stdout.buffer.write(urlopen('http://backend:8080/v3/api-docs', timeout=5).read())").stdout)
+                command(['sh', 'deploy/scripts/generate_frontend_contract.sh'], cwd=ROOT,
+                        env={**env, 'API_SCHEMA_URL': str(schema_path)})
+                command(['git', 'diff', '--exit-code', '--', 'frontend/src/generated/api.d.ts'], cwd=ROOT, env=env)
             expected = json.loads((ROOT / 'deploy/artifacts/manifest.json').read_text())
             health = api('/api/health')
             assert health['dependencies']['vision']['model_version'] == expected['vision']['model_version']
@@ -243,6 +255,28 @@ def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_regist
                 detail = api('/api/recipes/' + results[0]['id'])['recipe']
                 assert detail['normalized_dish'] == selected and detail['ingredients'] and detail['instructions']
 
+            if assistant:
+                def post(path, body, status=200):
+                    return api(path, json.dumps(body).encode(), expected=status)
+
+                session = post('/api/assistant/sessions', {
+                    'recipe_id': detail['id'], 'corpus_version': expected['corpus']['corpus_version'],
+                    'operation_id': str(uuid4()),
+                })['session']
+                session_path = '/api/assistant/sessions/' + session['id']
+                action_body = {'action': 'start', 'expected_version': 0, 'operation_id': str(uuid4())}
+                started_session = post(session_path + '/actions', action_body)['session']
+                assert started_session['id'] == session['id'] and started_session['current_step'] == 1
+                assert post(session_path + '/messages', {
+                    'text': 'Tôi nên làm gì ở bước này?', 'expected_version': 1, 'operation_id': str(uuid4()),
+                }, 503)['code'] == 'ASSISTANT_NOT_CONFIGURED'
+                assert api(session_path)['session'] == started_session
+                assistant_volume = next(m['Name'] for m in inspect('backend')['Mounts']
+                                        if m['Destination'] == '/app/data' and m['Type'] == 'volume')
+                dc('restart', 'backend')
+                ready()
+                assert api(session_path)['session'] == started_session
+
             # New and repeated init, then a version upgrade and rollback in this private volume.
             dc('run', '--rm', '-T', '--no-deps', 'recipe-init')
             upgrade = '''
@@ -277,6 +311,37 @@ with tempfile.TemporaryDirectory() as tmp:
             ready()
             assert next(m['Name'] for m in inspect('qdrant')['Mounts'] if m['Destination'] == '/qdrant/storage') == volume
             assert search(selected)['recipes'][0]['id'] == results[0]['id']
+            if assistant:
+                assert next(m['Name'] for m in inspect('backend')['Mounts'] if m['Destination'] == '/app/data') == assistant_volume
+                assert post(session_path + '/actions', action_body)['session'] == started_session
+
+                # Restore into a fresh volume while leaving the original test volume intact.
+                scratch_compose = directory / 'compose.yaml'
+                original_compose = scratch_compose.read_bytes()
+                dc('stop', 'backend')
+                assert api(session_path, expected=503)['code'] == 'DEPENDENCY_NOT_READY'
+                gateway_logs = dc('logs', '--no-color', 'frontend', 'backend')
+                assert session['id'].encode() not in gateway_logs.stdout + gateway_logs.stderr, 'Session capability in runtime logs'
+                backup = dc('run', '--rm', '--no-deps', '-T', '--entrypoint', 'tar',
+                            'backend', '-C', '/app/data', '-cf', '-', '.').stdout
+                restored_volume = project + '-assistant-restore'
+                docker('volume', 'create', restored_volume)
+                docker('run', '--rm', '-i', '--network', 'none', '--read-only', '--user', '10001:10001',
+                       '--volume', restored_volume + ':/app/data', '--entrypoint', 'tar',
+                       config['services']['backend']['image'], '-C', '/app/data', '--no-same-owner', '-xf', '-', data=backup)
+                restored = {**config, 'volumes': {**config['volumes'],
+                            'assistant-sessions': {'name': restored_volume, 'external': True}}}
+                try:
+                    scratch_compose.write_text(json.dumps(restored), encoding='utf-8')
+                    dc('up', '-d', '--no-deps', '--force-recreate', 'backend')
+                    ready()
+                    assert any(m['Name'] == restored_volume for m in inspect('backend')['Mounts'])
+                    assert api(session_path)['session'] == started_session
+                finally:
+                    scratch_compose.write_bytes(original_compose)
+                dc('up', '-d', '--no-deps', '--force-recreate', 'backend')
+                ready()
+                assert api(session_path)['session'] == started_session
 
             for dependency in ('vision', 'recipes', 'qdrant'):
                 try:
@@ -320,6 +385,31 @@ detail=call('/api/recipes/'+recipes[0]['id'])['recipe']
 assert detail['normalized_dish']==dish and detail['ingredients'] and detail['instructions']
 '''
                 docker('exec', '-i', identifier('recipes'), 'python', '-c', offline, data=image)
+                if assistant:
+                    docker('exec', '-i', identifier('recipes'), 'python', '-c', '''
+import json, sys
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+path=json.load(sys.stdin)['path']
+def call(suffix, body=None, expected=200):
+    data=None if body is None else json.dumps(body).encode()
+    try:
+        response=urlopen(Request('http://frontend:8080'+path+suffix, data=data,
+                                 headers={'Content-Type':'application/json'}), timeout=25)
+    except HTTPError as error:
+        response=error
+    with response:
+        assert response.status==expected
+        return json.load(response)
+from uuid import uuid4
+before=call('')['session']
+assert call('/messages', {'text':'Bước này làm gì?', 'expected_version':before['version'],
+                         'operation_id':str(uuid4())}, 503)['code']=='ASSISTANT_NOT_CONFIGURED'
+assert call('')['session']==before
+after=call('/actions', {'action':'repeat', 'expected_version':before['version'],
+                        'operation_id':str(uuid4())})['session']
+assert after['version']==before['version']+1 and after['current_step']==before['current_step'] and not after['messages']
+''', data=json.dumps({'path': session_path}).encode())
                 sample_peaks()
             finally:
                 docker('network', 'connect', backend_bridge, identifier('backend'))
@@ -348,6 +438,9 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
                 'application_candidate': candidate_version, 'public_api_version': '1.0.0',
                 'images': {name: settings['image'] for name, settings in config['services'].items()},
                 'registry_pull_verified': pull_registry,
+                'assistant_without_key_and_offline': assistant,
+                'assistant_session_restart_and_recreate': assistant,
+                'assistant_volume_backup_restored': assistant,
                 'registry_pull_seconds': registry_pull_seconds,
                 'artifact_versions_match': True,
                 'host': {'logical_cpus': engine['NCPU'], 'memory_bytes': engine['MemTotal'],
@@ -385,6 +478,8 @@ assert detail['normalized_dish']==dish and detail['ingredients'] and detail['ins
             print(encoded)
         finally:
             dc('down', '--volumes', success=False)
+            if restored_volume:
+                docker('volume', 'rm', restored_volume, success=False)
 
 
 if __name__ == '__main__':
@@ -393,5 +488,7 @@ if __name__ == '__main__':
     parser.add_argument('--compose', type=Path, default=ROOT / 'compose.yaml')
     parser.add_argument('--samples', type=sample_count, default=10)
     parser.add_argument('--pull-registry', action='store_true', help='Require absent app images, then pull anonymously before testing')
+    parser.add_argument('--assistant', action='store_true', help='Verify chat degradation, deterministic actions and persistent sessions')
+    parser.add_argument('--contract-check', action='store_true', help='Verify generated client types against the packaged backend')
     args = parser.parse_args()
-    run(args.report, args.compose, args.samples, args.pull_registry)
+    run(args.report, args.compose, args.samples, args.pull_registry, args.assistant, args.contract_check)

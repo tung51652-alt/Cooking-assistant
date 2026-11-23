@@ -46,6 +46,8 @@ class CandidateBundleTests(unittest.TestCase):
         self.assertEqual(original, snapshot)
         self.assertEqual(version, '2.0.0-rc.1')
         self.assertEqual(config['services']['frontend']['ports'][0]['published'], '${HOST_PORT:-8080}')
+        self.assertEqual(config['services']['frontend']['ports'][0]['host_ip'], '${HOST_BIND:-127.0.0.1}')
+        self.assertEqual(candidate_config(config), (config, version))
         self.assertNotIn('name', config['volumes']['recipe-index'])
         self.assertNotIn('name', config['networks']['application'])
 

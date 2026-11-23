@@ -145,5 +145,17 @@ python3 deploy/scripts/evaluate_assistant.py --summarize backend/target/assistan
 Summary trả exit 1 khi chưa đạt hoặc còn thiếu bằng chứng; không đánh dấu chất lượng pass chỉ từ HTTP 200.
 `evaluation_passed` chỉ mô tả bộ API/fault/review này; không thay gate Linux runtime, CI, tích hợp web/Expo hoặc tự đóng Phase 10.
 
+### Dùng kết quả cho Phase 13
+
+Chạy cùng fixture trên gateway của gói ứng viên đã pull, từ source của đúng tag.
+Khi gọi `--execute`, truyền `--candidate-identity` với file vừa tạo và đối chiếu trên host đó trước khi ghi số đo.
+Đo live, thu usage và hoàn tất review giống quy trình ở trên. Khi chạy `--summarize`, thêm `--release-summary` với một đường dẫn mới trong thư mục run, `--provider` và `--reported-model` theo cấu hình/model quan sát được.
+Evaluator chỉ ghi summary khi các gate API/fault/quality đã đạt. Summary giữ identity của lần đo, model selector lấy từ usage, model trả về và các số đo tổng hợp.
+Đưa object này vào trường `assistant` của hồ sơ nghiệm thu theo [runbook Phase 13](deployment.md#ứng-viên-phase-13).
+
+Web thật dùng `COOKLENS_REAL_API=1`, `COOKLENS_REAL_ASSISTANT=1` và `COOKLENS_BASE_URL` trỏ origin của gói.
+Kết quả phải có ca trợ lý đã chạy cho cả hai viewport, có hội thoại hai lượt, đổi bước, reload giữ hội thoại và finish.
+Expo Go dùng `EXPO_PUBLIC_API_BASE_URL` trỏ cùng gateway kèm `/api`; ghi kết quả thiết bị thật riêng.
+
 Checklist thực hiện và kiểm thử chi tiết được chia theo [Phase 8–14](plan/mvp.md);
 chốt kỳ vọng/ngưỡng trước khi chạy và chỉ cập nhật kết quả đã kiểm chứng.

@@ -25,14 +25,23 @@ from recipe_evaluation import evaluate_in_container
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def run(archive, report, out_of_domain=None):
+def run(archive, report, out_of_domain=None, bundle=None):
     project = 'cooklens-acceptance-' + uuid4().hex[:12]
     with socket.socket() as probe:
         probe.bind(('127.0.0.1', 0))
         port = probe.getsockname()[1]
-    env = {**os.environ, 'HOST_PORT': str(port)}
+    env = {**os.environ, 'HOST_BIND': '127.0.0.1', 'HOST_PORT': str(port), 'LLM_API_KEY': ''}
     base = f'http://127.0.0.1:{port}'
-    compose = ['docker', 'compose', '-p', project, '-f', str(ROOT / 'compose.yaml')]
+    version = '2.0.0-rc.2'
+    compose_path = ROOT / 'compose.yaml'
+    if bundle is not None:
+        compose_path = (bundle / 'compose.yaml').resolve()
+        metadata = json.loads((bundle / 'candidate.json').read_text(encoding='utf-8'))
+        version = metadata['application_candidate']
+        config = json.loads(compose_path.read_text(encoding='utf-8'))
+        if {name: service['image'] for name, service in config['services'].items()} != metadata['images']:
+            raise ValueError('Candidate flow must use the Compose that matches its metadata')
+    compose = ['docker', 'compose', '-p', project, '-f', str(compose_path)]
     scratch = tempfile.TemporaryDirectory(prefix='cooklens-photo-acceptance-')
 
     def dc(*args):
@@ -54,7 +63,7 @@ def run(archive, report, out_of_domain=None):
         return body, f'multipart/form-data; boundary={boundary}'
 
     try:
-        dc('up', '-d', '--wait', '--wait-timeout', '240')
+        dc('up', '-d', '--pull', 'never', '--wait', '--wait-timeout', '240')
         labels = json.loads((ROOT / 'data/processed/30vnfoods-label-map.json').read_text())['labels']
         selected = {}
         with (ROOT / 'data/processed/manifests/30vnfoods_clean_split_manifest.csv').open() as source:
@@ -95,7 +104,7 @@ def run(archive, report, out_of_domain=None):
         container = dc('ps', '-q', 'recipes').decode().strip()
         retrieval = evaluate_in_container(container)
         assert retrieval['technical_gate_met']
-        browser_env = {**env, 'COOKLENS_REAL_API': '1', 'COOKLENS_BASE_URL': base,
+        browser_env = {**env, 'COOKLENS_REAL_API': '1', 'COOKLENS_REAL_ASSISTANT': '0', 'COOKLENS_BASE_URL': base,
                        'COOKLENS_CAPTURE_BASELINES': '1',
                        'COOKLENS_CAPTURE_DIRECTORY': str(report.resolve().parent / 'phase-7-ui')}
         if out_of_domain:
@@ -111,7 +120,7 @@ def run(archive, report, out_of_domain=None):
         # npm prepends its script banner to the Playwright JSON reporter.
         browser_report = json.loads(browser.stdout[browser.stdout.index('{'):])
         assert browser.returncode == 0, 'Real browser tests failed'
-        result = {'application_candidate': '2.0.0-rc.2', 'photo_selection': 'First clean-test manifest entry per class; no prediction-based selection',
+        result = {'application_candidate': version, 'photo_selection': 'First clean-test manifest entry per class; no prediction-based selection',
                   'invalid_image_rejected': True, 'oversized_upload_rejected': True,
                   'unknown_dish_rejected': True, 'missing_recipe_returns_404': True,
                   'photo_flows': cases, 'retrieval': retrieval, 'browser_stats': browser_report['stats'],
@@ -130,5 +139,6 @@ if __name__ == '__main__':
     parser.add_argument('--archive', type=Path, required=True)
     parser.add_argument('--report', type=Path, required=True)
     parser.add_argument('--out-of-domain', type=Path, help='External non-food photo for truthful UI checks')
+    parser.add_argument('--bundle', type=Path, help='Previously pulled candidate bundle with Compose and metadata')
     args = parser.parse_args()
-    run(args.archive, args.report, args.out_of_domain)
+    run(args.archive, args.report, args.out_of_domain, args.bundle)

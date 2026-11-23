@@ -25,6 +25,8 @@ Mặc định chỉ frontend publish trên loopback; AI/backend/Qdrant không m�
 Để dùng Expo Go trong mạng riêng, đặt `HOST_BIND` thành IP LAN của máy Docker
 (ví dụ `HOST_BIND=192.168.1.10 docker compose up -d`). `.env.example` ghi các biến tùy chọn.
 PowerShell đặt biến bằng `$env:HOST_BIND = '192.168.1.10'` trước lệnh `up`.
+Máy chạy Expo/Metro chỉ cần Node và một gateway LAN/HTTPS từ máy khác.
+Kiểm tra `/api/health` từ trình duyệt điện thoại và mở Expo Go theo [hướng dẫn mobile](../mobile/README.md).
 
 ## Theo dõi, dừng và chạy offline
 
@@ -103,9 +105,37 @@ Thiếu key, provider lỗi/429/timeout hoặc egress mất chỉ ảnh hưởng
 Proxy assistant chờ tối đa 25 s, provider tối đa 20 s; các route ảnh/công thức giữ timeout proxy 20 s.
 SQLite volume giữ cả conversation/operation, rate attempts và ledger chi phí qua restart; ledger không bị xóa khi purge phiên.
 Schema 3 không downgrade tự động; backup nguyên volume khi backend đã dừng trước khi nâng hoặc rollback schema.
+Khôi phục vào volume thử và xác nhận GET của cùng phiên trả đủ công thức, bước, hội thoại và version trước khi dùng bản backup.
+Nếu image rollback chỉ hỗ trợ schema cũ, dùng snapshot SQLite tương thích đi cùng gói image/index cũ và giữ volume schema mới riêng.
 
 Kiểm chứng local Phase 10 đã qua Compose config, Java 21 process restart với upstream giả và ba smoke Linux container trên Docker Desktop.
 Đã kiểm tra non-root/read-only, schema 3/volume/restart, mạng internal/egress và full offline flow.
 Baseline Ultra không đạt latency; candidate Super đã qua 50/50 HTTP/state, latency và usage, còn chờ human review và PR/CI; không coi đây là nghiệm thu chat hoàn tất.
 Tag local `phase10-local/cooklens-<service>:2.0.0-rc.16` đang chạy với selector Super qua NVIDIA và key chỉ backend; các tag cũ giữ baseline/thử model, không phải release mới.
 Backend/frontend build source mới, AI giữ nội dung image public `2.0.0-rc.2`; không push/promote các tag này thành release.
+
+## Ứng viên Phase 13
+
+Sau khi source được duyệt, đẩy một tag ứng viên mới theo dạng `v2.0.0-rc.N`.
+Workflow **Docker candidate and registry release** chạy source/Expo checks, smoke Compose, push image, pull ẩn danh trên runner sạch, đánh giá CV và retrieval.
+Run thành công lưu `cooklens-phase13-candidate` có `bundle/`, `identity.json`, `vision.json` và `flow.json`.
+Giữ lại run ID và hồ sơ identity để đối chiếu đúng image khi chuẩn bị live UI và review.
+
+Trên host chạy live, pull và chạy `bundle/compose.yaml` bằng cùng image và cấu hình runtime.
+Từ source đã checkout của tag, dùng `registry_release.py identity --compose BUNDLE/compose.yaml --tag TAG --source-sha SHA --output identity-local.json` sau khi pull để so sánh với `identity.json`.
+Thêm key riêng cho backend và chạy ca Android, web, recovery và bộ LLM theo [kế hoạch Phase 12–13](plan/2026-11-23-phase12-13-completion.md) và [hướng dẫn kiểm thử](testing.md).
+
+Khi mọi gate đạt, maintainer dispatch workflow đã nêu từ `develop` hoặc nhánh mặc định với `candidate_run_id`, `candidate_tag` và `acceptance_summary`.
+Summary JSON dùng `identity` từ lần kiểm chứng, `assistant` từ `--release-summary`, và các trường sau theo kết quả đã được review.
+
+| Trường | Bằng chứng |
+| --- | --- |
+| `android` | Object gồm `device`, `version` (số phiên bản Android), `expo_sdk` và `passed`, đối chiếu với ca Expo Go trên thiết bị thật. |
+| `web_live` | Trình duyệt thật hoàn tất flow nhiều lượt và resume trên cùng ứng viên. |
+| `provider_recovery` | Chat báo lỗi khi key/egress/provider không khả dụng, luồng cũ còn chạy và chat hoạt động sau khôi phục. |
+| `session_restore_rollback` | Bản sao/khôi phục có phiên chat và rollback tương thích image/index/schema đã qua. |
+| `bundle_review` | Đã rà cấu hình, bí mật, log, notices và tệp trong gói. |
+| `reviewed` | Người review xác nhận tổng hợp cùng ứng viên, gồm rubric nội dung đã chấm. |
+
+Các cờ đơn chỉ điền `true` khi kiểm tra tương ứng đạt. Summary giữ số đo và kết quả, tránh đưa key, transcript, session ID hoặc SQLite vào workflow.
+Job publish đối chiếu run tag và hồ sơ image trước khi đóng gói và công bố GitHub prerelease.

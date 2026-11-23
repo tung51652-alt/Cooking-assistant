@@ -1,24 +1,27 @@
 # CookLens Mobile — Expo Go
 
-Client React Native dùng chung public API và taxonomy với web: chụp/chọn ảnh → Top-3 → xác nhận hoặc sửa món → tối đa ba công thức → chi tiết nguyên liệu, bước nấu và nguồn. Không chạy model trên điện thoại, không gọi trực tiếp CV/recipes/Qdrant, không thêm chatbot/tài khoản/lịch sử và không build APK/AAB.
+Client React Native dùng chung API và taxonomy với web. Chụp/chọn ảnh → Top-3 → xác nhận món → công thức → hỏi đáp và hướng dẫn nấu.
+Model chạy ở backend/provider; Expo truy cập qua gateway.
 
-Expo SDK 58, React Native 0.88 và các thư viện được chọn qua `expo install` để dùng với Expo Go. Các version trực tiếp được pin; lockfile không lưu integrity literals theo policy repo. Cần Node 22.13 trở lên. SDK/hệ điều hành hỗ trợ theo [Expo SDK reference](https://docs.expo.dev/versions/latest/).
+Expo Go SDK 58, React Native 0.88.1, Android 10+ và Node 22.13 trở lên cho Metro.
+Giữ lockfile và trường npm integrity đã sinh cho dependency.
+Xem [Expo SDK reference](https://docs.expo.dev/versions/v58.0.0/).
 
-## 1. Khởi động backend trên mạng LAN
+## 1. Kết nối gateway
 
-Điện thoại và máy Docker cần cùng mạng LAN, hoặc dùng URL HTTPS của gateway đã triển khai. Không dùng `127.0.0.1` trên điện thoại để chỉ máy tính. Metro/QR và gateway là hai kết nối riêng; quét QR thành công chưa chứng minh API truy cập được.
-
-Từ root repo trong PowerShell:
+Nếu nhóm đã cấp gateway HTTPS, dùng URL đó và tiếp tục sang bước Expo. Máy chạy Metro không cần Docker.
+Với gateway riêng trong LAN, điện thoại và máy Docker cùng mạng. Trên máy Docker, từ thư mục chứa Compose của ứng viên có trợ lý:
 
 ```powershell
 $env:HOST_BIND = '192.168.1.10'
 docker compose up -d
 ```
 
-Thay IP ví dụ bằng IP LAN của máy Docker. Dùng cùng stack và public origin với web;
-chỉ frontend/proxy mở cổng 8080, AI/backend/Qdrant giữ nội bộ. Mặc định Compose bind loopback.
-Chỉ cho phép truy cập trên mạng riêng. Trên điện thoại kiểm tra
-`http://192.168.1.10:8080/api/health` sẵn sàng trước khi mở app.
+Thay IP ví dụ bằng IP LAN thực của máy Docker. Gateway dùng cùng stack với web và mở cổng 8080 cho frontend.
+Kiểm tra `/api/health` từ trình duyệt điện thoại trước khi mở Expo Go.
+Nếu health không mở được, kiểm tra IP/bind, firewall, Wi-Fi cách ly thiết bị hoặc HTTPS gateway.
+Nếu health mở được nhưng QR lỗi, kiểm tra kết nối của điện thoại tới Metro trên máy chạy Node.
+Xem [hướng dẫn triển khai](../docs/deployment.md) để chạy ứng viên có trợ lý và cấu hình key ở runtime.
 
 ## 2. Cài và chạy Expo
 
@@ -31,7 +34,9 @@ $env:EXPO_PUBLIC_API_BASE_URL = 'http://192.168.1.10:8080/api'
 npm start
 ```
 
-Quét QR bằng Expo Go trên Android hoặc ứng dụng Camera/Expo Go trên iOS theo hướng dẫn CLI. Không yêu cầu Android Studio, EAS Build hay APK. QR và base URL là cấu hình public; không đưa token/API key vào biến `EXPO_PUBLIC_*`. Có thể sao chép `.env.example` thành `.env` local nếu muốn; file đó bị Git ignore. Khi đổi base URL, khởi động lại Metro; chạy `npx expo start --clear` nếu còn cấu hình cũ.
+Quét QR bằng Expo Go trên Android. Với HTTPS, thay URL ví dụ bằng gateway đã cấp và giữ hậu tố `/api`.
+Khi đổi URL, khởi động lại Metro. Chạy `npx expo start --clear` nếu app còn dùng giá trị cũ.
+Chỉ đưa base URL công khai vào `EXPO_PUBLIC_*`. Giữ `LLM_API_KEY` riêng ở backend.
 
 ## 3. Thử luồng
 
@@ -43,7 +48,23 @@ Quét QR bằng Expo Go trên Android hoặc ứng dụng Camera/Expo Go trên i
 
 Ảnh và state chỉ phục vụ phiên hiện tại, không có lịch sử hoặc lưu vào thư viện. Cache ảnh chuẩn hóa được thu dọn khi đổi ảnh/unmount; bản sao tạm của picker chỉ bị xóa nếu nằm trong cache của chính app. Không xóa ảnh gốc của người dùng. Force-kill có thể để lại cache tạm do hệ điều hành quản lý; không coi cache là lịch sử ảnh và không upload lại khi mở app.
 
+## Phiên hướng dẫn nấu trên Android
+
+Luồng này dùng gateway từ ứng viên chứa API phiên và hỏi đáp. `2.0.0-rc.2` phục vụ luồng ảnh/công thức.
+Trong trang chi tiết, chọn **Hướng dẫn nấu**. Gửi câu hỏi về công thức hoặc chọn **Bắt đầu nấu** rồi dùng các nút bước tiếp, bước trước, nhắc lại và kết thúc.
+Chọn **Tiếp tục phiên nấu** ở màn hình đầu để đọc phiên đã lưu của gateway đang cấu hình.
+Nếu phiên đã hết hạn, mở lại công thức để tạo phiên mới.
+Khi trở lại ứng dụng, màn hướng dẫn chỉ đọc trạng thái từ máy chủ.
+Nếu câu trả lời bị gián đoạn, chọn **Kiểm tra phiên**. Sau đó có thể thử lại cùng yêu cầu hoặc tiếp tục mà không gửi lại.
+Khi provider không khả dụng, app hiện lỗi hỏi đáp và vẫn cho điều khiển bước khi đã đồng bộ phiên.
+
+Phiên giữ công thức, bước và hội thoại ở backend trong 24 giờ.
+Ứng dụng dùng SecureStore để giữ ID phiên gần nhất và địa chỉ gateway tương ứng.
+Nếu thiết bị không lưu được ID, điều khiển bước vẫn hoạt động trong phiên đang mở.
+
 ## Kiểm tra
+
+Từ root, chạy `npm --prefix mobile run test:assistant` để kiểm tra xử lý phiên và lưu ID.
 
 ```powershell
 npx expo install --check
@@ -53,4 +74,5 @@ npm run export
 
 Lệnh export chỉ kiểm chứng bundling Android/iOS, không phát hành bundle hoặc native app. Output `dist`, Metro cache và metadata tự sinh không commit/upload làm release. Font Epilogue/Plus Jakarta Sans được đóng gói local; giấy phép tại `notices/`.
 
-Từ root repo, kiểm tra client dùng chung: `node --experimental-strip-types --test packages/cooklens-api/client.test.mjs`. Web vẫn có bộ Playwright desktop/mobile riêng. Các kiểm tra build/contract không thay thế camera, permission, gesture/Back, safe area hoặc screen reader trên thiết bị thật. Xem [báo cáo Expo](../docs/acceptance.md); Người dùng đã xác nhận upload ảnh trên điện thoại thật ngày 2026-10-26; kiểm thử đầy đủ Android/iOS, quyền camera, HEIC, Back và accessibility còn mở, không đánh dấu pass từ web emulation.
+Từ root repo, chạy `node --experimental-strip-types --test packages/cooklens-api/client.test.mjs` để kiểm tra contract dùng chung.
+Xem ma trận Android thật trong [kế hoạch hoàn tất](../docs/plan/2026-11-23-phase12-13-completion.md#3-hoàn-tất-màn-hình-và-chạy-native-acceptance) và cập nhật kết quả trong [Phase 12](../docs/plan/phase-12-mobile.md).
