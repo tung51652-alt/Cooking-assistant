@@ -164,5 +164,8 @@ Chỉ sau khi đạt mới tạo tag `v2.0.0` và GitHub release cùng `cooklens
 Gói giữ notices, thêm `.env.example` có key trống và model selector đã nghiệm thu.
 
 Nếu lỗi sau khi đã promote một phần, giữ nguyên các tag đã tạo và điều tra; không xóa/ghi đè tag để chạy lại tự động.
+Nếu cả bộ final đã được promote đúng digest nhưng smoke/publish bị gián đoạn, có thể dispatch lại với `resume_promoted_images=true`.
+Luồng chỉ kiểm tra image hiện hữu, không ghi registry; source ứng dụng phải giữ nguyên so với candidate, chỉ cho phép khác tooling CI/tests/docs.
+Tag release vẫn trỏ đến source đã build image, kể cả khi workflow khôi phục chạy từ commit sửa tooling.
 Nếu source tag đã tạo nhưng bước GitHub release lỗi, dùng artifact final đã kiểm chứng để khôi phục bước công bố, không rebuild.
 Link và số đo phát hành chỉ bổ sung vào [acceptance.md](acceptance.md) khi run thật hoàn tất.
