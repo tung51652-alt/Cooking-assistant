@@ -99,6 +99,12 @@ def promote(root, source_sha):
     print('PASS: final tags serve the accepted manifests without rebuild')
 
 
+def verify_promotion(root, source_sha):
+    config, _, identity = accepted(root, source_sha)
+    confirm_registry_identity(promoted_identity(config, identity))
+    print('PASS: existing final tags match the tested candidate; no registry writes')
+
+
 def prepare(root, output, source_sha):
     config, metadata, _ = accepted(root, source_sha)
     output = Path(output)
@@ -205,7 +211,7 @@ def package(root, bundle, archive, source_sha):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('prepare', 'promote', 'package'))
+    parser.add_argument('action', choices=('prepare', 'promote', 'verify-promotion', 'package'))
     parser.add_argument('--accepted', type=Path, required=True)
     parser.add_argument('--source-sha', required=True)
     parser.add_argument('--bundle', type=Path)
@@ -213,6 +219,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.action == 'promote':
         promote(args.accepted, args.source_sha)
+    elif args.action == 'verify-promotion':
+        verify_promotion(args.accepted, args.source_sha)
     elif args.action == 'prepare':
         if args.bundle is None:
             parser.error('--bundle is required')

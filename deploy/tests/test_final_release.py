@@ -95,6 +95,14 @@ class FinalReleaseTests(unittest.TestCase):
             final_release.promote(self.root, self.source)
         command.assert_not_called()
 
+    def test_resume_verifies_existing_manifests_without_writes(self):
+        with patch('final_release.confirm_registry_identity') as verify, patch('final_release.quiet_command') as command:
+            final_release.verify_promotion(self.root,self.source)
+        verify.assert_called_once()
+        command.assert_not_called()
+        with patch('final_release.confirm_registry_identity',side_effect=ValueError('Digest mismatch')), self.assertRaises(ValueError):
+            final_release.verify_promotion(self.root,self.source)
+
     def test_private_destination_prevents_any_promotion(self):
         with patch('final_release.confirm_registry_identity'), \
                 patch('final_release.hub_resource', return_value={'is_private': True}), \

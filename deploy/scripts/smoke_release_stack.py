@@ -142,7 +142,7 @@ def run(report_path, compose_path=ROOT / 'compose.yaml', samples=10, pull_regist
             _, candidate_version = candidate_config(config)
             registry_pull_seconds = None
             if pull_registry:
-                registry_images(config)
+                registry_images(config, allow_final=True)
                 images = sorted({service['image'] for service in config['services'].values()})
                 for name in ('vision', 'recipes', 'backend', 'frontend'):
                     if docker('image', 'inspect', config['services'][name]['image'], success=False).returncode == 0:
