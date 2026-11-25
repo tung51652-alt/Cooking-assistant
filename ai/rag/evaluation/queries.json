@@ -1,0 +1,1851 @@
+{
+  "review_status": "separate_semantic_pass_same_agent",
+  "scope": "204 positive queries over all 30 dishes; 27 dishes have one candidate and 3 have two. Relevance checked against recipe text in a separate pass; model/prefix/template frozen. No empty query is counted as a hit.",
+  "cases": [
+    {
+      "case": "banh_beo_1",
+      "confirmed_dish": "banh_beo",
+      "query": "bánh bèo",
+      "relevant_ids": [
+        "wb_banh_beo_chen"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_beo_2",
+      "confirmed_dish": "banh_beo",
+      "query": "banh beo",
+      "relevant_ids": [
+        "wb_banh_beo_chen"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_beo_3",
+      "confirmed_dish": "banh_beo",
+      "query": "bánh bèo chén tôm",
+      "relevant_ids": [
+        "wb_banh_beo_chen"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_beo_4",
+      "confirmed_dish": "banh_beo",
+      "query": "bột gạo hấp chén",
+      "relevant_ids": [
+        "wb_banh_beo_chen"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_beo_5",
+      "confirmed_dish": "banh_beo",
+      "query": "bánh bèo tôm cháy mỡ hành",
+      "relevant_ids": [
+        "wb_banh_beo_chen"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_bot_loc_1",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "bánh bột lọc",
+      "relevant_ids": [
+        "wb_banh_bot_loc",
+        "wb_banh_bot_loc_hue"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_bot_loc_2",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "banh bot loc",
+      "relevant_ids": [
+        "wb_banh_bot_loc",
+        "wb_banh_bot_loc_hue"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_bot_loc_3",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "bánh bột lọc Huế gói lá chuối",
+      "relevant_ids": [
+        "wb_banh_bot_loc_hue"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_bot_loc_4",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "bánh bột lọc luộc không gói lá",
+      "relevant_ids": [
+        "wb_banh_bot_loc"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_bot_loc_5",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "bột năng tôm ram",
+      "relevant_ids": [
+        "wb_banh_bot_loc",
+        "wb_banh_bot_loc_hue"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_can_1",
+      "confirmed_dish": "banh_can",
+      "query": "Bánh căn",
+      "relevant_ids": [
+        "cooklens_banh_can_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_can_2",
+      "confirmed_dish": "banh_can",
+      "query": "banh can",
+      "relevant_ids": [
+        "cooklens_banh_can_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_can_3",
+      "confirmed_dish": "banh_can",
+      "query": "cách làm Bánh căn",
+      "relevant_ids": [
+        "cooklens_banh_can_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_can_4",
+      "confirmed_dish": "banh_can",
+      "query": "công thức Bánh căn",
+      "relevant_ids": [
+        "cooklens_banh_can_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_can_5",
+      "confirmed_dish": "banh_can",
+      "query": "Bánh căn truyền thống",
+      "relevant_ids": [
+        "cooklens_banh_can_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_canh_1",
+      "confirmed_dish": "banh_canh",
+      "query": "bánh canh",
+      "relevant_ids": [
+        "wb_banh_canh_ca",
+        "wb_banh_canh_cua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_canh_2",
+      "confirmed_dish": "banh_canh",
+      "query": "banh canh",
+      "relevant_ids": [
+        "wb_banh_canh_ca",
+        "wb_banh_canh_cua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_canh_3",
+      "confirmed_dish": "banh_canh",
+      "query": "bánh canh cua",
+      "relevant_ids": [
+        "wb_banh_canh_cua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_canh_4",
+      "confirmed_dish": "banh_canh",
+      "query": "bánh canh cá",
+      "relevant_ids": [
+        "wb_banh_canh_ca"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_canh_5",
+      "confirmed_dish": "banh_canh",
+      "query": "bánh canh với chả tôm và nấm rơm",
+      "relevant_ids": [
+        "wb_banh_canh_cua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_chung_1",
+      "confirmed_dish": "banh_chung",
+      "query": "bánh chưng",
+      "relevant_ids": [
+        "wb_banh_chung_goi_la_chuoi"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_chung_2",
+      "confirmed_dish": "banh_chung",
+      "query": "banh chung",
+      "relevant_ids": [
+        "wb_banh_chung_goi_la_chuoi"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_chung_3",
+      "confirmed_dish": "banh_chung",
+      "query": "bánh chưng gói lá chuối",
+      "relevant_ids": [
+        "wb_banh_chung_goi_la_chuoi"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_chung_4",
+      "confirmed_dish": "banh_chung",
+      "query": "bánh chưng đậu xanh thịt ba chỉ",
+      "relevant_ids": [
+        "wb_banh_chung_goi_la_chuoi"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_chung_5",
+      "confirmed_dish": "banh_chung",
+      "query": "gạo nếp đậu xanh gói vuông",
+      "relevant_ids": [
+        "wb_banh_chung_goi_la_chuoi"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_cuon_1",
+      "confirmed_dish": "banh_cuon",
+      "query": "Bánh cuốn",
+      "relevant_ids": [
+        "cooklens_banh_cuon_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_cuon_2",
+      "confirmed_dish": "banh_cuon",
+      "query": "banh cuon",
+      "relevant_ids": [
+        "cooklens_banh_cuon_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_cuon_3",
+      "confirmed_dish": "banh_cuon",
+      "query": "cách làm Bánh cuốn",
+      "relevant_ids": [
+        "cooklens_banh_cuon_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_cuon_4",
+      "confirmed_dish": "banh_cuon",
+      "query": "công thức Bánh cuốn",
+      "relevant_ids": [
+        "cooklens_banh_cuon_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_cuon_5",
+      "confirmed_dish": "banh_cuon",
+      "query": "Bánh cuốn truyền thống",
+      "relevant_ids": [
+        "cooklens_banh_cuon_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_duc_1",
+      "confirmed_dish": "banh_duc",
+      "query": "bánh đúc",
+      "relevant_ids": [
+        "wb_banh_duc_nong"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_duc_2",
+      "confirmed_dish": "banh_duc",
+      "query": "banh duc",
+      "relevant_ids": [
+        "wb_banh_duc_nong"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_duc_3",
+      "confirmed_dish": "banh_duc",
+      "query": "bánh đúc nóng thịt băm",
+      "relevant_ids": [
+        "wb_banh_duc_nong"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_duc_4",
+      "confirmed_dish": "banh_duc",
+      "query": "bột gạo khuấy nóng",
+      "relevant_ids": [
+        "wb_banh_duc_nong"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_duc_5",
+      "confirmed_dish": "banh_duc",
+      "query": "bánh đúc hành phi nước mắm",
+      "relevant_ids": [
+        "wb_banh_duc_nong"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_gio_1",
+      "confirmed_dish": "banh_gio",
+      "query": "Bánh giò",
+      "relevant_ids": [
+        "cooklens_banh_gio_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_gio_2",
+      "confirmed_dish": "banh_gio",
+      "query": "banh gio",
+      "relevant_ids": [
+        "cooklens_banh_gio_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_gio_3",
+      "confirmed_dish": "banh_gio",
+      "query": "cách làm Bánh giò",
+      "relevant_ids": [
+        "cooklens_banh_gio_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_gio_4",
+      "confirmed_dish": "banh_gio",
+      "query": "công thức Bánh giò",
+      "relevant_ids": [
+        "cooklens_banh_gio_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_gio_5",
+      "confirmed_dish": "banh_gio",
+      "query": "Bánh giò truyền thống",
+      "relevant_ids": [
+        "cooklens_banh_gio_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_khot_1",
+      "confirmed_dish": "banh_khot",
+      "query": "Bánh khọt",
+      "relevant_ids": [
+        "cooklens_banh_khot_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_khot_2",
+      "confirmed_dish": "banh_khot",
+      "query": "banh khot",
+      "relevant_ids": [
+        "cooklens_banh_khot_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_khot_3",
+      "confirmed_dish": "banh_khot",
+      "query": "cách làm Bánh khọt",
+      "relevant_ids": [
+        "cooklens_banh_khot_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_khot_4",
+      "confirmed_dish": "banh_khot",
+      "query": "công thức Bánh khọt",
+      "relevant_ids": [
+        "cooklens_banh_khot_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_khot_5",
+      "confirmed_dish": "banh_khot",
+      "query": "Bánh khọt truyền thống",
+      "relevant_ids": [
+        "cooklens_banh_khot_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_mi_1",
+      "confirmed_dish": "banh_mi",
+      "query": "bánh mì",
+      "relevant_ids": [
+        "wb_banh_mi_nhan_tuy_chon_va_do_chua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_mi_2",
+      "confirmed_dish": "banh_mi",
+      "query": "banh mi",
+      "relevant_ids": [
+        "wb_banh_mi_nhan_tuy_chon_va_do_chua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_mi_3",
+      "confirmed_dish": "banh_mi",
+      "query": "bánh mì nhân tùy chọn",
+      "relevant_ids": [
+        "wb_banh_mi_nhan_tuy_chon_va_do_chua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_mi_4",
+      "confirmed_dish": "banh_mi",
+      "query": "bánh mì kèm cà rốt củ cải ngâm",
+      "relevant_ids": [
+        "wb_banh_mi_nhan_tuy_chon_va_do_chua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_mi_5",
+      "confirmed_dish": "banh_mi",
+      "query": "bánh mì pa-tê rau mùi",
+      "relevant_ids": [
+        "wb_banh_mi_nhan_tuy_chon_va_do_chua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_pia_1",
+      "confirmed_dish": "banh_pia",
+      "query": "Bánh pía",
+      "relevant_ids": [
+        "cooklens_banh_pia_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_pia_2",
+      "confirmed_dish": "banh_pia",
+      "query": "banh pia",
+      "relevant_ids": [
+        "cooklens_banh_pia_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_pia_3",
+      "confirmed_dish": "banh_pia",
+      "query": "cách làm Bánh pía",
+      "relevant_ids": [
+        "cooklens_banh_pia_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_pia_4",
+      "confirmed_dish": "banh_pia",
+      "query": "công thức Bánh pía",
+      "relevant_ids": [
+        "cooklens_banh_pia_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_pia_5",
+      "confirmed_dish": "banh_pia",
+      "query": "Bánh pía truyền thống",
+      "relevant_ids": [
+        "cooklens_banh_pia_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_tet_1",
+      "confirmed_dish": "banh_tet",
+      "query": "bánh tét",
+      "relevant_ids": [
+        "wb_banh_tet_ngu_sac"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_tet_2",
+      "confirmed_dish": "banh_tet",
+      "query": "banh tet",
+      "relevant_ids": [
+        "wb_banh_tet_ngu_sac"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_tet_3",
+      "confirmed_dish": "banh_tet",
+      "query": "bánh tét ngũ sắc",
+      "relevant_ids": [
+        "wb_banh_tet_ngu_sac"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_tet_4",
+      "confirmed_dish": "banh_tet",
+      "query": "bánh tét lá cẩm lá dứa gấc",
+      "relevant_ids": [
+        "wb_banh_tet_ngu_sac"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_tet_5",
+      "confirmed_dish": "banh_tet",
+      "query": "bánh nếp đậu xanh gói đòn",
+      "relevant_ids": [
+        "wb_banh_tet_ngu_sac"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_trang_nuong_1",
+      "confirmed_dish": "banh_trang_nuong",
+      "query": "Bánh tráng nướng",
+      "relevant_ids": [
+        "cooklens_banh_trang_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_trang_nuong_2",
+      "confirmed_dish": "banh_trang_nuong",
+      "query": "banh trang nuong",
+      "relevant_ids": [
+        "cooklens_banh_trang_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_trang_nuong_3",
+      "confirmed_dish": "banh_trang_nuong",
+      "query": "cách làm Bánh tráng nướng",
+      "relevant_ids": [
+        "cooklens_banh_trang_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_trang_nuong_4",
+      "confirmed_dish": "banh_trang_nuong",
+      "query": "công thức Bánh tráng nướng",
+      "relevant_ids": [
+        "cooklens_banh_trang_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_trang_nuong_5",
+      "confirmed_dish": "banh_trang_nuong",
+      "query": "Bánh tráng nướng truyền thống",
+      "relevant_ids": [
+        "cooklens_banh_trang_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_xeo_1",
+      "confirmed_dish": "banh_xeo",
+      "query": "Bánh xèo",
+      "relevant_ids": [
+        "cooklens_banh_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_xeo_2",
+      "confirmed_dish": "banh_xeo",
+      "query": "banh xeo",
+      "relevant_ids": [
+        "cooklens_banh_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_xeo_3",
+      "confirmed_dish": "banh_xeo",
+      "query": "cách làm Bánh xèo",
+      "relevant_ids": [
+        "cooklens_banh_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_xeo_4",
+      "confirmed_dish": "banh_xeo",
+      "query": "công thức Bánh xèo",
+      "relevant_ids": [
+        "cooklens_banh_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_xeo_5",
+      "confirmed_dish": "banh_xeo",
+      "query": "Bánh xèo truyền thống",
+      "relevant_ids": [
+        "cooklens_banh_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_bo_hue_1",
+      "confirmed_dish": "bun_bo_hue",
+      "query": "bún bò Huế",
+      "relevant_ids": [
+        "wb_bun_bo_hue"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_bo_hue_2",
+      "confirmed_dish": "bun_bo_hue",
+      "query": "bun bo hue",
+      "relevant_ids": [
+        "wb_bun_bo_hue"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_bo_hue_3",
+      "confirmed_dish": "bun_bo_hue",
+      "query": "bún bò giò heo sả",
+      "relevant_ids": [
+        "wb_bun_bo_hue"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_bo_hue_4",
+      "confirmed_dish": "bun_bo_hue",
+      "query": "bún bò nạm mắm ruốc",
+      "relevant_ids": [
+        "wb_bun_bo_hue"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_bo_hue_5",
+      "confirmed_dish": "bun_bo_hue",
+      "query": "nước dùng xương bò cho bún Huế",
+      "relevant_ids": [
+        "wb_bun_bo_hue"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_dau_mam_tom_1",
+      "confirmed_dish": "bun_dau_mam_tom",
+      "query": "bún đậu mắm tôm",
+      "relevant_ids": [
+        "wb_bun_dau_mam_tom"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_dau_mam_tom_2",
+      "confirmed_dish": "bun_dau_mam_tom",
+      "query": "bun dau mam tom",
+      "relevant_ids": [
+        "wb_bun_dau_mam_tom"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_dau_mam_tom_3",
+      "confirmed_dish": "bun_dau_mam_tom",
+      "query": "bún đậu thịt chân giò",
+      "relevant_ids": [
+        "wb_bun_dau_mam_tom"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_dau_mam_tom_4",
+      "confirmed_dish": "bun_dau_mam_tom",
+      "query": "bún lá đậu rán chả cốm",
+      "relevant_ids": [
+        "wb_bun_dau_mam_tom"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_dau_mam_tom_5",
+      "confirmed_dish": "bun_dau_mam_tom",
+      "query": "mẹt bún đậu rau thơm",
+      "relevant_ids": [
+        "wb_bun_dau_mam_tom"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_mam_1",
+      "confirmed_dish": "bun_mam",
+      "query": "bún mắm",
+      "relevant_ids": [
+        "wb_bun_mam"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_mam_2",
+      "confirmed_dish": "bun_mam",
+      "query": "bun mam",
+      "relevant_ids": [
+        "wb_bun_mam"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_mam_3",
+      "confirmed_dish": "bun_mam",
+      "query": "bún mắm cá linh",
+      "relevant_ids": [
+        "wb_bun_mam"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_mam_4",
+      "confirmed_dish": "bun_mam",
+      "query": "bún mắm tôm mực heo quay",
+      "relevant_ids": [
+        "wb_bun_mam"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_mam_5",
+      "confirmed_dish": "bun_mam",
+      "query": "bún mắm cà tím sả",
+      "relevant_ids": [
+        "wb_bun_mam"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_rieu_1",
+      "confirmed_dish": "bun_rieu",
+      "query": "bún riêu",
+      "relevant_ids": [
+        "wb_bun_rieu_cua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_rieu_2",
+      "confirmed_dish": "bun_rieu",
+      "query": "bun rieu",
+      "relevant_ids": [
+        "wb_bun_rieu_cua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_rieu_3",
+      "confirmed_dish": "bun_rieu",
+      "query": "bún riêu cua đồng",
+      "relevant_ids": [
+        "wb_bun_rieu_cua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_rieu_4",
+      "confirmed_dish": "bun_rieu",
+      "query": "bún riêu cà chua đậu phụ",
+      "relevant_ids": [
+        "wb_bun_rieu_cua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_rieu_5",
+      "confirmed_dish": "bun_rieu",
+      "query": "bún riêu trứng và cua",
+      "relevant_ids": [
+        "wb_bun_rieu_cua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_thit_nuong_1",
+      "confirmed_dish": "bun_thit_nuong",
+      "query": "Bún thịt nướng",
+      "relevant_ids": [
+        "cooklens_bun_thit_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_thit_nuong_2",
+      "confirmed_dish": "bun_thit_nuong",
+      "query": "bun thit nuong",
+      "relevant_ids": [
+        "cooklens_bun_thit_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_thit_nuong_3",
+      "confirmed_dish": "bun_thit_nuong",
+      "query": "cách làm Bún thịt nướng",
+      "relevant_ids": [
+        "cooklens_bun_thit_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_thit_nuong_4",
+      "confirmed_dish": "bun_thit_nuong",
+      "query": "công thức Bún thịt nướng",
+      "relevant_ids": [
+        "cooklens_bun_thit_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_thit_nuong_5",
+      "confirmed_dish": "bun_thit_nuong",
+      "query": "Bún thịt nướng truyền thống",
+      "relevant_ids": [
+        "cooklens_bun_thit_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "ca_kho_to_1",
+      "confirmed_dish": "ca_kho_to",
+      "query": "cá kho tộ",
+      "relevant_ids": [
+        "wb_ca_kho_to"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "ca_kho_to_2",
+      "confirmed_dish": "ca_kho_to",
+      "query": "ca kho to",
+      "relevant_ids": [
+        "wb_ca_kho_to"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "ca_kho_to_3",
+      "confirmed_dish": "ca_kho_to",
+      "query": "cá lóc kho tộ",
+      "relevant_ids": [
+        "wb_ca_kho_to"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "ca_kho_to_4",
+      "confirmed_dish": "ca_kho_to",
+      "query": "cá kho nước màu hành ớt",
+      "relevant_ids": [
+        "wb_ca_kho_to"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "ca_kho_to_5",
+      "confirmed_dish": "ca_kho_to",
+      "query": "cá kho niêu đất",
+      "relevant_ids": [
+        "wb_ca_kho_to"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "canh_chua_1",
+      "confirmed_dish": "canh_chua",
+      "query": "canh chua",
+      "relevant_ids": [
+        "wb_canh_chua_ca_voi_mang_va_dua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "canh_chua_2",
+      "confirmed_dish": "canh_chua",
+      "query": "canh chua ca",
+      "relevant_ids": [
+        "wb_canh_chua_ca_voi_mang_va_dua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "canh_chua_3",
+      "confirmed_dish": "canh_chua",
+      "query": "canh chua cá măng dứa",
+      "relevant_ids": [
+        "wb_canh_chua_ca_voi_mang_va_dua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "canh_chua_4",
+      "confirmed_dish": "canh_chua",
+      "query": "canh chua cá da trơn",
+      "relevant_ids": [
+        "wb_canh_chua_ca_voi_mang_va_dua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "canh_chua_5",
+      "confirmed_dish": "canh_chua",
+      "query": "canh cá nấu măng chua",
+      "relevant_ids": [
+        "wb_canh_chua_ca_voi_mang_va_dua"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "cao_lau_1",
+      "confirmed_dish": "cao_lau",
+      "query": "cao lầu",
+      "relevant_ids": [
+        "wb_cao_lau_hoi_an"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "cao_lau_2",
+      "confirmed_dish": "cao_lau",
+      "query": "cao lau",
+      "relevant_ids": [
+        "wb_cao_lau_hoi_an"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "cao_lau_3",
+      "confirmed_dish": "cao_lau",
+      "query": "cao lầu Hội An",
+      "relevant_ids": [
+        "wb_cao_lau_hoi_an"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "cao_lau_4",
+      "confirmed_dish": "cao_lau",
+      "query": "cao lầu thịt xá xíu",
+      "relevant_ids": [
+        "wb_cao_lau_hoi_an"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "cao_lau_5",
+      "confirmed_dish": "cao_lau",
+      "query": "cao lầu hoành thánh giòn",
+      "relevant_ids": [
+        "wb_cao_lau_hoi_an"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "chao_long_1",
+      "confirmed_dish": "chao_long",
+      "query": "Cháo lòng",
+      "relevant_ids": [
+        "cooklens_chao_long_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "chao_long_2",
+      "confirmed_dish": "chao_long",
+      "query": "chao long",
+      "relevant_ids": [
+        "cooklens_chao_long_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "chao_long_3",
+      "confirmed_dish": "chao_long",
+      "query": "cách làm Cháo lòng",
+      "relevant_ids": [
+        "cooklens_chao_long_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "chao_long_4",
+      "confirmed_dish": "chao_long",
+      "query": "công thức Cháo lòng",
+      "relevant_ids": [
+        "cooklens_chao_long_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "chao_long_5",
+      "confirmed_dish": "chao_long",
+      "query": "Cháo lòng truyền thống",
+      "relevant_ids": [
+        "cooklens_chao_long_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "com_tam_1",
+      "confirmed_dish": "com_tam",
+      "query": "cơm tấm",
+      "relevant_ids": [
+        "wb_com_tam"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "com_tam_2",
+      "confirmed_dish": "com_tam",
+      "query": "com tam",
+      "relevant_ids": [
+        "wb_com_tam"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "com_tam_3",
+      "confirmed_dish": "com_tam",
+      "query": "cơm tấm sườn nướng",
+      "relevant_ids": [
+        "wb_com_tam"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "com_tam_4",
+      "confirmed_dish": "com_tam",
+      "query": "cơm tấm mỡ hành đồ chua",
+      "relevant_ids": [
+        "wb_com_tam"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "com_tam_5",
+      "confirmed_dish": "com_tam",
+      "query": "sườn cốt lết nướng ăn với cơm tấm",
+      "relevant_ids": [
+        "wb_com_tam"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "goi_cuon_1",
+      "confirmed_dish": "goi_cuon",
+      "query": "gỏi cuốn",
+      "relevant_ids": [
+        "wb_goi_cuon_tom_thit"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "goi_cuon_2",
+      "confirmed_dish": "goi_cuon",
+      "query": "goi cuon",
+      "relevant_ids": [
+        "wb_goi_cuon_tom_thit"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "goi_cuon_3",
+      "confirmed_dish": "goi_cuon",
+      "query": "gỏi cuốn tôm thịt",
+      "relevant_ids": [
+        "wb_goi_cuon_tom_thit"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "goi_cuon_4",
+      "confirmed_dish": "goi_cuon",
+      "query": "bánh tráng cuốn bún rau sống",
+      "relevant_ids": [
+        "wb_goi_cuon_tom_thit"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "goi_cuon_5",
+      "confirmed_dish": "goi_cuon",
+      "query": "cuốn tôm với dưa leo xà lách",
+      "relevant_ids": [
+        "wb_goi_cuon_tom_thit"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "hu_tieu_1",
+      "confirmed_dish": "hu_tieu",
+      "query": "hủ tiếu",
+      "relevant_ids": [
+        "wb_hu_tieu_nam_vang"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "hu_tieu_2",
+      "confirmed_dish": "hu_tieu",
+      "query": "hu tieu",
+      "relevant_ids": [
+        "wb_hu_tieu_nam_vang"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "hu_tieu_3",
+      "confirmed_dish": "hu_tieu",
+      "query": "hủ tiếu Nam Vang",
+      "relevant_ids": [
+        "wb_hu_tieu_nam_vang"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "hu_tieu_4",
+      "confirmed_dish": "hu_tieu",
+      "query": "hủ tiếu tôm thịt băm",
+      "relevant_ids": [
+        "wb_hu_tieu_nam_vang"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "hu_tieu_5",
+      "confirmed_dish": "hu_tieu",
+      "query": "hủ tiếu gan tim cật",
+      "relevant_ids": [
+        "wb_hu_tieu_nam_vang"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "mi_quang_1",
+      "confirmed_dish": "mi_quang",
+      "query": "Mì Quảng",
+      "relevant_ids": [
+        "cooklens_mi_quang_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "mi_quang_2",
+      "confirmed_dish": "mi_quang",
+      "query": "mi quang",
+      "relevant_ids": [
+        "cooklens_mi_quang_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "mi_quang_3",
+      "confirmed_dish": "mi_quang",
+      "query": "cách làm Mì Quảng",
+      "relevant_ids": [
+        "cooklens_mi_quang_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "mi_quang_4",
+      "confirmed_dish": "mi_quang",
+      "query": "công thức Mì Quảng",
+      "relevant_ids": [
+        "cooklens_mi_quang_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "mi_quang_5",
+      "confirmed_dish": "mi_quang",
+      "query": "Mì Quảng truyền thống",
+      "relevant_ids": [
+        "cooklens_mi_quang_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "nem_chua_1",
+      "confirmed_dish": "nem_chua",
+      "query": "Nem chua",
+      "relevant_ids": [
+        "cooklens_nem_chua_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "nem_chua_2",
+      "confirmed_dish": "nem_chua",
+      "query": "nem chua",
+      "relevant_ids": [
+        "cooklens_nem_chua_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "nem_chua_3",
+      "confirmed_dish": "nem_chua",
+      "query": "cách làm Nem chua",
+      "relevant_ids": [
+        "cooklens_nem_chua_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "nem_chua_4",
+      "confirmed_dish": "nem_chua",
+      "query": "công thức Nem chua",
+      "relevant_ids": [
+        "cooklens_nem_chua_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "nem_chua_5",
+      "confirmed_dish": "nem_chua",
+      "query": "Nem chua truyền thống",
+      "relevant_ids": [
+        "cooklens_nem_chua_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "pho_1",
+      "confirmed_dish": "pho",
+      "query": "phở",
+      "relevant_ids": [
+        "wb_pho_bo_ninh_xuong",
+        "wb_pho_ga"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "pho_2",
+      "confirmed_dish": "pho",
+      "query": "pho",
+      "relevant_ids": [
+        "wb_pho_bo_ninh_xuong",
+        "wb_pho_ga"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "pho_3",
+      "confirmed_dish": "pho",
+      "query": "phở bò",
+      "relevant_ids": [
+        "wb_pho_bo_ninh_xuong"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "pho_4",
+      "confirmed_dish": "pho",
+      "query": "phở gà",
+      "relevant_ids": [
+        "wb_pho_ga"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "pho_5",
+      "confirmed_dish": "pho",
+      "query": "phở ninh xương bò hồi quế",
+      "relevant_ids": [
+        "wb_pho_bo_ninh_xuong"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "xoi_xeo_1",
+      "confirmed_dish": "xoi_xeo",
+      "query": "Xôi xéo",
+      "relevant_ids": [
+        "cooklens_xoi_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "xoi_xeo_2",
+      "confirmed_dish": "xoi_xeo",
+      "query": "xoi xeo",
+      "relevant_ids": [
+        "cooklens_xoi_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "xoi_xeo_3",
+      "confirmed_dish": "xoi_xeo",
+      "query": "cách làm Xôi xéo",
+      "relevant_ids": [
+        "cooklens_xoi_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "xoi_xeo_4",
+      "confirmed_dish": "xoi_xeo",
+      "query": "công thức Xôi xéo",
+      "relevant_ids": [
+        "cooklens_xoi_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "xoi_xeo_5",
+      "confirmed_dish": "xoi_xeo",
+      "query": "Xôi xéo truyền thống",
+      "relevant_ids": [
+        "cooklens_xoi_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_can_ingredients_1",
+      "confirmed_dish": "banh_can",
+      "query": "bánh căn trứng cút tôm bằng khuôn",
+      "relevant_ids": [
+        "cooklens_banh_can_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_can_ingredients_2",
+      "confirmed_dish": "banh_can",
+      "query": "bánh căn ăn với mỡ hành",
+      "relevant_ids": [
+        "cooklens_banh_can_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_can_ingredients_3",
+      "confirmed_dish": "banh_can",
+      "query": "bánh căn bột gạo có cơm xay",
+      "relevant_ids": [
+        "cooklens_banh_can_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_cuon_ingredients_1",
+      "confirmed_dish": "banh_cuon",
+      "query": "bánh cuốn tráng bằng chảo chống dính",
+      "relevant_ids": [
+        "cooklens_banh_cuon_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_cuon_ingredients_2",
+      "confirmed_dish": "banh_cuon",
+      "query": "bánh cuốn thịt xay mộc nhĩ",
+      "relevant_ids": [
+        "cooklens_banh_cuon_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_cuon_ingredients_3",
+      "confirmed_dish": "banh_cuon",
+      "query": "cuốn bánh mỏng ăn với hành phi",
+      "relevant_ids": [
+        "cooklens_banh_cuon_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_gio_ingredients_1",
+      "confirmed_dish": "banh_gio",
+      "query": "bánh giò gói lá chuối hấp",
+      "relevant_ids": [
+        "cooklens_banh_gio_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_gio_ingredients_2",
+      "confirmed_dish": "banh_gio",
+      "query": "bánh giò nhân thịt mộc nhĩ",
+      "relevant_ids": [
+        "cooklens_banh_gio_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_gio_ingredients_3",
+      "confirmed_dish": "banh_gio",
+      "query": "bánh giò vỏ bột gạo bột năng",
+      "relevant_ids": [
+        "cooklens_banh_gio_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_khot_ingredients_1",
+      "confirmed_dish": "banh_khot",
+      "query": "bánh khọt tôm nước cốt dừa",
+      "relevant_ids": [
+        "cooklens_banh_khot_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_khot_ingredients_2",
+      "confirmed_dish": "banh_khot",
+      "query": "bánh khọt khuôn chiên giòn",
+      "relevant_ids": [
+        "cooklens_banh_khot_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_khot_ingredients_3",
+      "confirmed_dish": "banh_khot",
+      "query": "bánh khọt mỡ hành",
+      "relevant_ids": [
+        "cooklens_banh_khot_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_pia_ingredients_1",
+      "confirmed_dish": "banh_pia",
+      "query": "bánh pía đậu xanh sầu riêng",
+      "relevant_ids": [
+        "cooklens_banh_pia_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_pia_ingredients_2",
+      "confirmed_dish": "banh_pia",
+      "query": "bánh pía bột nước và bột dầu",
+      "relevant_ids": [
+        "cooklens_banh_pia_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_pia_ingredients_3",
+      "confirmed_dish": "banh_pia",
+      "query": "bánh pía làm bằng lò nướng",
+      "relevant_ids": [
+        "cooklens_banh_pia_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_trang_nuong_ingredients_1",
+      "confirmed_dish": "banh_trang_nuong",
+      "query": "bánh tráng nướng bằng chảo",
+      "relevant_ids": [
+        "cooklens_banh_trang_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_trang_nuong_ingredients_2",
+      "confirmed_dish": "banh_trang_nuong",
+      "query": "bánh tráng nướng trứng thịt băm",
+      "relevant_ids": [
+        "cooklens_banh_trang_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_trang_nuong_ingredients_3",
+      "confirmed_dish": "banh_trang_nuong",
+      "query": "bánh tráng nướng tôm khô phô mai",
+      "relevant_ids": [
+        "cooklens_banh_trang_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_xeo_ingredients_1",
+      "confirmed_dish": "banh_xeo",
+      "query": "bánh xèo tôm thịt nước cốt dừa",
+      "relevant_ids": [
+        "cooklens_banh_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_xeo_ingredients_2",
+      "confirmed_dish": "banh_xeo",
+      "query": "bánh xèo đổ chảo giòn",
+      "relevant_ids": [
+        "cooklens_banh_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "banh_xeo_ingredients_3",
+      "confirmed_dish": "banh_xeo",
+      "query": "bánh xèo có giá và nghệ",
+      "relevant_ids": [
+        "cooklens_banh_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_thit_nuong_ingredients_1",
+      "confirmed_dish": "bun_thit_nuong",
+      "query": "bún thịt nướng sả",
+      "relevant_ids": [
+        "cooklens_bun_thit_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_thit_nuong_ingredients_2",
+      "confirmed_dish": "bun_thit_nuong",
+      "query": "bún thịt nướng mỡ hành lạc rang",
+      "relevant_ids": [
+        "cooklens_bun_thit_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "bun_thit_nuong_ingredients_3",
+      "confirmed_dish": "bun_thit_nuong",
+      "query": "bún nạc vai nướng ăn với rau",
+      "relevant_ids": [
+        "cooklens_bun_thit_nuong_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "chao_long_ingredients_1",
+      "confirmed_dish": "chao_long",
+      "query": "cháo lòng tim gan dạ dày",
+      "relevant_ids": [
+        "cooklens_chao_long_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "chao_long_ingredients_2",
+      "confirmed_dish": "chao_long",
+      "query": "cháo lòng heo nấu chín kỹ",
+      "relevant_ids": [
+        "cooklens_chao_long_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "chao_long_ingredients_3",
+      "confirmed_dish": "chao_long",
+      "query": "cháo gạo tẻ gạo nếp với nội tạng chín",
+      "relevant_ids": [
+        "cooklens_chao_long_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "mi_quang_ingredients_1",
+      "confirmed_dish": "mi_quang",
+      "query": "mì Quảng gà tôm",
+      "relevant_ids": [
+        "cooklens_mi_quang_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "mi_quang_ingredients_2",
+      "confirmed_dish": "mi_quang",
+      "query": "mì Quảng chan ít nước nhân",
+      "relevant_ids": [
+        "cooklens_mi_quang_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "mi_quang_ingredients_3",
+      "confirmed_dish": "mi_quang",
+      "query": "mì Quảng nghệ lạc bánh tráng mè",
+      "relevant_ids": [
+        "cooklens_mi_quang_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "nem_chua_ingredients_1",
+      "confirmed_dish": "nem_chua",
+      "query": "nem chua rán từ nem đã làm sẵn",
+      "relevant_ids": [
+        "cooklens_nem_chua_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "nem_chua_ingredients_2",
+      "confirmed_dish": "nem_chua",
+      "query": "nem chua áo bột chiên xù",
+      "relevant_ids": [
+        "cooklens_nem_chua_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "nem_chua_ingredients_3",
+      "confirmed_dish": "nem_chua",
+      "query": "nem chua thành phẩm chiên nóng đến tâm",
+      "relevant_ids": [
+        "cooklens_nem_chua_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "xoi_xeo_ingredients_1",
+      "confirmed_dish": "xoi_xeo",
+      "query": "xôi xéo đậu xanh hành phi",
+      "relevant_ids": [
+        "cooklens_xoi_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "xoi_xeo_ingredients_2",
+      "confirmed_dish": "xoi_xeo",
+      "query": "xôi xéo nếp hấp với nghệ",
+      "relevant_ids": [
+        "cooklens_xoi_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "xoi_xeo_ingredients_3",
+      "confirmed_dish": "xoi_xeo",
+      "query": "xôi xéo phủ lát đậu xanh nghiền",
+      "relevant_ids": [
+        "cooklens_xoi_xeo_home"
+      ],
+      "kind": "positive"
+    },
+    {
+      "case": "pho_contrast_1",
+      "confirmed_dish": "pho",
+      "query": "nước dùng xương bò ninh lâu cùng quế hồi",
+      "relevant_ids": [
+        "wb_pho_bo_ninh_xuong"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "pho_contrast_2",
+      "confirmed_dish": "pho",
+      "query": "phở dùng gà nguyên con",
+      "relevant_ids": [
+        "wb_pho_ga"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "pho_contrast_3",
+      "confirmed_dish": "pho",
+      "query": "súp phở thịt thăn bò",
+      "relevant_ids": [
+        "wb_pho_bo_ninh_xuong"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "pho_contrast_4",
+      "confirmed_dish": "pho",
+      "query": "phở gà thái miếng",
+      "relevant_ids": [
+        "wb_pho_ga"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "pho_contrast_5",
+      "confirmed_dish": "pho",
+      "query": "phở ninh bằng xương bò",
+      "relevant_ids": [
+        "wb_pho_bo_ninh_xuong"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "pho_contrast_6",
+      "confirmed_dish": "pho",
+      "query": "nước phở nấu gà với gừng và hành nướng",
+      "relevant_ids": [
+        "wb_pho_ga"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_canh_contrast_1",
+      "confirmed_dish": "banh_canh",
+      "query": "bánh canh cua nấu chả tôm",
+      "relevant_ids": [
+        "wb_banh_canh_cua"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_canh_contrast_2",
+      "confirmed_dish": "banh_canh",
+      "query": "bánh canh cá basa",
+      "relevant_ids": [
+        "wb_banh_canh_ca"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_canh_contrast_3",
+      "confirmed_dish": "banh_canh",
+      "query": "bánh canh với nấm rơm và tôm bằm",
+      "relevant_ids": [
+        "wb_banh_canh_cua"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_canh_contrast_4",
+      "confirmed_dish": "banh_canh",
+      "query": "phi lê cá xào rồi chan nước xương",
+      "relevant_ids": [
+        "wb_banh_canh_ca"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_canh_contrast_5",
+      "confirmed_dish": "banh_canh",
+      "query": "bánh canh cua có hột điều tạo màu",
+      "relevant_ids": [
+        "wb_banh_canh_cua"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_canh_contrast_6",
+      "confirmed_dish": "banh_canh",
+      "query": "bánh canh cá lóc hoặc cá basa",
+      "relevant_ids": [
+        "wb_banh_canh_ca"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_bot_loc_contrast_1",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "bánh bột lọc tôm thịt ba chỉ gói lá",
+      "relevant_ids": [
+        "wb_banh_bot_loc_hue"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_bot_loc_contrast_2",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "nhào bột nước sôi, nặn bán nguyệt rồi luộc",
+      "relevant_ids": [
+        "wb_banh_bot_loc"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_bot_loc_contrast_3",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "bánh bột lọc hấp lá chuối nhân tôm đất",
+      "relevant_ids": [
+        "wb_banh_bot_loc_hue"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_bot_loc_contrast_4",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "bánh bột lọc luộc nổi rồi ngâm nước lạnh",
+      "relevant_ids": [
+        "wb_banh_bot_loc"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_bot_loc_contrast_5",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "gói bánh bột lọc trên lá chuối đã phết dầu",
+      "relevant_ids": [
+        "wb_banh_bot_loc_hue"
+      ],
+      "kind": "contrastive_holdout"
+    },
+    {
+      "case": "banh_bot_loc_contrast_6",
+      "confirmed_dish": "banh_bot_loc",
+      "query": "bánh bột lọc luộc không gói lá ăn với mỡ hành",
+      "relevant_ids": [
+        "wb_banh_bot_loc"
+      ],
+      "kind": "contrastive_holdout"
+    }
+  ],
+  "external_review_complete": false,
+  "review_record": "ai/rag/evaluation/REVIEW.md"
+}

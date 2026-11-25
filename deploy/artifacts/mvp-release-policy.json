@@ -1,0 +1,14 @@
+{
+  "mode": "known-limitations",
+  "authorized_on": "2026-11-25",
+  "decision": "User requested immediate MVP release followed by user-journey testing and GitHub issues.",
+  "deferred_checks": [
+    "physical_android_acceptance",
+    "complete_live_assistant_50_case_evaluation",
+    "human_quality_review"
+  ],
+  "runtime_profile": {
+    "provider": "gemini",
+    "model_selector": "gemini-3.1-flash-lite"
+  }
+}

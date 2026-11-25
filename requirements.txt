@@ -1,0 +1,5 @@
+# Local CPU vision environment; service requirements stay beside inference code.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.1+cpu
+torchvision==0.29.1+cpu
+-r ai/cv/inference/requirements.txt

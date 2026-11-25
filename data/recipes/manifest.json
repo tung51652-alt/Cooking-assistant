@@ -1,0 +1,81 @@
+{
+  "corpus_version": "cooklens-recipes-v1",
+  "taxonomy_version": "1.0.0",
+  "recipe_count": 33,
+  "covered_dishes": 30,
+  "required_dishes": 30,
+  "coverage": {
+    "banh_beo": 1,
+    "banh_bot_loc": 2,
+    "banh_can": 1,
+    "banh_canh": 2,
+    "banh_chung": 1,
+    "banh_cuon": 1,
+    "banh_duc": 1,
+    "banh_gio": 1,
+    "banh_khot": 1,
+    "banh_mi": 1,
+    "banh_pia": 1,
+    "banh_tet": 1,
+    "banh_trang_nuong": 1,
+    "banh_xeo": 1,
+    "bun_bo_hue": 1,
+    "bun_dau_mam_tom": 1,
+    "bun_mam": 1,
+    "bun_rieu": 1,
+    "bun_thit_nuong": 1,
+    "ca_kho_to": 1,
+    "canh_chua": 1,
+    "cao_lau": 1,
+    "chao_long": 1,
+    "com_tam": 1,
+    "goi_cuon": 1,
+    "hu_tieu": 1,
+    "mi_quang": 1,
+    "nem_chua": 1,
+    "pho": 2,
+    "xoi_xeo": 1
+  },
+  "review": {
+    "source_and_structure": "agent_reviewed_imports_and_explicitly_labeled_ai_authored_additions",
+    "human_cooking_review": "not_performed",
+    "retrieval_acceptance_review": "technical_evaluation_in_service_PR_external_review_pending_phase7",
+    "full_coverage_gate": "met"
+  },
+  "license": "CC-BY-SA-4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "retrieved_at": "2026-10-19",
+  "source_policy": "21 attributed Wikibooks text recipes under CC-BY-SA-4.0 plus 12 original AI-authored CookLens recipes under CC-BY-4.0, authorized by the project owner on 2026-10-19. No external source or kitchen-test claim is invented.",
+  "excluded_sources": [
+    {
+      "url": "https://github.com/xlabsinc/global-recipes",
+      "reason": "Vietnamese records contain placeholder ingredients and generic steps."
+    },
+    {
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_tráng_nướng",
+      "reason": "Overview only, not a complete recipe."
+    },
+    {
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_cuốn_tráng_chảo",
+      "reason": "Incomplete rolling/filling procedure."
+    },
+    {
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_giò",
+      "reason": "Method stops before wrapping/steaming; do not mark complete."
+    },
+    {
+      "url": "https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_xèo",
+      "reason": "Ingredient list and method inconsistent; requires editorial repair."
+    },
+    {
+      "url": "https://huggingface.co/datasets/FoodieAtlas/World-Traditional-Recipes-Dataset",
+      "reason": "Sample rights limited; full commercial corpus is paid, not imported."
+    }
+  ],
+  "license_scope": "Collection CC-BY-SA-4.0; per-record source.license distinguishes imported and original texts.",
+  "source_counts": {
+    "wikibooks": 21,
+    "cooklens_ai_authored": 12
+  },
+  "authorship_record": "data/recipes/AUTHORSHIP.md"
+}

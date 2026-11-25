@@ -1,0 +1,140 @@
+name: Promote accepted MVP release
+on:
+  workflow_dispatch:
+    inputs:
+      accepted_run_id:
+        description: Successful candidate or accepted prerelease run on the exact main commit.
+        required: true
+        type: string
+      release_mode:
+        description: Accepted release or immediate MVP with explicitly deferred manual checks.
+        type: choice
+        options: [accepted, known-limitations]
+        default: accepted
+permissions:
+  contents: read
+concurrency:
+  group: cooklens-final-release
+  cancel-in-progress: false
+jobs:
+  promote:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_MODE: ${{ inputs.release_mode }}
+      ACCEPTED: /tmp/cooklens-accepted
+      BUNDLE: /tmp/cooklens-final
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false, fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Verify successful prerelease publishing on this exact source
+        env:
+          RUN_ID: ${{ inputs.accepted_run_id }}
+        run: |
+          python - <<'PY'
+          import json, os, re, subprocess
+          def api(path):
+              return json.loads(subprocess.check_output(['gh', 'api', f'repos/{os.environ["GITHUB_REPOSITORY"]}/{path}']))
+          run_id = os.environ['RUN_ID']
+          if not re.fullmatch(r'[0-9]+', run_id):
+              raise SystemExit('Invalid accepted run ID')
+          run = api('actions/runs/' + run_id)
+          known = os.environ['RELEASE_MODE'] == 'known-limitations'
+          if known and not re.fullmatch(r'v2\.0\.0-rc\.[1-9][0-9]*', run['head_branch']):
+              raise SystemExit('Known-limitations release requires a tagged candidate run')
+          expected = ('.github/workflows/docker-release.yml', 'push' if known else 'workflow_dispatch', 'success', run['head_branch'] if known else 'main', os.environ['GITHUB_SHA'])
+          actual = (run['path'].split('@', 1)[0], run['event'], run['conclusion'], run['head_branch'], run['head_sha'])
+          jobs = api(f'actions/runs/{run_id}/jobs?per_page=100')['jobs']
+          if actual != expected or not any(j['name'] == ('clean-registry-pull' if known else 'publish-prerelease') and j['conclusion'] == 'success' for j in jobs):
+              raise SystemExit('Expected a successful acceptance/publishing job on the exact main source')
+          if api('git/ref/heads/main')['object']['sha'] != os.environ['GITHUB_SHA']:
+              raise SystemExit('Main moved; repeat acceptance for the new source')
+          refs = api('git/matching-refs/tags/v2.0.0')
+          if any(r['ref'] == 'refs/tags/v2.0.0' for r in refs):
+              raise SystemExit('Final tag already exists; never overwrite a published version')
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.accepted_run_id }}
+          name: ${{ inputs.release_mode == 'known-limitations' && 'cooklens-phase13-candidate' || 'cooklens-accepted-candidate' }}
+          path: /tmp/cooklens-accepted
+      - name: Revalidate acceptance and the published candidate download
+        run: |
+          python - <<'PY'
+          import json, os, subprocess, sys, tarfile, tempfile
+          from pathlib import Path
+          sys.path.insert(0, 'deploy/scripts')
+          from final_release import accepted
+          root = Path(os.environ['ACCEPTED'])
+          if os.environ['RELEASE_MODE'] == 'known-limitations':
+              (root / 'release-policy.json').write_text(Path('deploy/artifacts/mvp-release-policy.json').read_text())
+          _, metadata, identity = accepted(root, os.environ['GITHUB_SHA'])
+          tag = identity['tag']
+          target = subprocess.check_output(['git', 'rev-parse', tag + '^{commit}']).decode().strip()
+          if target != os.environ['GITHUB_SHA']:
+              raise SystemExit('Candidate tag differs from the accepted source')
+          if os.environ['RELEASE_MODE'] != 'known-limitations':
+              release = json.loads(subprocess.check_output(['gh', 'release', 'view', tag, '--json', 'isPrerelease,isDraft']))
+              if release != {'isDraft': False, 'isPrerelease': True}:
+                  raise SystemExit('A published accepted prerelease is required')
+              filename = 'cooklens-' + metadata['application_candidate'] + '.tar.gz'
+              with tempfile.TemporaryDirectory() as directory:
+                  subprocess.run(['gh', 'release', 'download', tag, '--pattern', filename, '--dir', directory], check=True)
+                  with tarfile.open(Path(directory) / filename) as archive:
+                      expected = {str(p.relative_to(root / 'bundle')): p.read_bytes() for p in (root / 'bundle').rglob('*') if p.is_file()}
+                      members = archive.getmembers()
+                      if len(members) != len(expected) or {m.name for m in members} != set(expected) or any(not m.isfile() or archive.extractfile(m).read() != expected[m.name] for m in members):
+                          raise SystemExit('Accepted artifact differs from the published prerelease download')
+          PY
+          python deploy/scripts/final_release.py prepare --accepted "$ACCEPTED" --source-sha "$GITHUB_SHA" --bundle "$BUNDLE"
+      - name: Require the release source to select the same final images by default
+        run: |
+          docker compose config --format json > "$RUNNER_TEMP/source-compose.json"
+          python - <<'PY'
+          import json, os, sys
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          sys.path.insert(0, 'deploy/scripts')
+          from prepare_candidate_bundle import candidate_config
+          source, _ = candidate_config(json.loads((Path(os.environ['RUNNER_TEMP']) / 'source-compose.json').read_text()))
+          final = json.loads((Path(os.environ['BUNDLE']) / 'compose.yaml').read_text())
+          if source != final:
+              raise SystemExit('Pin final defaults in the release PR before building and accepting its candidate')
+          pom = ET.parse('backend/pom.xml').getroot()
+          if pom.find('{http://maven.apache.org/POM/4.0.0}version').text != '2.0.0':
+              raise SystemExit('Backend artifact version must match the final release')
+          for app in ('frontend', 'mobile'):
+              package = json.loads(Path(app, 'package.json').read_text())
+              lock = json.loads(Path(app, 'package-lock.json').read_text())
+              if any(version != '2.0.0' for version in (package['version'], lock['version'], lock['packages']['']['version'])):
+                  raise SystemExit('Application and lockfile versions must match the final release')
+          if json.loads(Path('mobile/app.json').read_text())['expo']['version'] != '2.0.0':
+              raise SystemExit('Expo app version must match the final release')
+          PY
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Promote the exact manifests to unused final image tags
+        run: python deploy/scripts/final_release.py promote --accepted "$ACCEPTED" --source-sha "$GITHUB_SHA"
+      - name: Verify the final download using anonymous pulls and fresh volumes
+        run: python deploy/scripts/smoke_release_stack.py --pull-registry --assistant --compose "$BUNDLE/compose.yaml" --samples 100 --report "$BUNDLE/verification.json"
+      - name: Package the verified final download
+        run: python deploy/scripts/final_release.py package --accepted "$ACCEPTED" --source-sha "$GITHUB_SHA" --bundle "$BUNDLE" --archive /tmp/cooklens-2.0.0.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cooklens-final-download
+          path: /tmp/cooklens-2.0.0.tar.gz
+          if-no-files-found: error
+      - name: Create the immutable final source tag and publish the release
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref=refs/tags/v2.0.0 -f sha="$GITHUB_SHA" >/dev/null
+          gh release create v2.0.0 /tmp/cooklens-2.0.0.tar.gz --verify-tag --latest --title 'CookLens 2.0.0' --notes-file "$BUNDLE/RELEASE_NOTES.md"

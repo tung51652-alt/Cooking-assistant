@@ -1,0 +1,2 @@
+# Preserve the upstream third-party license verbatim, including its trailing space.
+deploy/artifacts/notices/torchvision-LICENSE.txt -text whitespace=-blank-at-eol
