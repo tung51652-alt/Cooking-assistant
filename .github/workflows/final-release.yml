@@ -11,6 +11,10 @@ on:
         type: choice
         options: [accepted, known-limitations]
         default: accepted
+      resume_promoted_images:
+        description: Verify existing identical final manifests and resume publication without registry writes.
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -27,6 +31,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       RELEASE_MODE: ${{ inputs.release_mode }}
+      RESUME_IMAGES: ${{ inputs.resume_promoted_images }}
       ACCEPTED: /tmp/cooklens-accepted
       BUNDLE: /tmp/cooklens-final
     steps:
@@ -49,7 +54,19 @@ jobs:
           known = os.environ['RELEASE_MODE'] == 'known-limitations'
           if known and not re.fullmatch(r'v2\.0\.0-rc\.[1-9][0-9]*', run['head_branch']):
               raise SystemExit('Known-limitations release requires a tagged candidate run')
-          expected = ('.github/workflows/docker-release.yml', 'push' if known else 'workflow_dispatch', 'success', run['head_branch'] if known else 'main', os.environ['GITHUB_SHA'])
+          source = run['head_sha']
+          resume = os.environ['RESUME_IMAGES'] == 'true'
+          if resume:
+              subprocess.run(['git', 'merge-base', '--is-ancestor', source, 'HEAD'], check=True)
+              changed = subprocess.check_output(['git', 'diff', '--name-only', source, 'HEAD']).decode().splitlines()
+              prefixes = ('.github/workflows/', 'deploy/scripts/', 'deploy/tests/', 'docs/')
+              if any(not (p.startswith(prefixes) or p in ('README.md', 'CHANGELOG.md')) for p in changed):
+                  raise SystemExit('Resume permits tooling/docs changes only; application source must be identical')
+          elif source != os.environ['GITHUB_SHA']:
+              raise SystemExit('Candidate must match main exactly')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('SOURCE_SHA=' + source + '\n')
+          expected = ('.github/workflows/docker-release.yml', 'push' if known else 'workflow_dispatch', 'success', run['head_branch'] if known else 'main', source)
           actual = (run['path'].split('@', 1)[0], run['event'], run['conclusion'], run['head_branch'], run['head_sha'])
           jobs = api(f'actions/runs/{run_id}/jobs?per_page=100')['jobs']
           if actual != expected or not any(j['name'] == ('clean-registry-pull' if known else 'publish-prerelease') and j['conclusion'] == 'success' for j in jobs):
@@ -76,10 +93,10 @@ jobs:
           root = Path(os.environ['ACCEPTED'])
           if os.environ['RELEASE_MODE'] == 'known-limitations':
               (root / 'release-policy.json').write_text(Path('deploy/artifacts/mvp-release-policy.json').read_text())
-          _, metadata, identity = accepted(root, os.environ['GITHUB_SHA'])
+          _, metadata, identity = accepted(root, os.environ['SOURCE_SHA'])
           tag = identity['tag']
           target = subprocess.check_output(['git', 'rev-parse', tag + '^{commit}']).decode().strip()
-          if target != os.environ['GITHUB_SHA']:
+          if target != os.environ['SOURCE_SHA']:
               raise SystemExit('Candidate tag differs from the accepted source')
           if os.environ['RELEASE_MODE'] != 'known-limitations':
               release = json.loads(subprocess.check_output(['gh', 'release', 'view', tag, '--json', 'isPrerelease,isDraft']))
@@ -94,7 +111,7 @@ jobs:
                       if len(members) != len(expected) or {m.name for m in members} != set(expected) or any(not m.isfile() or archive.extractfile(m).read() != expected[m.name] for m in members):
                           raise SystemExit('Accepted artifact differs from the published prerelease download')
           PY
-          python deploy/scripts/final_release.py prepare --accepted "$ACCEPTED" --source-sha "$GITHUB_SHA" --bundle "$BUNDLE"
+          python deploy/scripts/final_release.py prepare --accepted "$ACCEPTED" --source-sha "$SOURCE_SHA" --bundle "$BUNDLE"
       - name: Require the release source to select the same final images by default
         run: |
           docker compose config --format json > "$RUNNER_TEMP/source-compose.json"
@@ -124,11 +141,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Promote the exact manifests to unused final image tags
-        run: python deploy/scripts/final_release.py promote --accepted "$ACCEPTED" --source-sha "$GITHUB_SHA"
+        if: inputs.resume_promoted_images != true
+        run: python deploy/scripts/final_release.py promote --accepted "$ACCEPTED" --source-sha "$SOURCE_SHA"
+      - name: Verify existing promoted manifests without overwriting
+        if: inputs.resume_promoted_images == true
+        run: python deploy/scripts/final_release.py verify-promotion --accepted "$ACCEPTED" --source-sha "$SOURCE_SHA"
       - name: Verify the final download using anonymous pulls and fresh volumes
         run: python deploy/scripts/smoke_release_stack.py --pull-registry --assistant --compose "$BUNDLE/compose.yaml" --samples 100 --report "$BUNDLE/verification.json"
       - name: Package the verified final download
-        run: python deploy/scripts/final_release.py package --accepted "$ACCEPTED" --source-sha "$GITHUB_SHA" --bundle "$BUNDLE" --archive /tmp/cooklens-2.0.0.tar.gz
+        run: python deploy/scripts/final_release.py package --accepted "$ACCEPTED" --source-sha "$SOURCE_SHA" --bundle "$BUNDLE" --archive /tmp/cooklens-2.0.0.tar.gz
       - uses: actions/upload-artifact@v4
         with:
           name: cooklens-final-download
@@ -136,5 +157,5 @@ jobs:
           if-no-files-found: error
       - name: Create the immutable final source tag and publish the release
         run: |
-          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref=refs/tags/v2.0.0 -f sha="$GITHUB_SHA" >/dev/null
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref=refs/tags/v2.0.0 -f sha="$SOURCE_SHA" >/dev/null
           gh release create v2.0.0 /tmp/cooklens-2.0.0.tar.gz --verify-tag --latest --title 'CookLens 2.0.0' --notes-file "$BUNDLE/RELEASE_NOTES.md"

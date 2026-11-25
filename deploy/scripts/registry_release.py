@@ -27,9 +27,10 @@ def release_version(tag):
     return tag[1:]
 
 
-def registry_images(config):
+def registry_images(config, *, allow_final=False):
     config, version = candidate_config(config)
-    release_version('v' + version)
+    if not (allow_final and version == '2.0.0'):
+        release_version('v' + version)
     for name in (*APPS, 'recipe-init'):
         app = 'recipes' if name == 'recipe-init' else name
         if config['services'][name]['image'] != f'{NAMESPACE}/cooklens-{app}:{version}':

@@ -61,6 +61,16 @@ def evidence(metadata):
 
 
 class RegistryReleaseTests(unittest.TestCase):
+    def test_final_images_are_allowed_only_for_explicit_runtime_validation(self):
+        config=registry_config()
+        for service in config['services'].values():
+            if 'cooklens-' in service['image']:
+                service['image']=service['image'].replace('2.0.0-rc.2','2.0.0')
+        self.assertEqual(registry_images(config,allow_final=True)[1],'2.0.0')
+        with self.assertRaises(ValueError):
+            registry_images(config)
+        with self.assertRaises(ValueError):
+            preflight(config)
     def test_push_and_pull_identity_use_the_same_registry_digests(self):
         config, version = registry_images(registry_config())
         refs = sorted({service['image'] for service in config['services'].values()})
