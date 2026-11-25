@@ -58,6 +58,7 @@ class AssistantChatIntegrationTest {
         properties.add("cooklens.vision-url",() -> base); properties.add("cooklens.recipes-url",() -> base);
         properties.add("cooklens.assistant-db-path",() -> DIRECTORY.resolve("assistant.sqlite").toString());
         properties.add("cooklens.llm.base-url",() -> base+"/v1"); properties.add("cooklens.llm.api-key",() -> KEY);
+        properties.add("cooklens.llm.model",() -> LlmSettings.NVIDIA_MODEL);
         properties.add("cooklens.llm.timeout-seconds",() -> "2");
     }
     @Autowired SessionStore store;

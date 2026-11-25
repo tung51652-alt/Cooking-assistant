@@ -94,7 +94,9 @@ Compose forward `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, `LLM
 Dùng biến môi trường runtime hoặc `.env` không track, theo `.env.example`; key mặc định trống và không đưa vào Dockerfile/build args/client.
 Chỉ backend nối bridge `llm-egress`; frontend giữ bridge `browser`, còn vision/recipes/recipe-init/Qdrant chỉ nối `application` internal.
 Không publish thêm cổng; egress bridge cho phép backend kết nối HTTPS, không phải firewall chỉ cho phép một domain.
-Adapter/pricing hiện chọn trial NVIDIA đúng endpoint/model; không tự fallback và không bật endpoint trả phí chưa có policy giá đã xác minh.
+Mặc định dùng Google AI Studio key với `https://generativelanguage.googleapis.com/v1beta/openai` và `gemini-3.1-flash-lite`; `LLM_PROVIDER=openai` chỉ định adapter tương thích.
+Policy Google dùng trần giá Standard paid kể cả free tier; reservation/usage và giới hạn $10/tháng ở [backend/README.md](../backend/README.md).
+NVIDIA trial vẫn dùng được khi đặt đúng endpoint/model; không tự fallback hoặc bật model chưa có policy giá.
 
 Sau khi đổi biến môi trường, dùng `docker compose up -d --force-recreate backend` với cùng biến image/project đang chạy để tạo lại container có config mới.
 `docker compose restart backend` giữ environment của container cũ, không đọc lại key/model mới từ `.env`.
@@ -111,7 +113,7 @@ Nếu image rollback chỉ hỗ trợ schema cũ, dùng snapshot SQLite tương 
 Kiểm chứng local Phase 10 đã qua Compose config, Java 21 process restart với upstream giả và ba smoke Linux container trên Docker Desktop.
 Đã kiểm tra non-root/read-only, schema 3/volume/restart, mạng internal/egress và full offline flow.
 Baseline Ultra không đạt latency; candidate Super đã qua 50/50 HTTP/state, latency và usage, còn chờ human review và PR/CI; không coi đây là nghiệm thu chat hoàn tất.
-Tag local `phase10-local/cooklens-<service>:2.0.0-rc.16` đang chạy với selector Super qua NVIDIA và key chỉ backend; các tag cũ giữ baseline/thử model, không phải release mới.
+Lần kiểm chứng trước dùng tag local `phase10-local/cooklens-<service>:2.0.0-rc.16` với selector Super qua NVIDIA và key chỉ backend; không phải release mới.
 Backend/frontend build source mới, AI giữ nội dung image public `2.0.0-rc.2`; không push/promote các tag này thành release.
 
 ## Ứng viên Phase 13
@@ -139,3 +141,28 @@ Summary JSON dùng `identity` từ lần kiểm chứng, `assistant` từ `--rel
 
 Các cờ đơn chỉ điền `true` khi kiểm tra tương ứng đạt. Summary giữ số đo và kết quả, tránh đưa key, transcript, session ID hoặc SQLite vào workflow.
 Job publish đối chiếu run tag và hồ sơ image trước khi đóng gói và công bố GitHub prerelease.
+
+## Phát hành chính thức
+
+Luồng **Promote accepted MVP release** trong `.github/workflows/final-release.yml` chỉ chạy từ `main`.
+Trước khi tạo candidate cuối, PR release cần pin Compose, Maven artifact, web/mobile package và Expo app về `2.0.0`, đồng bộ lockfile và tài liệu.
+Pipeline candidate vẫn dùng tag `rc.N` qua biến môi trường; chưa đổi mặc định source đang dùng sang tag final chưa tồn tại.
+
+Tạo và nghiệm thu candidate trên đúng commit `main` đó; dispatch publish prerelease cũng từ cùng commit.
+Run publish thành công lưu artifact `cooklens-accepted-candidate` trong 30 ngày, chứa đầy đủ đầu vào đã đối chiếu gate.
+Dispatch luồng final với `accepted_run_id` là run publish này, không phải run build candidate.
+Nếu source thay đổi, cần nghiệm thu lại ứng viên theo source mới.
+
+Ngoại lệ MVP được người dùng chốt ngày 25/11/2026: dispatch `release_mode=known-limitations` và `accepted_run_id` là run tag candidate đã qua toàn bộ kiểm tra tự động.
+Luồng này dùng artifact `cooklens-phase13-candidate`, đối chiếu quyết định trong `deploy/artifacts/mvp-release-policy.json`, không yêu cầu summary giả cho các mục thủ công còn thiếu.
+Gói giữ `release_acceptance_complete=false`, công bố danh sách mục hoãn và chỉ số tự động riêng; các lỗi/hạng mục thiếu được theo dõi bằng GitHub issues sau release.
+
+Luồng final kiểm tra gói prerelease đã công bố khớp artifact, gate nghiệm thu và source; từ chối tag final đã tồn tại.
+Bốn image được promote bằng manifest digest đã nghiệm thu, không rebuild; Qdrant giữ phiên bản riêng.
+Runner pull ẩn danh, chạy smoke 100 mẫu/API với volume mới, kiểm tra restart/backup/restore và đối chiếu digest trước khi đóng gói.
+Chỉ sau khi đạt mới tạo tag `v2.0.0` và GitHub release cùng `cooklens-2.0.0.tar.gz`.
+Gói giữ notices, thêm `.env.example` có key trống và model selector đã nghiệm thu.
+
+Nếu lỗi sau khi đã promote một phần, giữ nguyên các tag đã tạo và điều tra; không xóa/ghi đè tag để chạy lại tự động.
+Nếu source tag đã tạo nhưng bước GitHub release lỗi, dùng artifact final đã kiểm chứng để khôi phục bước công bố, không rebuild.
+Link và số đo phát hành chỉ bổ sung vào [acceptance.md](acceptance.md) khi run thật hoàn tất.

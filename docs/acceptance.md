@@ -160,3 +160,42 @@ Hai flow thật desktop/mobile qua ảnh → xác nhận → recipe → chat LLM
 Build Docker/TypeScript, shared client và scanner static frontend qua; hồi quy rộng không chạy lại theo yêu cầu rút ngắn kiểm tra.
 Chi tiết và giới hạn ở [Phase 11](plan/phase-11-web.md#kết-quả-kiểm-tra).
 Human review Phase 10 và PR/CI vẫn mở, không tự coi hai phase đã được nghiệm thu/phát hành.
+
+## Rà soát chuẩn bị release — 25/11/2026
+
+Source gồm backend/web trên `develop` và Expo/gate từ PR #23; PR này còn mở tại thời điểm kiểm tra.
+Các số dưới đây là hồi quy source local, không phải nghiệm thu image public mới.
+
+| Kiểm tra | Kết quả |
+| --- | --- |
+| Backend Java 21 | 76/76, không lỗi hoặc bỏ qua |
+| Deploy/release tooling | 65/65, gồm gate final, provider Gemini, pacing và chặn key trong metadata |
+| Dữ liệu | 7/7; 33 công thức, phủ 30/30 món |
+| Client dùng chung | 14/14 |
+| Web Playwright, API mô phỏng | 44/44, desktop/mobile viewport |
+| Expo session/controller | 22/22 |
+| Build | Web, mobile TypeScript, bundle Android/iOS đạt |
+| Cấu hình | Compose, Expo dependencies, actionlint và public metadata scanner đạt |
+| Smoke Compose local | Contract, lifecycle, offline, restart/recreate phiên và backup/restore đạt |
+| Warm P95, 100 mẫu/API | Vision 0,172 s; search 0,091 s |
+
+Smoke dùng backend/frontend build từ source hiện tại, AI dùng lại nội dung image `2.0.0-rc.2` với tag local; không phải bộ image public mới.
+Chạy từ gói ngoài source, không source bind mount; container/volume kiểm thử đã được dọn sau khi hoàn tất.
+Các mẫu smoke không thay thế bộ đánh giá độ chính xác CV.
+Người dùng đã cấp key Google AI Studio riêng ở runtime; API tương thích OpenAI của Google, key chỉ vào backend.
+Các lần sàng lọc Gemini 3.5 Flash-Lite được giữ riêng: burst dừng ở 19/20 do 429; baseline có pacing đạt 50/50 HTTP/state và latency/usage; sau chỉnh prompt dừng ở 21/22 do Google 503.
+Hai flow web thật với Gemini 3.5 chưa đạt: desktop gặp 504 timeout, mobile gặp 503 ở câu hỏi tiếp theo.
+Không dùng baseline thành công để bỏ qua các lỗi provider hoặc ghép run thiếu mẫu.
+Prompt đã bổ sung giữ bước gia nhiệt khi tóm tắt, nêu nguyên liệu liên quan dị ứng và diễn đạt dữ liệu thiếu bằng tiếng Việt tự nhiên.
+Gemini 3.1 Flash-Lite sau chỉnh prompt qua 2/2 flow trình duyệt thật (desktop/mobile viewport), mỗi flow hai lượt chat rồi chuyển bước, reload giữ phiên và kết thúc.
+Đây vẫn là kiểm chứng web; không thay thiết bị Android thật.
+Lần đo 50 câu với Gemini 3.1 dừng ở 30/31 câu thành công do timeout khoảng 20 s; chưa đạt nghiệm thu.
+Đọc câu trả lời còn phát hiện hỏi mơ hồ kèm hướng dẫn thừa, từ chối tính tỉ lệ và hứa kết thúc phiên dù server chưa thao tác.
+Sau khi làm rõ prompt, kiểm tra lại riêng 5 ca về tóm tắt, câu mơ hồ, lượng thiếu, dị ứng và thao tác phiên đều qua HTTP/state; agent đọc lại thấy các điểm vừa sửa đã được đáp ứng.
+Đây là screen có chủ đích, không thay bộ 50 câu hoặc human review.
+
+Preview hiện chạy tại `http://localhost:8080/` bằng một project `cooklens`, image `cooklens-<service>:local`, cấu hình riêng trong `.env` bị Git ignore.
+Các service dài hạn healthy; SQLite được sao chép toàn volume khi backend đã dừng, kiểm tra byte tương ứng và `integrity_check`, giữ volume gốc để rollback.
+Hai flow desktop/mobile viewport đã chạy lại thành công tại cổng 8080 trên prompt cuối, gồm tổng bốn câu hỏi API thật.
+Chưa có thiết bị Android kết nối; camera/quyền/background và candidate registry mới vẫn mở, không dùng kiểm chứng local để thay các gate đó.
+Luồng final và giới hạn phát hành ở [Phase 14](plan/phase-14-release.md).

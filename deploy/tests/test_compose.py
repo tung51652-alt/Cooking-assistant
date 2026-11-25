@@ -35,7 +35,7 @@ class ComposeTests(unittest.TestCase):
             self.assertTrue(all(v['type'] == 'volume' for v in service.get('volumes', [])))
             if name != 'qdrant':
                 app = 'recipes' if name == 'recipe-init' else name
-                self.assertEqual(service['image'], f'trantung2006/cooklens-{app}:2.0.0-rc.2')
+                self.assertEqual(service['image'], f'trantung2006/cooklens-{app}:2.0.0')
         self.assertEqual(config['volumes']['recipe-index']['name'], 'cooklens_recipe-index')
 
     def test_frontend_waits_for_ai_and_index(self):

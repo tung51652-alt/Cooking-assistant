@@ -58,6 +58,27 @@ class OpenAiChatProviderTest {
     private LlmSettings settings() { return new LlmSettings("openai",base,LlmSettings.NVIDIA_MODEL,key,"20","512","6000"); }
     private OpenAiChatProvider provider() { return new OpenAiChatProvider(settings(),mapper); }
     private Prompt prompt() { return new Prompt(List.of(new Message(Role.system,"Chỉ dẫn"),new Message(Role.user,"Câu hỏi"))); }
+    @Test void geminiUsesMinimalReasoningAndExactReportedModel() throws Exception {
+        var response=good(); response.put("model",LlmSettings.GEMINI_MODEL); payload=response.toString();
+        var settings=new LlmSettings("openai",base,LlmSettings.GEMINI_MODEL,key,"20","512","6000");
+        var result=new OpenAiChatProvider(settings,mapper).complete(prompt());
+        var body=mapper.readTree(received);
+        assertEquals(LlmSettings.GEMINI_MODEL,result.model()); assertEquals(new Usage(120L,30L),result.usage());
+        assertEquals("minimal",body.path("reasoning_effort").asText());
+        assertEquals(512,body.path("max_tokens").asInt()); assertFalse(body.path("stream").asBoolean(true));
+        assertFalse(body.has("chat_template_kwargs")); assertFalse(body.has("temperature"));
+        assertEquals(1,calls.get());
+        response.put("model","gemini-unverified-alias"); payload=response.toString();
+        failure(503,"ASSISTANT_PROVIDER_UNAVAILABLE",() -> new OpenAiChatProvider(settings,mapper).complete(prompt()));
+    }
+    @Test void onlyExactHttpsGoogleCompatibilityBaseIsAccepted() {
+        var settings=new LlmSettings("openai",LlmSettings.GEMINI_BASE+"/",LlmSettings.GEMINI_MODEL,key,"20","512","6000");
+        assertEquals(LlmSettings.GEMINI_BASE+"/chat/completions",settings.requireConfigured().endpoint().toString());
+        for (String url:List.of("http://generativelanguage.googleapis.com/v1beta/openai",
+                "https://example.com/v1beta/openai", "https://generativelanguage.googleapis.com:444/v1beta/openai",
+                LlmSettings.GEMINI_BASE+"?query=x", LlmSettings.GEMINI_BASE+"#fragment"))
+            assertThrows(ApiFailure.class,() -> new LlmSettings("openai",url,LlmSettings.GEMINI_MODEL,key,"20","512","6000").requireConfigured());
+    }
     @Test void gemmaUsesSameBoundedTransportWithoutNemotronSpecificArguments() throws Exception {
         var response=good(); response.put("model",LlmSettings.NVIDIA_GEMMA_MODEL); payload=response.toString();
         var settings=new LlmSettings("openai",base,LlmSettings.NVIDIA_GEMMA_MODEL,key,"20","512","6000");

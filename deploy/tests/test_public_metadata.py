@@ -22,6 +22,12 @@ class PublicMetadataTests(unittest.TestCase):
         self.assertIn('credential', violations(token))
         self.assertNotIn(token, str(violations(token)))
 
+    def test_blocks_google_and_nvidia_keys_without_echoing_them(self):
+        for token in ('AI' + 'za' + 'Q' * 35, 'nvapi-' + 'Q' * 40):
+            result = violations(token)
+            self.assertIn('credential', result)
+            self.assertNotIn(token, str(result))
+
     def test_allows_versions_and_ordinary_domain_values(self):
         text = "vision-model-v1 linux/amd64 api/v1 EfficientNet-B2 31434209 2026-10-19"
         self.assertFalse(violations(text))

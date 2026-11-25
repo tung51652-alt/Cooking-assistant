@@ -1,8 +1,9 @@
 # Lộ trình hoàn thiện và release MVP
 
 Phạm vi đích: ảnh → Top-3 → xác nhận món → công thức → trò chuyện/hướng dẫn nấu.
-Phần ảnh/công thức đã có số đo; source có API phiên/bước nấu kiểm chứng local, chat/provider/giao diện chưa triển khai.
-Nối tiếp các phase trước, Phase 8–14 dưới đây là kế hoạch còn lại, chưa được đánh dấu hoàn thành.
+Backend phiên/chat và giao diện web đã tích hợp vào `develop`.
+Expo và gate nghiệm thu nằm trong PR [#23](https://github.com/tung51652-alt/Cooking-assistant/pull/23), chưa merge tại lần rà soát ngày 25/11/2026.
+Phần triển khai đã tiến xa hơn nghiệm thu: Android thật, bộ candidate mới và đánh giá LLM trên cùng image vẫn cần hoàn tất trước release.
 
 ## Thứ tự thực hiện
 
@@ -27,5 +28,6 @@ Nối tiếp các phase trước, Phase 8–14 dưới đây là kế hoạch c�
 - LLM cần Internet/key; lỗi chat không chặn ảnh/công thức hoặc điều khiển bước.
 - Thử nấu, voice, web search, thay nguyên liệu phức tạp và APK/store release không là gate đợt này.
 - Bộ `2.0.0-rc.2` chưa có trợ lý; phải build/nghiệm thu ứng viên mới trước promote final.
+- Phase 14 dùng đúng source `main` đã nghiệm thu; tạo candidate và publish prerelease trên commit này trước khi dispatch luồng final.
 
 Phạm vi ở [product.md](../product.md), thiết kế trợ lý ở [assistant.md](assistant.md).

@@ -214,13 +214,25 @@ def release_metrics(report, provider, reported_model):
     }
 
 
-def run(api, cases, directory, candidate_identity=None):
+def request_pause(value):
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        raise argparse.ArgumentTypeError('Request pause must be between 0 and 60 seconds') from None
+    if not math.isfinite(value) or not 0 <= value <= 60:
+        raise argparse.ArgumentTypeError('Request pause must be between 0 and 60 seconds')
+    return value
+
+
+def run(api, cases, directory, candidate_identity=None, pause_seconds=0):
+    pause_seconds = request_pause(pause_seconds)
     directory.mkdir(parents=True, exist_ok=False)
     report = {'report_id': str(uuid4()), 'started_at': datetime.now(timezone.utc).isoformat(),
               'manifest_sha256': digest(cases), 'calls': [], 'recipes': {}, 'controlled': {'passed': None},
               'review_rules': cases['review_rules'], 'stopped': False}
     if candidate_identity is not None:
         report['candidate_identity'] = candidate_identity
+    report['request_pause_seconds'] = pause_seconds
     review = {'report_id': report['report_id'], 'cases': {}}
     recipes = {}
     jobs = [(case, [case['text']]) for case in cases['single_turn']]
@@ -261,6 +273,8 @@ def run(api, cases, directory, candidate_identity=None):
                        'call_key': digest(['billing', session_id + ':' + operation_id, 0])}
                 report['calls'].append(row)
                 review['cases'][case_id] = {**dict.fromkeys(FIELDS), 'notes': ''}
+                if len(report['calls']) > 1 and pause_seconds:
+                    time.sleep(pause_seconds)  # Outside the HTTP latency interval; never retry a POST.
                 started = time.perf_counter()
                 try:
                     after = api.request(path + '/messages', {'text': prompt, 'expected_version': session['version'],
@@ -324,6 +338,8 @@ def main():
     mode.add_argument('--execute', action='store_true', help='Explicitly authorize up to 50 live chat requests')
     mode.add_argument('--summarize', type=Path, metavar='REPORT')
     parser.add_argument('--base-url', default='http://127.0.0.1:8080')
+    parser.add_argument('--request-pause-seconds', type=request_pause, default=0,
+                        help='Pause between live requests, excluded from HTTP latency; no retries')
     parser.add_argument('--usage-db', type=Path, help='Read-only backend SQLite snapshot; never a key')
     parser.add_argument('--review', type=Path)
     parser.add_argument('--junit', type=Path, help='Fresh AssistantChatIntegrationTest Surefire XML')
@@ -347,7 +363,7 @@ def main():
             if not valid_identity(candidate_identity):
                 parser.error('Candidate identity does not match the expected tag, source and digest format')
         directory = OUTPUT / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '-' + uuid4().hex[:8])
-        report = run(Api(args.base_url), cases, directory, candidate_identity)
+        report = run(Api(args.base_url), cases, directory, candidate_identity, args.request_pause_seconds)
         path = directory / 'report.json'
     elif args.summarize:
         path = args.summarize.resolve()

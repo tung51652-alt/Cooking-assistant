@@ -1,5 +1,6 @@
 """Acceptance tooling must keep mock outcomes, live evidence and human review separate."""
 from copy import deepcopy
+import argparse
 from contextlib import closing
 import json
 from pathlib import Path
@@ -64,6 +65,27 @@ class AssistantEvaluationTests(unittest.TestCase):
     def reviews(self, report):
         return {'report_id': report['report_id'], 'cases': {
             row['id']: dict.fromkeys(evaluation.FIELDS, True) for row in report['calls']}}
+
+    def test_request_pacing_does_not_enter_http_latency_or_retry_calls(self):
+        clock = [0.0]
+        def now():
+            clock[0] += .1
+            return clock[0]
+        def pause(seconds):
+            clock[0] += seconds
+        with tempfile.TemporaryDirectory() as tmp, \
+                patch.object(evaluation.time, 'perf_counter', side_effect=now), \
+                patch.object(evaluation.time, 'sleep', side_effect=pause) as sleep:
+            api = FakeApi()
+            report = evaluation.run(api, self.cases, Path(tmp) / 'paced', pause_seconds=5)
+        self.assertEqual(api.calls,50)
+        self.assertEqual(sleep.call_count,49)
+        self.assertTrue(all(abs(row['seconds']-.1)<.000001 for row in report['calls']))
+        self.assertEqual(report['request_pause_seconds'],5)
+        self.assertIsNone(report['evaluation_passed'])
+        for value in (-1,61,'nan','inf','invalid'):
+            with self.assertRaises(argparse.ArgumentTypeError):
+                evaluation.request_pause(value)
 
     def test_manifest_coverage_and_corpus_facts(self):
         corpus = {r['id']: r for r in json.loads((evaluation.ROOT / 'data/recipes/corpus.json').read_text(encoding='utf-8'))}

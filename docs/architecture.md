@@ -63,7 +63,8 @@ Giao diện dùng font/icon local; không chạy HTML demo hoặc CDN của ngu�
 
 ## Trợ lý trong source Phase 10
 
-Chat đi qua backend hiện có → adapter Chat Completions tương thích OpenAI, mặc định NVIDIA Nemotron 3 Ultra; chưa có adapter Gemini/Anthropic.
+Chat đi qua backend hiện có → adapter Chat Completions tương thích OpenAI, mặc định Gemini 3.1 Flash-Lite qua endpoint Google; NVIDIA trial vẫn hỗ trợ khi cấu hình rõ endpoint/model.
+Chưa có adapter Anthropic; không thêm SDK hoặc service chat riêng.
 Source đã nối messages với recipe/state/context và admission/accounting; image `2.0.0-rc.2` chưa có phần này.
 Request mới nhận operation/reservation trong transaction ngắn, nhả writer lock rồi gọi provider và chỉ commit cặp reply khi state vẫn phù hợp.
 Provider error/usage thiếu/stale reply không xóa reservation; cooking commands dùng logic ứng dụng, không chạy theo output model.

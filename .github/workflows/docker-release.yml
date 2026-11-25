@@ -1,11 +1,11 @@
 name: Docker candidate and registry release
 on:
   pull_request:
-    paths: ['deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', 'backend/**', 'frontend/**', 'mobile/**', 'packages/cooklens-api/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/**', 'docs/deployment.md', '.dockerignore', '.github/workflows/docker-release.yml', '.github/workflows/mobile.yml']
+    paths: ['deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', 'backend/**', 'frontend/**', 'mobile/**', 'packages/cooklens-api/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/**', 'docs/deployment.md', '.dockerignore', '.github/workflows/docker-release.yml', '.github/workflows/final-release.yml', '.github/workflows/mobile.yml']
   push:
     branches: [feature/docker-release, codex/phase6-release-ci, develop, main]
     tags: ['v2.0.0-rc.*']
-    paths: ['deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', 'docs/deployment.md', '.dockerignore', '.github/workflows/docker-release.yml']
+    paths: ['deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', 'docs/deployment.md', '.dockerignore', '.github/workflows/docker-release.yml', '.github/workflows/final-release.yml']
   workflow_dispatch:
     inputs:
       candidate_run_id:
@@ -273,3 +273,11 @@ jobs:
         run: |
           version=$(python deploy/scripts/registry_release.py version "$CANDIDATE_TAG")
           python deploy/scripts/registry_release.py github-release --archive "/tmp/cooklens-registry-release/cooklens-$version.tar.gz" --tag "$CANDIDATE_TAG" --identity /tmp/cooklens-phase13/identity.json
+      - name: Retain accepted candidate inputs for final promotion
+        run: cp "$RUNNER_TEMP/acceptance-summary.json" /tmp/cooklens-phase13/manual.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cooklens-accepted-candidate
+          path: /tmp/cooklens-phase13/
+          if-no-files-found: error
+          retention-days: 30
