@@ -102,6 +102,8 @@ python3 deploy/scripts/evaluate_assistant.py --execute --base-url http://127.0.0
 Mỗi lần tạo thư mục mới trong `backend/target/assistant-evaluation/`, chứa `report.json` và `review.json`; không đưa transcript, SQLite hoặc key vào Git/docs.
 Runner tạo 29 phiên riêng, start ở bước 1, không tự retry POST; lỗi API/contract dừng lần chạy, không tự gửi lại operation chưa rõ kết quả.
 Latency đo toàn HTTP `/messages`, không loại request lỗi khỏi báo cáo; p50/p95 dùng nearest rank, ngưỡng theo [Phase 8](plan/phase-08-foundation.md).
+Với quota tần suất của Gemini, có thể thêm `--request-pause-seconds 5`; khoảng nghỉ giữa request được ghi trong report và nằm ngoài latency HTTP.
+Nếu gặp 429, lần đo dừng và giữ nguyên kết quả; không tự retry hoặc ghép request từ run khác để đủ 50 mẫu.
 State check đối chiếu recipe, bước, history, revision và nguyên cặp message; không dùng keyword để chấm nội dung model.
 Runner thu các duration số từ `Server-Timing`, từ chối header thiếu/sai/trùng hoặc tổng stage vượt total; timing thiếu vẫn unknown và không đổi latency gate.
 Diagnostics tách prepare/persist và provider boundary, không trừ provider time khỏi HTTP latency hoặc suy thành thời gian xử lý nội bộ NVIDIA.

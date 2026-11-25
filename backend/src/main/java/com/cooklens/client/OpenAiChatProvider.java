@@ -36,6 +36,7 @@ public final class OpenAiChatProvider implements ChatProvider {
                 body.putObject("chat_template_kwargs").put("enable_thinking",false);
             }
             if (config.model().equals(LlmSettings.NVIDIA_SUPER_MODEL)) body.put("reasoning_effort","none");
+            if (config.model().equals(LlmSettings.GEMINI_MODEL)) body.put("reasoning_effort","minimal");
             var messages=body.putArray("messages");
             for (var message:prompt.messages()) messages.addObject().put("role",message.role().name()).put("content",message.text());
             payload=mapper.writeValueAsBytes(body);

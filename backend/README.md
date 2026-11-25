@@ -58,13 +58,14 @@ Các trial profile được chọn đặt temperature 0,1, không sửa top_p; N
 Ưu tiên câu trả lời ngắn, hỏi lại câu mơ hồ và tách rõ gợi ý.
 Header `Server-Timing` chỉ chứa số ms prepare/provider/persist/total để chẩn đoán, không chứa session ID hoặc nội dung.
 Compose forward config chỉ cho backend và thêm bridge egress; smoke Linux container/schema 3/restart đã qua trên Docker Desktop.
-Baseline Ultra fail latency; candidate Super hiện chạy local đã qua 50/50 HTTP/state, latency và usage, còn chờ human quality review; xem [Phase 10](../docs/plan/phase-10-llm.md).
+Baseline NVIDIA Ultra fail latency; lần đo Super trước đây qua 50/50 HTTP/state, latency và usage, còn chờ human quality review.
+Provider hiện tại là Gemini do người dùng chọn; kết quả từng lần đo ở [acceptance.md](../docs/acceptance.md).
 
 | Biến môi trường | Mặc định / giới hạn |
 | --- | --- |
 | `LLM_PROVIDER` | `openai`; giá trị khác trả `ASSISTANT_PROVIDER_UNSUPPORTED` khi dùng trợ lý |
-| `LLM_BASE_URL` | `https://integrate.api.nvidia.com/v1`; HTTPS, không credential/query/fragment; HTTP chỉ loopback cho mock hoặc local endpoint |
-| `LLM_MODEL` | `nvidia/nemotron-3-ultra-550b-a55b`, ID đối chiếu tài liệu NVIDIA |
+| `LLM_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta/openai`; HTTPS, không credential/query/fragment; HTTP chỉ loopback cho mock hoặc local endpoint |
+| `LLM_MODEL` | `gemini-3.1-flash-lite`; Google AI Studio key, `reasoning_effort=minimal` |
 | `LLM_API_KEY` | Trống; chỉ cấp runtime backend, không đưa vào Git/client/image/log |
 | `LLM_TIMEOUT_SECONDS` | `20`, cho phép 1–20; connect tối đa 2 s |
 | `LLM_MAX_OUTPUT_TOKENS` | `512`, cho phép 1–512 |
@@ -79,7 +80,14 @@ Response tối đa 1 MiB, chỉ nhận final content; reply rỗng/truncated/too
 Usage thiếu giữ null; usage hợp lệ đi kèm cả failure để orchestration có thể giữ chi phí của call thất bại hoặc stale.
 Xem [model](https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b) và [API](https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b/apireference) NVIDIA; API thật, chất lượng tiếng Việt và latency chưa được nghiệm thu.
 
-Pricing chỉ cho phép HTTPS `integrate.api.nvidia.com/v1/chat/completions` và whitelist trial: Ultra, Gemma 4 31B, Bolt E4B (canonical/staging alias), Lightning 30B-A3B và Super VL 120B-A12B.
+Gemini dùng [API tương thích OpenAI](https://aistudio.google.com/docs/openai), không thêm SDK hoặc service.
+Policy ngày 25/11/2026 dùng trần [Standard paid](https://aistudio.google.com/docs/pricing#gemini-3.1-flash-lite): $0,25 input / $1,50 output mỗi triệu token, kể cả khi key dùng free tier.
+Reservation lấy [trần input model 1.048.576 token](https://aistudio.google.com/docs/models/gemini-3.1-flash-lite) và output tối đa đã cấu hình, không coi admission estimate là token billing.
+Với output 512, giữ chỗ $0,262912 trước call; settle bằng usage thật sau call, thiếu usage giữ reservation.
+Ledger tính theo trần giá đã xác minh, không thay hóa đơn Google hoặc tự suy free quota.
+Không gửi tools, ảnh hoặc caching trong request chat; chỉ recipe snapshot và hội thoại text.
+
+Pricing còn cho phép HTTPS `integrate.api.nvidia.com/v1/chat/completions` và whitelist trial: Ultra, Gemma 4 31B, Bolt E4B (canonical/staging alias), Lightning 30B-A3B và Super VL 120B-A12B.
 Whitelist billing không đồng nghĩa đã đạt chất lượng/latency: Gemma/Lightning có screen timeout, Bolt nhanh nhưng còn yếu history; xem [Phase 10](../docs/plan/phase-10-llm.md).
 Super endpoint báo model `private/nvidia/nemotron-3.5-super-120b-a12b`; chỉ pin cặp request/reported này và ghi đúng reported model, không khẳng định checkpoint/VL tương đương khi NVIDIA chưa xác nhận.
 Không tự fallback; mọi endpoint/model khác cần policy billing đã xác minh trước khi dùng chat HTTP.

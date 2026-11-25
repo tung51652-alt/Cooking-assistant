@@ -163,13 +163,12 @@ def confirm_registry_identity(identity):
             raise ValueError('Registry no longer serves the tested image: ' + image)
 
 
-def phase13_acceptance(metadata, identity, vision, flow, manual):
-    if not all(isinstance(item, dict) for item in (identity, vision, flow, manual)):
+def automated_acceptance(metadata, identity, vision, flow):
+    if not all(isinstance(item, dict) for item in (identity, vision, flow)):
         raise ValueError('Phase 13 evidence is required in addition to a clean registry pull')
     version = metadata['application_candidate']
     if (not valid_identity(identity) or identity['tag'] != 'v' + version
-            or set(identity['digests']) != set(metadata['images'].values())
-            or manual.get('identity') != identity):
+            or set(identity['digests']) != set(metadata['images'].values())):
         raise ValueError('Phase 13 live evidence must match the verified tag, source and image digests')
     if (vision.get('application_candidate') != version or flow.get('application_candidate') != version
             or vision.get('model_version') != metadata['model_version']
@@ -188,6 +187,18 @@ def phase13_acceptance(metadata, identity, vision, flow, manual):
             or browser.get('unexpected') != 0 or browser.get('flaky') != 0):
         raise ValueError('Passing photo flows and real browser regression report are required')
     metric(browser, 'expected', 10, 1000)
+    return {
+        'vision_top3': metric(vision, 'top3', .95, 1),
+        'retrieval_queries': metric(retrieval, 'positive_queries', 150, float('inf')),
+        'retrieval_hit_at_1': metric(retrieval, 'hit_at_1', .90, 1),
+        'retrieval_hit_at_3': metric(retrieval, 'hit_at_3', .95, 1),
+    }
+
+
+def phase13_acceptance(metadata, identity, vision, flow, manual):
+    automated = automated_acceptance(metadata, identity, vision, flow)
+    if not isinstance(manual, dict) or manual.get('identity') != identity:
+        raise ValueError('Phase 13 manual evidence must match the verified identity')
     android = manual.get('android', {})
     if (android.get('passed') is not True or not isinstance(android.get('device'), str) or not android['device'].strip()
             or type(android.get('version')) is not int or android['version'] < 10 or android.get('expo_sdk') != 58):
@@ -208,10 +219,7 @@ def phase13_acceptance(metadata, identity, vision, flow, manual):
         ('mean_output', 0, 350), ('max_output', 0, 512), ('normal_pass_rate', .90, 1),
     )}
     return {
-        'vision_top3': metric(vision, 'top3', .95, 1),
-        'retrieval_queries': metric(retrieval, 'positive_queries', 150, float('inf')),
-        'retrieval_hit_at_1': metric(retrieval, 'hit_at_1', .90, 1),
-        'retrieval_hit_at_3': metric(retrieval, 'hit_at_3', .95, 1),
+        **automated,
         'android_version': android['version'], 'expo_sdk': android['expo_sdk'],
         'assistant': {**assistant_metrics, **{key: assistant[key] for key in (*model_fields, 'live_cases', 'controlled_cases')}},
     }

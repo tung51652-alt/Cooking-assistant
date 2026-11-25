@@ -51,8 +51,8 @@ Tổng hợp theo workflow người dùng cung cấp và các quyết định hi
   Controller dùng DTO/validation, service điều phối, client gọi AI/API với timeout và lỗi rõ ràng.
 - AI: `ai/cv` nhận diện; `ai/rag` xử lý corpus/embedding/retrieval.
   Dùng taxonomy/version chung, không suy nguyên liệu trực tiếp từ ảnh.
-- Trợ lý mới thuộc [kế hoạch MVP](plan/mvp.md), chưa được xem là đã triển khai.
-  Backend gọi một API Gemini/OpenAI/Anthropic; SQLite phiên theo plan, không tự thêm service chat/database riêng.
+- Trợ lý thuộc [kế hoạch MVP](plan/mvp.md); backend phiên/chat và web đã triển khai, trạng thái nghiệm thu xem trong các phase.
+  Backend dùng adapter OpenAI-compatible với Gemini mặc định hoặc NVIDIA trial; SQLite lưu phiên, không tự thêm service chat/database riêng.
 - Web và Expo dùng client/contract chung trong `packages/cooklens-api`.
 - Ứng dụng có một project `cooklens`, một `compose.yaml` ở root và Dockerfile từng phần.
   Khởi động bằng `docker compose up` với image có sẵn; không tổ chức thêm môi trường dev/test cho người dùng.

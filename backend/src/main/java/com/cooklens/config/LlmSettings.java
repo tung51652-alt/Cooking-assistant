@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public final class LlmSettings {
+    public static final String GEMINI_MODEL="gemini-3.1-flash-lite";
+    public static final String GEMINI_BASE="https://generativelanguage.googleapis.com/v1beta/openai";
     public static final String NVIDIA_MODEL="nvidia/nemotron-3-ultra-550b-a55b";
     public static final String NVIDIA_GEMMA_MODEL="google/gemma-4-31b-it";
     public static final String NVIDIA_BOLT_MODEL="nvidia/nemotron-3.5-bolt-e4b";
@@ -41,10 +43,12 @@ public final class LlmSettings {
             URI base=URI.create(baseUrl);
             String path=base.getRawPath().replaceAll("/$","");
             boolean local=List.of("127.0.0.1","localhost","[::1]").contains(base.getHost());
+            boolean google="https".equals(base.getScheme()) && "generativelanguage.googleapis.com".equalsIgnoreCase(base.getHost())
+                    && (base.getPort()==-1 || base.getPort()==443) && path.equals("/v1beta/openai");
             if (!("https".equals(base.getScheme()) || ("http".equals(base.getScheme()) && local))
                     || base.getHost()==null || base.getUserInfo()!=null || base.getRawQuery()!=null || base.getRawFragment()!=null
                     || base.getPort()==0 || base.getPort()>65535
-                    || !path.endsWith("/v1") || path.contains("%") || path.contains("..") || path.contains("//"))
+                    || (!google && !path.endsWith("/v1")) || path.contains("%") || path.contains("..") || path.contains("//"))
                 throw new IllegalArgumentException();
             int seconds=bounded(timeout,1,20), maxOutput=bounded(output,1,512), maxInput=bounded(input,1,6000);
             return new Connection(URI.create(baseUrl.replaceAll("/$","")+"/chat/completions"),model,key,

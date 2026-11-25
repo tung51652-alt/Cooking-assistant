@@ -26,7 +26,9 @@ Mặc định gateway bind loopback. Chỉ cổng frontend được publish.
 
 ## Hỏi đáp và cấu hình runtime
 
-Trên máy Docker, dùng `.env` riêng hoặc biến môi trường runtime. Đặt `LLM_PROVIDER=openai`, `LLM_BASE_URL=https://integrate.api.nvidia.com/v1` và `LLM_MODEL` theo model selector đã nghiệm thu.
+Trên máy Docker, dùng `.env` riêng hoặc biến môi trường runtime.
+Mặc định Google AI Studio: `LLM_PROVIDER=openai`, `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`, model `gemini-3.1-flash-lite`.
+Với ứng viên NVIDIA, đặt endpoint `https://integrate.api.nvidia.com/v1`; luôn dùng provider/model selector đã nghiệm thu.
 Khi dùng gói có phần `phase13_acceptance`, đối chiếu `assistant.provider` và `assistant.model_selector` trong `candidate.json`.
 Cấp `LLM_API_KEY` riêng cho backend. Khi thay đổi biến môi trường, chạy `docker compose up -d --force-recreate backend`.
 Ảnh, công thức và điều khiển bước dùng được khi chưa có key hoặc provider gặp lỗi. Chỉ tính năng hỏi đáp cần Internet.

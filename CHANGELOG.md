@@ -13,6 +13,24 @@ Nó phản ánh kết quả đang có trong repository, không thay thế issue,
 
 ## [Unreleased]
 
+## 2.0.0 — 2026-11-25
+
+### Added
+
+- Trợ lý nấu ăn trên web và Expo Go, phiên SQLite lưu bền vững, điều khiển bước và hỏi đáp theo recipe snapshot.
+- Tích hợp Gemini qua API tương thích OpenAI, giới hạn token/chi phí, xử lý lỗi provider và giữ key ở backend.
+- Pipeline promote image cùng digest, gói Compose độc lập, kiểm chứng pull ẩn danh và chính sách phát hành với giới hạn được người dùng chấp thuận.
+
+### Changed
+
+- Đồng bộ phiên bản ứng dụng và image `2.0.0`; giữ version model/corpus riêng.
+- Làm rõ prompt về dữ liệu thiếu, dị ứng, tính tỉ lệ và giới hạn thao tác phiên.
+
+### Known limitations
+
+- Android thật, đủ 50 câu LLM trên cùng candidate và human quality review được hoãn theo yêu cầu release trước của người dùng.
+- Gemini có thể trả rate limit, lỗi dịch vụ hoặc timeout; ảnh/công thức và các nút điều khiển vẫn dùng được.
+
 ## 2026-11-22
 
 ### Added
