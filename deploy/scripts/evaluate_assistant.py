@@ -195,11 +195,32 @@ def summarize(report, review=None):
     report['evaluation_passed'] = False if False in gates else (True if all(x is True for x in gates) else None)
 
 
-def run(api, cases, directory):
+def release_metrics(report, provider, reported_model):
+    if report['evaluation_passed'] is not True:
+        raise ValueError('A passing evaluation with human review is required for the release summary')
+    from registry_release import valid_identity
+    identity = report.get('candidate_identity')
+    if not valid_identity(identity):
+        raise ValueError('The live evaluation must record the observed candidate identity when it starts')
+    latency, usage, quality = (report[key] for key in ('latency', 'usage', 'quality'))
+    return {
+        'identity': identity, 'passed': True, 'live_cases': len(report['calls']),
+        'controlled_cases': len(report['controlled']['cases']),
+        'provider': provider, 'model_selector': usage['model'], 'model': reported_model,
+        'p50': latency['p50_seconds'], 'p95': latency['p95_seconds'], 'max': latency['max_seconds'],
+        'mean_input': usage['mean_input'], 'p95_input': usage['p95_input'],
+        'mean_output': usage['mean_output'], 'max_output': usage['max_output'],
+        'normal_pass_rate': quality['normal_pass_rate'], 'critical_checks_passed': quality['critical_checks_passed'],
+    }
+
+
+def run(api, cases, directory, candidate_identity=None):
     directory.mkdir(parents=True, exist_ok=False)
     report = {'report_id': str(uuid4()), 'started_at': datetime.now(timezone.utc).isoformat(),
               'manifest_sha256': digest(cases), 'calls': [], 'recipes': {}, 'controlled': {'passed': None},
               'review_rules': cases['review_rules'], 'stopped': False}
+    if candidate_identity is not None:
+        report['candidate_identity'] = candidate_identity
     review = {'report_id': report['report_id'], 'cases': {}}
     recipes = {}
     jobs = [(case, [case['text']]) for case in cases['single_turn']]
@@ -306,11 +327,27 @@ def main():
     parser.add_argument('--usage-db', type=Path, help='Read-only backend SQLite snapshot; never a key')
     parser.add_argument('--review', type=Path)
     parser.add_argument('--junit', type=Path, help='Fresh AssistantChatIntegrationTest Surefire XML')
+    parser.add_argument('--candidate-identity', type=Path, help='Identity observed on the host before a Phase 13 live run')
+    parser.add_argument('--release-summary', type=Path, help='Write passing, reviewed aggregate metrics for Phase 13')
+    parser.add_argument('--provider', help='Provider used by the reviewed release evaluation')
+    parser.add_argument('--reported-model', help='Serving model reported by the provider in the reviewed evaluation')
     args = parser.parse_args()
+    if args.release_summary and not (args.summarize and args.provider and args.reported_model):
+        parser.error('Release summary requires --summarize, --provider and --reported-model')
+    if args.release_summary and args.release_summary.exists():
+        parser.error('Choose a new file for the release summary')
+    if args.candidate_identity and not args.execute:
+        parser.error('Record the candidate identity at --execute time')
     cases = load_cases()
     if args.execute:
+        candidate_identity = None
+        if args.candidate_identity:
+            from registry_release import valid_identity
+            candidate_identity = json.loads(args.candidate_identity.read_text(encoding='utf-8'))
+            if not valid_identity(candidate_identity):
+                parser.error('Candidate identity does not match the expected tag, source and digest format')
         directory = OUTPUT / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '-' + uuid4().hex[:8])
-        report = run(Api(args.base_url), cases, directory)
+        report = run(Api(args.base_url), cases, directory, candidate_identity)
         path = directory / 'report.json'
     elif args.summarize:
         path = args.summarize.resolve()
@@ -330,6 +367,10 @@ def main():
     review = json.loads(args.review.read_text(encoding='utf-8')) if args.review else None
     summarize(report, review)
     save(path, report)
+    if args.release_summary and report['evaluation_passed'] is True:
+        with args.release_summary.open('x', encoding='utf-8') as output:
+            json.dump(release_metrics(report, args.provider, args.reported_model), output, indent=2)
+            output.write('\n')
     print(json.dumps({'report': str(path), 'calls': len(report['calls']), 'stopped': report['stopped'],
                       'latency': report['latency'], 'usage': report['usage'], 'quality': report['quality'],
                       'controlled': report['controlled'], 'timing_diagnostics': report['timing_diagnostics'],

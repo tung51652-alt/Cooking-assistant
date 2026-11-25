@@ -2,6 +2,9 @@
 """Reject persisted object identifiers and credentials without printing their values."""
 
 import argparse
+import base64
+from collections import Counter
+import json
 from pathlib import Path
 import re
 import subprocess
@@ -19,8 +22,48 @@ PATTERNS = {
 }
 
 
-def violations(text):
-    return {label for label, pattern in PATTERNS.items() if pattern.search(text)}
+def unique_fields(pairs):
+    result = dict(pairs)
+    if len(result) != len(pairs):
+        raise ValueError('Duplicate lockfile field')
+    return result
+
+
+def npm_integrity_values(text):
+    try:
+        lock = json.loads(text, object_pairs_hook=unique_fields)
+    except ValueError:
+        return Counter()
+    if not isinstance(lock, dict) or lock.get('lockfileVersion') != 3 or not isinstance(lock.get('packages'), dict):
+        return Counter()
+    values = Counter()
+    for name, entry in lock['packages'].items():
+        if not name.startswith('node_modules/') or not isinstance(entry, dict):
+            continue
+        resolved, integrity = entry.get('resolved'), entry.get('integrity')
+        if not isinstance(resolved, str) or not re.fullmatch(r'https://registry\.npmjs\.org/[^?\s#]+\.tgz', resolved):
+            continue
+        if not isinstance(integrity, str) or not PATTERNS['package integrity value'].fullmatch(integrity):
+            continue
+        algorithm, encoded = integrity.split('-', 1)
+        try:
+            digest = base64.b64decode(encoded, validate=True)
+        except ValueError:
+            continue
+        if len(digest) == int(algorithm[3:]) // 8 and base64.b64encode(digest).decode('ascii') == encoded:
+            values[integrity] += 1
+    decoded = Counter(PATTERNS['package integrity value'].findall(json.dumps(lock, ensure_ascii=False)))
+    return values if values == decoded else Counter()
+
+
+def violations(text, path=None):
+    found = {label for label, pattern in PATTERNS.items() if pattern.search(text)}
+    integrity_label = 'package integrity value'
+    if integrity_label in found and path is not None and path.resolve() == ROOT / 'mobile/package-lock.json':
+        # Counting raw occurrences also catches copies of valid values outside the integrity fields.
+        if Counter(PATTERNS[integrity_label].findall(text)) == npm_integrity_values(text):
+            found.remove(integrity_label)
+    return found
 
 
 def main():
@@ -42,7 +85,7 @@ def main():
             print("FAIL: cannot read " + str(path), file=sys.stderr)
             failed = True
             continue
-        for label in sorted(violations(text)):
+        for label in sorted(violations(text, path)):
             print("FAIL: " + str(path) + ": " + label + " detected (value hidden)", file=sys.stderr)
             failed = True
     if failed:

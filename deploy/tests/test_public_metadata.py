@@ -1,11 +1,13 @@
 """Public-content policy must block identifiers and allow human-readable versions."""
 
+import base64
+import json
 from pathlib import Path
 import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from check_public_metadata import violations
+from check_public_metadata import ROOT, violations
 
 
 class PublicMetadataTests(unittest.TestCase):
@@ -29,6 +31,26 @@ class PublicMetadataTests(unittest.TestCase):
         result = violations(value)
         self.assertIn("credential", result)
         self.assertNotIn(value, str(result))
+
+    def test_allows_valid_npm_integrity_only_at_the_mobile_lockfile_field(self):
+        value = 'sha512-' + base64.b64encode(b'q' * 64).decode()
+        entry = {'integrity': value, 'resolved': 'https://registry.npmjs.org/example/-/example-1.0.0.tgz'}
+        lock = {'lockfileVersion': 3, 'packages': {'node_modules/example': entry}}
+        path = ROOT / 'mobile/package-lock.json'
+        self.assertEqual(violations(json.dumps(lock), path), set())
+        self.assertIn('package integrity value', violations(json.dumps(lock), ROOT / 'docs/deployment.md'))
+        lock['unrelated'] = value
+        self.assertIn('package integrity value', violations(json.dumps(lock), path))
+        escaped = json.dumps(lock).replace(value, r'\u0073' + value[1:], 1)
+        self.assertIn('package integrity value', violations(escaped, path))
+        del lock['unrelated']
+        entry['integrity'] = 'sha512-' + 'Q' * 70
+        self.assertIn('package integrity value', violations(json.dumps(lock), path))
+        entry['integrity'] = value
+        entry['description'] = 'ghp_' + 'Q' * 36
+        self.assertEqual(violations(json.dumps(lock), path), {'credential'})
+        entry['resolved'] = 'https://somewhere.example/example.tgz'
+        self.assertIn('package integrity value', violations(json.dumps(lock), path))
 
 
 if __name__ == "__main__":

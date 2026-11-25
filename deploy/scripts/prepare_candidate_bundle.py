@@ -10,6 +10,7 @@ from check_public_metadata import violations
 
 ROOT = Path(__file__).resolve().parents[2]
 APPS = ('vision', 'recipes', 'backend', 'frontend')
+GATEWAY_BIND = '${HOST_BIND:-127.0.0.1}'
 LLM_DEFAULTS = {
     'LLM_PROVIDER': 'openai', 'LLM_BASE_URL': 'https://integrate.api.nvidia.com/v1',
     'LLM_MODEL': 'nvidia/nemotron-3-ultra-550b-a55b', 'LLM_API_KEY': '',
@@ -46,8 +47,9 @@ def candidate_config(config):
     if len(tags) != 1 or services['recipe-init']['image'] != services['recipes']['image']:
         raise ValueError('Candidate application image versions must match')
     ports = services['frontend'].get('ports', [])
-    if len(ports) != 1 or ports[0].get('host_ip') != '127.0.0.1' or ports[0]['target'] != 8080:
-        raise ValueError('Candidate gateway must use a single loopback port')
+    if len(ports) != 1 or ports[0].get('host_ip') not in ('127.0.0.1', GATEWAY_BIND) or ports[0]['target'] != 8080:
+        raise ValueError('Candidate gateway must use a single port with a loopback default')
+    ports[0]['host_ip'] = GATEWAY_BIND
     ports[0]['published'] = '${HOST_PORT:-8080}'
     config['name'] = 'cooklens'
     if config.get('configs') or config.get('secrets'):

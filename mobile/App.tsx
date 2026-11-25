@@ -1,17 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, AppState, BackHandler, Image, Linking, Pressable, ScrollView,
   StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { randomUUID } from 'expo-crypto';
 import { File, UploadType } from 'expo-file-system';
 import { useFonts } from 'expo-font';
-import { createApi, type NativeFileUploader } from '../packages/cooklens-api';
-import type { Dish, Prediction, RecipeDetail, RecipeSummary, RecipeSource } from '../packages/cooklens-api/types';
+import * as SecureStore from 'expo-secure-store';
+import { createApi, normalizeBaseUrl, type NativeFileUploader } from '../packages/cooklens-api';
+import type { Dish, Prediction, RecipeDocument, RecipeSummary, RecipeSource } from '../packages/cooklens-api/types';
 import { chooseImage, discardImage, uploadBody, type UploadImage } from './src/image';
+import { CookingSessionScreen } from './src/assistant/CookingSessionScreen';
+import { createCookingSessionController } from './src/assistant/session-controller';
+import { createSessionPointerStore } from './src/assistant/session-pointer';
 
-type Page = 'upload' | 'recognition' | 'recipes' | 'detail';
+type Page = 'upload' | 'recognition' | 'recipes' | 'detail' | 'cooking';
 const configuredUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 let api: ReturnType<typeof createApi> | null = null;
+let gateway: string | null = null;
 const nativeFileUploader: NativeFileUploader = async (url, file, requestId, signal) => {
   const result = await new File(file.uri).upload(url, {
     httpMethod: 'POST', uploadType: UploadType.MULTIPART, fieldName: 'file',
@@ -20,7 +25,15 @@ const nativeFileUploader: NativeFileUploader = async (url, file, requestId, sign
   });
   return new Response(result.body, { status: result.status, headers: result.headers });
 };
-try { if (configuredUrl) api = createApi(configuredUrl, randomUUID, nativeFileUploader); } catch { /* Show configuration help below. */ }
+try {
+  if (configuredUrl) {
+    const url = normalizeBaseUrl(configuredUrl);
+    if (url !== '/api') {
+      gateway = url;
+      api = createApi(url, randomUUID, nativeFileUploader);
+    }
+  }
+} catch { /* Show configuration help below. */ }
 
 function Button({ title, onPress, disabled = false, secondary = false }: {
   title: string; onPress: () => void; disabled?: boolean; secondary?: boolean;
@@ -51,7 +64,12 @@ function CookLens() {
   const [selected, setSelected] = useState<Dish | null>(null);
   const [confirmed, setConfirmed] = useState<Dish | null>(null);
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null);
-  const [detail, setDetail] = useState<RecipeDetail | null>(null);
+  const [document, setDetail] = useState<RecipeDocument | null>(null);
+  const detail = document?.recipe;
+  const [cooking] = useState(() => api && gateway ? createCookingSessionController({
+    api, gateway, store: createSessionPointerStore(SecureStore), operationId: randomUUID,
+  }) : null);
+  const cookingBackTo = useRef<'upload' | 'detail'>('upload');
   const [manual, setManual] = useState(false);
   const [filter, setFilter] = useState('');
   const [query, setQuery] = useState('');
@@ -64,11 +82,17 @@ function CookLens() {
   const imageRef = useRef<UploadImage | null>(null);
   const mounted = useRef(true);
   const scroll = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const scrollToChat = useCallback(() => scroll.current?.scrollToEnd({ animated: true }), []);
 
   function cancel() { generation.current++; flight.current?.abort(); flight.current = null; setBusy(null); }
   function navigate(next: Page) { cancel(); setError(''); retry.current = null; setPage(next); scroll.current?.scrollTo({ y: 0 }); }
   function back() {
     photoGeneration.current++;
+    if (page === 'cooking') {
+      cooking?.leave();
+      navigate(cookingBackTo.current);
+      return;
+    }
     navigate(page === 'detail' ? 'recipes' : page === 'recipes' ? 'recognition' : 'upload');
   }
   useEffect(() => {
@@ -143,7 +167,15 @@ function CookLens() {
   function openRecipe(recipe: RecipeSummary) {
     if (!api || !confirmed) return;
     setDetail(null); setPage('detail');
-    void perform('Đang mở công thức…', signal => api!.getRecipe(recipe.id, confirmed.normalized_dish, signal), setDetail);
+    void perform('Đang mở công thức…', signal => api!.getRecipeDocument(recipe.id, confirmed.normalized_dish, signal), setDetail);
+  }
+
+  function openCooking(documentToCook?: RecipeDocument) {
+    if (!cooking) return;
+    cookingBackTo.current = documentToCook ? 'detail' : 'upload';
+    navigate('cooking');
+    if (documentToCook) void cooking.openRecipe(documentToCook);
+    else void cooking.resume();
   }
 
   return <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
@@ -153,7 +185,7 @@ function CookLens() {
         <Text style={styles.small}>Từ một bức ảnh đến bữa cơm Việt</Text></View>
       {page !== 'upload' && <Button title="← Quay lại" secondary onPress={back} />}
       {!api && <View style={styles.error}><Text style={styles.body}>Chưa cấu hình được máy chủ CookLens. Hãy làm theo phần kết nối trong hướng dẫn mobile rồi khởi động lại ứng dụng.</Text></View>}
-      <Text accessibilityRole="header" style={styles.title}>{page === 'upload' ? 'Hôm nay, mình nấu gì?' : page === 'recognition' ? 'Đây có phải món của bạn?' : page === 'detail' ? (detail?.title || 'Chi tiết công thức') : 'Công thức cho bạn'}</Text>
+      {page !== 'cooking' && <Text accessibilityRole="header" style={styles.title}>{page === 'upload' ? 'Hôm nay, mình nấu gì?' : page === 'recognition' ? 'Đây có phải món của bạn?' : page === 'detail' ? (detail?.title || 'Chi tiết công thức') : 'Công thức cho bạn'}</Text>}
       {page === 'upload' && <>
         <Text style={styles.body}>Chụp hoặc chọn ảnh một món ăn Việt. Xem ba gợi ý, xác nhận món rồi khám phá công thức.</Text>
         {image ? <Image accessibilityLabel="Ảnh món ăn đã chọn" source={{ uri: image.uri }} style={styles.preview} resizeMode="contain" />
@@ -161,6 +193,7 @@ function CookLens() {
         <View style={styles.row}><Button title="Chụp ảnh" onPress={() => { void pick(true); }} disabled={!!busy} secondary />
           <Button title="Chọn từ thư viện" onPress={() => { void pick(false); }} disabled={!!busy} secondary /></View>
         {image && <Button title="Nhận diện món" onPress={recognize} disabled={!!busy || !api} />}
+        {cooking && <Button title="Tiếp tục phiên nấu" secondary disabled={!!busy} onPress={() => openCooking()} />}
         <Text style={styles.small}>Ảnh được chuyển sang JPEG, tối đa 10 MiB và 25 triệu pixel. Ảnh và lựa chọn không được lưu thành lịch sử.</Text>
       </>}
       {page === 'recognition' && <>
@@ -199,7 +232,8 @@ function CookLens() {
           <Source source={recipe.source} /><Button title={`Xem công thức ${recipe.title}`} onPress={() => openRecipe(recipe)} />
         </View>)}
       </>}
-      {page === 'detail' && detail && <>
+      {page === 'detail' && document && detail && <>
+        {cooking && <Button title="Hướng dẫn nấu" onPress={() => openCooking(document)} />}
         <View style={styles.card}><Text style={styles.subtitle}>Nguyên liệu</Text>
           <Text style={styles.small}>Khẩu phần: {detail.servings === null ? 'Chưa có thông tin' : `${detail.servings} người`}</Text>
           {detail.ingredients.map((ingredient, index) => <View key={index} style={styles.ingredient}>
@@ -214,6 +248,10 @@ function CookLens() {
           <Source source={detail.source} />
         </View>
       </>}
+      {page === 'cooking' && cooking && <CookingSessionScreen controller={cooking} Button={Button} Source={Source}
+        onStartOver={document && cookingBackTo.current === 'detail'
+          ? () => { void cooking.openRecipe(document); } : back}
+        startOverLabel={cookingBackTo.current === 'detail' ? 'Tạo phiên mới' : 'Tìm công thức'} scrollToChat={scrollToChat} />}
       {!!busy && <View accessibilityLiveRegion="polite" style={styles.loading}><ActivityIndicator color="#b84415" /><Text style={styles.body}>{busy}</Text></View>}
       {!!busy && !!flight.current && <Button title="Hủy tác vụ" secondary onPress={() => { cancel(); setError(''); retry.current = null; }} />}
       {!!error && <View accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}><Text style={styles.body}>{error}</Text>

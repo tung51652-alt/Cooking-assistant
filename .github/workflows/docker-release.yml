@@ -1,12 +1,22 @@
 name: Docker candidate and registry release
 on:
   pull_request:
-    paths: ['deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', 'backend/**', 'frontend/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/**', 'docs/deployment.md', '.dockerignore', '.github/workflows/docker-release.yml']
+    paths: ['deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', 'backend/**', 'frontend/**', 'mobile/**', 'packages/cooklens-api/**', 'ai/cv/inference/**', 'ai/rag/**', 'data/**', 'docs/deployment.md', '.dockerignore', '.github/workflows/docker-release.yml', '.github/workflows/mobile.yml']
   push:
     branches: [feature/docker-release, codex/phase6-release-ci, develop, main]
     tags: ['v2.0.0-rc.*']
     paths: ['deploy/**', 'compose.yaml', 'ai/cv/Dockerfile', 'docs/deployment.md', '.dockerignore', '.github/workflows/docker-release.yml']
   workflow_dispatch:
+    inputs:
+      candidate_run_id:
+        description: Successful tagged candidate run ID. Leave empty for local-image CI.
+        type: string
+      candidate_tag:
+        description: Tag tested in the successful candidate run.
+        type: string
+      acceptance_summary:
+        description: Reviewed Phase 13 JSON summary for that candidate. Do not include keys or transcripts.
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -14,6 +24,7 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 jobs:
   release-settings:
+    if: github.event_name != 'workflow_dispatch' || inputs.candidate_run_id == ''
     runs-on: ubuntu-24.04
     outputs:
       publish: ${{ steps.version.outputs.publish }}
@@ -22,18 +33,19 @@ jobs:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
       - id: version
-        name: Resolve candidate version; only explicit prerelease tags can publish
+        name: Resolve the immutable candidate version and registry push mode
         run: |
           python3 - <<'PYTHON'
           import os, sys
           sys.path.insert(0, 'deploy/scripts')
           from registry_release import release_version
-          publish = os.environ['GITHUB_REF'].startswith('refs/tags/')
+          publish = os.environ['GITHUB_EVENT_NAME'] == 'push' and os.environ['GITHUB_REF'].startswith('refs/tags/')
           version = release_version(os.environ['GITHUB_REF_NAME']) if publish else '2.0.0-rc.1'
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write('publish=' + str(publish).lower() + '\nversion=' + version + '\n')
           PYTHON
   source-checks:
+    if: github.event_name != 'workflow_dispatch' || inputs.candidate_run_id == ''
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -58,8 +70,11 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: frontend
       - run: npm --prefix frontend run test:e2e
+  expo-checks:
+    if: github.event_name != 'workflow_dispatch' || inputs.candidate_run_id == ''
+    uses: ./.github/workflows/mobile.yml
   standalone-and-offline:
-    needs: [release-settings, source-checks]
+    needs: [release-settings, source-checks, expo-checks]
     env:
       COOKLENS_IMAGE_PREFIX: ${{ needs.release-settings.outputs.publish == 'true' && 'trantung2006/cooklens' || 'cooklens' }}
       COOKLENS_IMAGE_TAG: ${{ needs.release-settings.outputs.version }}
@@ -70,6 +85,8 @@ jobs:
         with: {persist-credentials: false}
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
       - run: python deploy/scripts/check_public_metadata.py
       - run: python -m unittest discover -s deploy/tests -v
       - name: Validate publishing credentials and unused tags
@@ -105,7 +122,7 @@ jobs:
           python deploy/scripts/prepare_candidate_bundle.py --compose-json /tmp/cooklens-compose.json --output /tmp/cooklens-candidate
           docker compose -f /tmp/cooklens-candidate/compose.yaml config --quiet
       - name: Verify packaged Compose, lifecycle, offline flow and 100 warm latency samples
-        run: python deploy/scripts/smoke_release_stack.py --compose /tmp/cooklens-candidate/compose.yaml --samples 100 --report /tmp/cooklens-candidate/verification.json
+        run: python deploy/scripts/smoke_release_stack.py --assistant --contract-check --compose /tmp/cooklens-candidate/compose.yaml --samples 100 --report /tmp/cooklens-candidate/verification.json
       - name: Validate candidate metadata and measured report
         run: |
           python deploy/scripts/check_public_metadata.py --file /tmp/cooklens-candidate/candidate.json --file /tmp/cooklens-candidate/compose.yaml --file /tmp/cooklens-candidate/verification.json
@@ -126,50 +143,133 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        run: python deploy/scripts/registry_release.py push --compose-json /tmp/cooklens-registry-compose.json
+        run: python deploy/scripts/registry_release.py push --compose-json /tmp/cooklens-registry-compose.json --tag "$GITHUB_REF_NAME" --source-sha "$(git rev-parse HEAD)" --identity-output /tmp/pushed-identity.json
+      - if: needs.release-settings.outputs.publish == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cooklens-push-identity
+          path: /tmp/pushed-identity.json
+          if-no-files-found: error
+          retention-days: 30
   clean-registry-pull:
     if: needs.release-settings.outputs.publish == 'true'
     needs: [release-settings, standalone-and-offline]
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with:
           name: cooklens-candidate
-          path: /tmp/cooklens-registry-bundle
+          path: /tmp/cooklens-phase13/bundle
+      - uses: actions/download-artifact@v4
+        with:
+          name: cooklens-push-identity
+          path: /tmp/cooklens-pushed
       - name: Pull anonymously on a separate runner and verify the packaged Compose
-        run: python deploy/scripts/smoke_release_stack.py --pull-registry --compose /tmp/cooklens-registry-bundle/compose.yaml --samples 100 --report /tmp/cooklens-registry-bundle/verification.json
-      - name: Package verified registry candidate with runbook and notices
+        run: python deploy/scripts/smoke_release_stack.py --pull-registry --assistant --compose /tmp/cooklens-phase13/bundle/compose.yaml --samples 100 --report /tmp/cooklens-phase13/bundle/verification.json
+      - name: Record the tested image digests and source
+        run: |
+          python deploy/scripts/registry_release.py identity --compose /tmp/cooklens-phase13/bundle/compose.yaml --tag "$GITHUB_REF_NAME" --source-sha "$(git rev-parse HEAD)" --output /tmp/cooklens-phase13/identity.json
+          cmp /tmp/cooklens-pushed/pushed-identity.json /tmp/cooklens-phase13/identity.json
+      - run: python -m pip install Pillow
+      - run: npm --prefix frontend ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Reacquire the fixed-split evaluation archive and out-of-domain photo
+        run: |
+          mkdir -p /tmp/cooklens-evaluation
+          curl --fail --location --retry 3 'https://huggingface.co/datasets/vuongnhathien/30VNFoods/resolve/main/test.zip?download=true' --output /tmp/cooklens-evaluation/test.zip
+          curl --fail --location --retry 3 https://raw.githubusercontent.com/pytorch/hub/master/images/dog.jpg --output /tmp/cooklens-evaluation/out-of-domain.jpg
+      - name: Verify the fixed vision split using the pulled candidate
         env:
           RELEASE_VERSION: ${{ needs.release-settings.outputs.version }}
-        run: python deploy/scripts/registry_release.py package --bundle /tmp/cooklens-registry-bundle --archive "/tmp/cooklens-registry-release/cooklens-$RELEASE_VERSION.tar.gz"
+        run: |
+          vision_image=$(python -c 'import json; print(json.load(open("/tmp/cooklens-phase13/bundle/candidate.json"))["images"]["vision"])')
+          docker run --rm --pull never --network none --no-healthcheck -e PYTHONPATH=/app -v "$PWD:/acceptance:ro" -v /tmp/cooklens-evaluation:/evaluation:ro "$vision_image" python /acceptance/deploy/scripts/evaluate_release_vision.py --archive /evaluation/test.zip --manifest /acceptance/data/processed/manifests/30vnfoods_clean_split_manifest.csv --candidate "$RELEASE_VERSION" > /tmp/cooklens-phase13/vision.json
+      - name: Verify retrieval and real browser photo flows against the bundle
+        run: python deploy/scripts/accept_release_flow.py --bundle /tmp/cooklens-phase13/bundle --archive /tmp/cooklens-evaluation/test.zip --out-of-domain /tmp/cooklens-evaluation/out-of-domain.jpg --report /tmp/cooklens-phase13/flow.json
       - uses: actions/upload-artifact@v4
         with:
-          name: cooklens-registry-release
-          path: /tmp/cooklens-registry-release/*.tar.gz
+          name: cooklens-phase13-candidate
+          path: |
+            /tmp/cooklens-phase13/identity.json
+            /tmp/cooklens-phase13/vision.json
+            /tmp/cooklens-phase13/flow.json
+            /tmp/cooklens-phase13/bundle/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
   publish-prerelease:
-    needs: [release-settings, clean-registry-pull]
-    if: needs.release-settings.outputs.publish == 'true'
+    if: github.event_name == 'workflow_dispatch' && inputs.candidate_run_id != '' && (github.ref_name == 'develop' || github.ref_name == github.event.repository.default_branch)
     runs-on: ubuntu-24.04
     permissions:
+      actions: read
       contents: write
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
+      - name: Verify the tagged candidate completed this workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.candidate_run_id }}
+          CANDIDATE_TAG: ${{ inputs.candidate_tag }}
+        run: |
+          python deploy/scripts/registry_release.py version "$CANDIDATE_TAG" >/dev/null
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" > "$RUNNER_TEMP/candidate-run.json"
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          def api(path):
+              return json.loads(subprocess.check_output(['gh', 'api', f'repos/{os.environ["GITHUB_REPOSITORY"]}/{path}']))
+          tag = os.environ['CANDIDATE_TAG']
+          target = api('git/ref/tags/' + tag)['object']
+          for _ in range(5):
+              if target['type'] != 'tag':
+                  break
+              target = api('git/tags/' + target['sha'])['object']
+          run = json.loads((Path(os.environ['RUNNER_TEMP']) / 'candidate-run.json').read_text())
+          actual = (run['path'].split('@', 1)[0], run['event'], run['conclusion'], run['head_branch'], run['head_sha'])
+          expected = ('.github/workflows/docker-release.yml', 'push', 'success', tag, target['sha'])
+          if target['type'] != 'commit' or actual != expected:
+              raise SystemExit('Candidate artifact must come from the successful push of the exact release tag')
+          PY
       - uses: actions/download-artifact@v4
         with:
-          name: cooklens-registry-release
-          path: /tmp/cooklens-registry-release
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.candidate_run_id }}
+          name: cooklens-phase13-candidate
+          path: /tmp/cooklens-phase13
+      - name: Check that reviewed evidence belongs to the candidate and package it
+        env:
+          CANDIDATE_TAG: ${{ inputs.candidate_tag }}
+          ACCEPTANCE_SUMMARY: ${{ inputs.acceptance_summary }}
+        run: |
+          printf '%s' "$ACCEPTANCE_SUMMARY" > "$RUNNER_TEMP/acceptance-summary.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          identity = json.loads(Path('/tmp/cooklens-phase13/identity.json').read_text())
+          run = json.loads((Path(os.environ['RUNNER_TEMP']) / 'candidate-run.json').read_text())
+          if identity['source_sha'] != run['head_sha'] or identity['tag'] != os.environ['CANDIDATE_TAG']:
+              raise SystemExit('Artifact identity does not match the verified tagged workflow run')
+          PY
+          version=$(python deploy/scripts/registry_release.py version "$CANDIDATE_TAG")
+          python deploy/scripts/registry_release.py package --bundle /tmp/cooklens-phase13/bundle \
+            --identity /tmp/cooklens-phase13/identity.json --vision /tmp/cooklens-phase13/vision.json \
+            --flow /tmp/cooklens-phase13/flow.json --manual "$RUNNER_TEMP/acceptance-summary.json" \
+            --archive "/tmp/cooklens-registry-release/cooklens-$version.tar.gz"
       - name: Publish standalone download as a GitHub prerelease
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_VERSION: ${{ needs.release-settings.outputs.version }}
-        run: python deploy/scripts/registry_release.py github-release --archive "/tmp/cooklens-registry-release/cooklens-$RELEASE_VERSION.tar.gz" --tag "v$RELEASE_VERSION"
+          CANDIDATE_TAG: ${{ inputs.candidate_tag }}
+        run: |
+          version=$(python deploy/scripts/registry_release.py version "$CANDIDATE_TAG")
+          python deploy/scripts/registry_release.py github-release --archive "/tmp/cooklens-registry-release/cooklens-$version.tar.gz" --tag "$CANDIDATE_TAG" --identity /tmp/cooklens-phase13/identity.json

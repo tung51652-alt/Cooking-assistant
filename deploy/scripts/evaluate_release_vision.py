@@ -19,7 +19,7 @@ from ai.cv.inference.inference import evaluation_transform
 from ai.cv.inference.model import load_model
 
 
-def evaluate(archive, manifest):
+def evaluate(archive, manifest, candidate='2.0.0-rc.2'):
     rows = [r for r in csv.DictReader(manifest.open()) if r['split'] == 'Test']
     if len(rows) != 5004 or {int(r['class_index']) for r in rows} != set(range(30)):
         raise ValueError('Expected the fixed 5004-image, 30-class clean test split')
@@ -65,7 +65,7 @@ def evaluate(archive, manifest):
                           'top1': tp / support, 'top3': hits[label] / support,
                           'f1': 2 * tp / (support + predicted)})
     top3 = sum(hits) / len(rows)
-    return {'application_candidate': '2.0.0-rc.2', 'model_version': model.model_version,
+    return {'application_candidate': candidate, 'model_version': model.model_version,
             'taxonomy_version': model.taxonomy_version, 'dataset': '30VNFoods',
             'source': 'https://huggingface.co/datasets/vuongnhathien/30VNFoods',
             'license_claim': 'CC-BY-NC-SA-4.0',
@@ -83,8 +83,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--archive', type=Path, required=True)
     parser.add_argument('--manifest', type=Path, required=True)
+    parser.add_argument('--candidate', default='2.0.0-rc.2', help='Version of the image running this evaluation')
     args = parser.parse_args()
-    result = evaluate(args.archive, args.manifest)
+    result = evaluate(args.archive, args.manifest, args.candidate)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if not result['top3_gate_met']:
         raise SystemExit(1)

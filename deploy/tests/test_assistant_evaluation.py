@@ -142,6 +142,25 @@ class AssistantEvaluationTests(unittest.TestCase):
         self.assertFalse(evaluation.latency_gate(rows)['passed'])
         self.assertFalse(evaluation.latency_gate(rows[:-1])['passed'])
 
+    def test_release_summary_requires_review_and_exports_only_aggregate_metrics(self):
+        report = self.known_report()
+        with self.assertRaises(ValueError):
+            evaluation.release_metrics(report, 'nvidia', 'reported-model')
+        report['controlled'] = {'passed': True, 'cases': dict.fromkeys(('F01', 'F02', 'F03', 'F04'), True)}
+        evaluation.summarize(report, self.reviews(report))
+        with self.assertRaises(ValueError):
+            evaluation.release_metrics(report, 'nvidia', 'reported-model')
+        report['candidate_identity'] = {'tag': 'v2.0.0-rc.3', 'source_sha': 'a' * 40,
+                                        'digests': {'trantung2006/cooklens-backend:2.0.0-rc.3': 'sha256:' + 'b' * 64}}
+        summary = evaluation.release_metrics(report, 'nvidia', 'reported-model')
+        self.assertEqual(summary['model_selector'], 'fixture-model')
+        self.assertEqual(summary['model'], 'reported-model')
+        self.assertEqual(summary['identity'], report['candidate_identity'])
+        self.assertEqual(summary['live_cases'], 50)
+        self.assertEqual(summary['controlled_cases'], 4)
+        self.assertEqual(summary['mean_input'], 4000)
+        self.assertNotIn('answer', json.dumps(summary))
+
     def test_usage_unknown_is_not_zero_and_thresholds_are_enforced(self):
         report = self.known_report()
         self.assertTrue(evaluation.usage_gate(report['calls'])['passed'])

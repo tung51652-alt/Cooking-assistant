@@ -65,5 +65,5 @@ Dùng cùng biến image khi chạy `up`/`down`; `down` giữ volume công thứ
 2. Chạy [kiểm thử](testing.md) phù hợp và `python3 deploy/scripts/check_public_metadata.py`.
 3. Rà diff, file thừa và tài liệu bị ảnh hưởng; không commit dataset, weights, secret,
    log, cache hoặc build output. Giữ notices và provenance cần thiết.
-4. Không lưu credential hoặc giá trị mã/hash bị scanner cấm, kể cả trong lockfile.
+4. Giữ credential và hash bị cấm ngoài Git. Giữ giá trị npm integrity do npm sinh tại trường `packages.*.integrity` hợp lệ trong `mobile/package-lock.json`.
 5. Gửi PR kèm kết quả kiểm tra; người dùng review/merge theo phạm vi đã giao.
