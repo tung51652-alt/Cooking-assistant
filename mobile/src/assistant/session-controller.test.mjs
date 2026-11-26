@@ -316,12 +316,67 @@ test('known provider timeout refreshes and retains the draft for a new deliberat
   controller.setDraft(question);
   await controller.sendMessage();
   assert.deepEqual(calls, [calls[0], 'GET']);
-  assert.equal(controller.getSnapshot().draft, question);
-  assert.equal(controller.getSnapshot().canAct, true);
+  const snap = controller.getSnapshot();
+  assert.equal(snap.draft, question);
+  assert.equal(snap.canAct, true);
+  assert.equal(snap.refreshRequired, false);
+  assert.equal(snap.canResend, true);
+  assert.equal(snap.error.retryable, false);
+  assert.equal(snap.error.message.includes('tải lại phiên'), false);
   await controller.retry();
   assert.equal(calls.length, 2);
   await controller.sendMessage();
   assert.notEqual(calls[2].operation_id, calls[0].operation_id);
+});
+
+test('failed refresh after provider timeout exposes refreshRequired retry and recovers to resend action', async () => {
+  let failGet = true;
+  const calls = [];
+  const { controller } = fixture({
+    sessionMessage: async (_id, body) => {
+      calls.push(body);
+      if (calls.length === 1) throw new ApiError('Hãy tải lại phiên', 504, 'ASSISTANT_PROVIDER_TIMEOUT');
+      return state(1, { messages: answer });
+    },
+    getSession: async () => {
+      calls.push('GET');
+      if (failGet) throw new ApiError('network error');
+      return state();
+    },
+  });
+  await controller.openRecipe(document);
+  controller.setDraft(question);
+  await controller.sendMessage();
+  assert.equal(controller.getSnapshot().refreshRequired, true);
+  assert.equal(controller.getSnapshot().canAct, false);
+  assert.equal(controller.getSnapshot().canResend, false);
+  assert.equal(controller.getSnapshot().error.retryable, true);
+  failGet = false;
+  await controller.retry();
+  const recovered = controller.getSnapshot();
+  assert.deepEqual(calls, [calls[0], 'GET', 'GET']);
+  assert.equal(recovered.refreshRequired, false);
+  assert.equal(recovered.canAct, true);
+  assert.equal(recovered.canResend, true);
+  assert.equal(recovered.draft, question);
+  assert.equal(recovered.error.message.includes('tải lại phiên'), false);
+});
+
+test('auto-refresh after timeout clears draft and error when the question was already committed', async () => {
+  const { controller } = fixture({
+    sessionMessage: async () => {
+      throw new ApiError('timeout', 504, 'ASSISTANT_PROVIDER_TIMEOUT');
+    },
+    getSession: async () => state(1, { messages: answer }),
+  });
+  await controller.openRecipe(document);
+  controller.setDraft(question);
+  await controller.sendMessage();
+  const snap = controller.getSnapshot();
+  assert.deepEqual(snap.session.messages, answer);
+  assert.equal(snap.draft, '');
+  assert.equal(snap.error, null);
+  assert.equal(snap.canResend, false);
 });
 
 test('quota and configuration errors preserve steps and do not replay chat', async () => {
