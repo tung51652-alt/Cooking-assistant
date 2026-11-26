@@ -6,6 +6,7 @@ import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class VisionClient {
+    private static final Map<String, Integer> VISION_ERRORS = Map.of(
+            "IMAGE_BLURRY", 422,
+            "LOW_CONFIDENCE_PREDICTION", 422);
     private final UpstreamTransport transport;
     private final URI predict, health;
     public VisionClient(UpstreamTransport transport, @Value("${cooklens.vision-url}") String base) {
@@ -26,7 +30,7 @@ public class VisionClient {
         var request = HttpRequest.newBuilder(predict).header("X-Request-ID", requestId)
                 .header("Content-Type", "multipart/form-data; boundary=" + boundary)
                 .timeout(Duration.ofSeconds(15)).POST(HttpRequest.BodyPublishers.ofByteArrays(List.of(head, image, tail))).build();
-        return transport.call(request, VisionResult.class, Duration.ofSeconds(15));
+        return transport.call(request, VisionResult.class, Duration.ofSeconds(15), VISION_ERRORS);
     }
     public CompletableFuture<DependencyState> health(String requestId) {
         return transport.async(HttpRequest.newBuilder(health).header("X-Request-ID", requestId)

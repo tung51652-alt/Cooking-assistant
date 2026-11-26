@@ -33,4 +33,10 @@ class ChatPricingTest {
                 "https://integrate.api.nvidia.com:444/v1/chat/completions", "https://integrate.api.nvidia.com/other"})
             assertThrows(ApiFailure.class,() -> pricing.quote(config(url,LlmSettings.NVIDIA_GEMMA_MODEL),null));
     }
+    @Test void byokAllowsArbitraryModelsAndCustomEndpointsWithZeroServerReservation() {
+        var pricing=new ChatPricing();
+        var byok=new LlmSettings.Connection(URI.create("https://api.openai.com/v1/chat/completions"),
+                "gpt-4o-mini","user-key",Duration.ofSeconds(20),512,6000,true);
+        assertEquals(new ChatPricing.Quote(0,0,0),pricing.quote(byok,null));
+    }
 }

@@ -241,4 +241,95 @@ class OpenAiChatProviderTest {
                 new Prompt(List.of(new Message(Role.system,"Rules"),new Message(Role.user,"\u0000".repeat(17000))))));
         assertEquals(0,calls.get());
     }
+
+    @Test void byokAcceptsLengthFinishSnapshotPrefixReasoningTokensAndMapsErrors() throws Exception {
+        var settings = settings();
+        var userConfig = settings.resolveUserConnection(
+                new LlmSettings.UserOverride("custom", base, "gpt-4o-mini", key), 64, true);
+        assertTrue(userConfig.byok());
+
+        // Accept finish_reason=length, snapshot model prefix, and prompt+completion <= total (reasoning_tokens)
+        var root = mapper.createObjectNode();
+        root.put("model", "gpt-4o-mini-2024-07-18");
+        var choice = root.putArray("choices").addObject();
+        choice.put("index", 0);
+        choice.put("finish_reason", "length");
+        choice.putObject("message").put("role", "assistant").put("content", "Hello!");
+        root.putObject("usage").put("prompt_tokens", 10).put("completion_tokens", 5).put("total_tokens", 40);
+        payload = root.toString();
+
+        var testPrompt = new Prompt(List.of(new Message(Role.system, "Reply briefly."), new Message(Role.user, "hello")));
+        Completion ok = provider().complete(testPrompt, userConfig);
+        assertEquals("gpt-4o-mini-2024-07-18", ok.model());
+        assertEquals("Hello!", ok.text());
+        assertEquals(64, mapper.readTree(received).path("max_tokens").asInt());
+
+        // Gemini models/ prefix is also accepted
+        root.put("model", "models/gpt-4o-mini-001");
+        payload = root.toString();
+        assertEquals("models/gpt-4o-mini-001", provider().complete(testPrompt, userConfig).model());
+
+        // Reject when prompt + completion > total even in BYOK
+        ((ObjectNode) root.path("usage")).put("total_tokens", 14);
+        payload = root.toString();
+        failure(503, "ASSISTANT_PROVIDER_UNAVAILABLE", () -> provider().complete(testPrompt, userConfig));
+
+        // Error mappings for BYOK: 400/404 -> 422 ASSISTANT_MODEL_INVALID, 401/403 -> 503 ASSISTANT_PROVIDER_AUTH_FAILED, 429 -> 429
+        payload = "{\"error\":\"bad " + key + "\"}";
+        for (int code : List.of(400, 404)) {
+            status = code;
+            failure(422, "ASSISTANT_MODEL_INVALID", () -> provider().complete(testPrompt, userConfig));
+        }
+        for (int code : List.of(401, 403)) {
+            status = code;
+            failure(503, "ASSISTANT_PROVIDER_AUTH_FAILED", () -> provider().complete(testPrompt, userConfig));
+        }
+        status = 429;
+        failure(429, "ASSISTANT_RATE_LIMITED", () -> provider().complete(testPrompt, userConfig));
+
+        // Timeout -> 504 ASSISTANT_PROVIDER_TIMEOUT
+        status = 200;
+        stall = true;
+        payload = good().toString();
+        var shortByok = new LlmSettings("openai", base, LlmSettings.NVIDIA_MODEL, "", "1", "512", "6000")
+                .resolveUserConnection(new LlmSettings.UserOverride("custom", base, "gpt-4o-mini", key), 64, true);
+        failure(504, "ASSISTANT_PROVIDER_TIMEOUT", () -> provider().complete(testPrompt, shortByok));
+    }
+
+    @Test void byokPresetsAndCustomUrlValidationEnforceSecurityRules() {
+        var unconfigured = new LlmSettings("openai", "", "", "", "20", "512", "6000");
+        assertEquals("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                unconfigured.resolveUserConnection(new LlmSettings.UserOverride("gemini", null, "gemini-2.5-flash", key), 64, true).endpoint().toString());
+        assertEquals("https://api.openai.com/v1/chat/completions",
+                unconfigured.resolveUserConnection(new LlmSettings.UserOverride("openai", "https://api.openai.com/v1/", "gpt-4o-mini", key), 64, true).endpoint().toString());
+        assertEquals("https://integrate.api.nvidia.com/v1/chat/completions",
+                unconfigured.resolveUserConnection(new LlmSettings.UserOverride("nvidia", "", "meta/llama-3.1-8b-instruct", key), 64, true).endpoint().toString());
+        for (String validCustom : List.of(
+                "https://llm.example.com/v1",
+                "https://llm.example.com/proxy/v1beta/openai",
+                "https://my-azure.openai.azure.com/openai",
+                "http://127.0.0.1:11434/v1",
+                "http://localhost:8080/v1",
+                "http://[::1]:8000/v1")) {
+            assertTrue(unconfigured.resolveUserConnection(new LlmSettings.UserOverride("custom", validCustom, "my-model", key), 64, true).byok());
+        }
+        for (var bad : List.of(
+                new LlmSettings.UserOverride("unknown", null, "gpt-4o", key),
+                new LlmSettings.UserOverride("gemini", "https://evil.example/v1", "gemini-2.5-flash", key),
+                new LlmSettings.UserOverride("custom", "http://example.com/v1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://user:pass@example.com/v1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/v1?x=1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/v1#frag", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/../v1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/a//v1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/%761", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/other", "m", key),
+                new LlmSettings.UserOverride("openai", null, "bad model", key),
+                new LlmSettings.UserOverride("openai", null, "gpt-4o", "bad key"),
+                new LlmSettings.UserOverride("openai", null, "gpt-4o", ""))) {
+            var err = assertThrows(ApiFailure.class, () -> unconfigured.resolveUserConnection(bad, 64, true));
+            assertEquals(422, err.status());
+            assertEquals("VALIDATION_ERROR", err.code());
+        }
+    }
 }

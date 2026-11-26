@@ -49,4 +49,19 @@ public final class AssistantModels {
             @JsonProperty(value="api_version", required=true) String apiVersion,
             @JsonProperty(value="request_id", required=true) String requestId,
             @JsonProperty(value="session", required=true) Session session) {}
+    public record LlmTestRequest(
+            @NotBlank @JsonProperty(value="provider", required=true) String provider,
+            @JsonProperty("base_url") String baseUrl,
+            @NotBlank @JsonProperty(value="model", required=true) String model,
+            @NotBlank @JsonProperty(value="api_key", required=true) String apiKey) {
+        @Override public String toString() { return "LlmTestRequest(provider=" + provider + ", model=" + model + ", api_key=[redacted])"; }
+    }
+    public record LlmTestResponse(
+            @JsonProperty(value="api_version", required=true) String apiVersion,
+            @JsonProperty(value="request_id", required=true) String requestId,
+            @JsonProperty(value="ok", required=true) boolean ok,
+            @JsonProperty(value="provider", required=true) String provider,
+            @JsonProperty(value="model", required=true) String model,
+            @JsonProperty(value="reply", required=true) String reply,
+            @JsonProperty(value="latency_ms", required=true) long latencyMs) {}
 }
