@@ -15,6 +15,7 @@ public class ChatPricing {
     }
     // Paid endpoints require a verified pricing/token-bound policy before they can be enabled.
     public Quote quote(Connection config, Prompt prompt) {
+        if (config.byok()) return new Quote(0,0,0);
         var uri=config.endpoint();
         if ("https".equals(uri.getScheme()) && "integrate.api.nvidia.com".equalsIgnoreCase(uri.getHost())
                 && (uri.getPort()==-1 || uri.getPort()==443) && uri.getPath().equals("/v1/chat/completions")

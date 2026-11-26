@@ -28,6 +28,7 @@ public final class OpenAiChatProvider implements ChatProvider {
     }
     @Override public void requireConfigured() { settings.requireConfigured(); }
     @Override public void validate(Prompt prompt) { payload(prompt,settings.requireConfigured()); }
+    @Override public void validate(Prompt prompt, Connection config) { payload(prompt,config); }
     private byte[] payload(Prompt prompt, Connection config) {
         ChatPromptLimits.validate(prompt,config.maxInputTokens());
         byte[] payload;
@@ -49,7 +50,9 @@ public final class OpenAiChatProvider implements ChatProvider {
         return payload;
     }
     @Override public Completion complete(Prompt prompt) {
-        Connection config=settings.requireConfigured();
+        return complete(prompt, settings.requireConfigured());
+    }
+    @Override public Completion complete(Prompt prompt, Connection config) {
         byte[] payload=payload(prompt,config);
         long deadlineNanos=System.nanoTime()+config.timeout().toNanos();
         HttpResponse<byte[]> received=null;
@@ -68,6 +71,10 @@ public final class OpenAiChatProvider implements ChatProvider {
             if ((received.statusCode()==502 || received.statusCode()==503) && attempt==0 && pauseForRetry(deadlineNanos)) continue;
             switch (received.statusCode()) {
                 case 401,403 -> throw new Failure(503,"ASSISTANT_PROVIDER_AUTH_FAILED",Usage.unknown());
+                case 400,404 -> {
+                    if (config.byok()) throw new Failure(422,"ASSISTANT_MODEL_INVALID",Usage.unknown());
+                    throw unavailable(Usage.unknown());
+                }
                 case 429 -> throw new Failure(429,"ASSISTANT_RATE_LIMITED",Usage.unknown());
                 case 402 -> throw new Failure(503,"ASSISTANT_BUDGET_EXCEEDED",Usage.unknown());
                 default -> throw unavailable(Usage.unknown());
@@ -82,9 +89,8 @@ public final class OpenAiChatProvider implements ChatProvider {
             ParsedUsage parsedUsage=usage(root.get("usage"));
             usage=parsedUsage.usage();
             var choices=root.path("choices");
-            boolean modelMatches=config.model().equals(root.path("model").textValue())
-                    || (config.model().equals(LlmSettings.NVIDIA_BOLT_ALIAS) && LlmSettings.NVIDIA_BOLT_MODEL.equals(root.path("model").textValue()))
-                    || (config.model().equals(LlmSettings.NVIDIA_SUPER_MODEL) && LlmSettings.NVIDIA_SUPER_REPORTED_MODEL.equals(root.path("model").textValue()));
+            String reportedModel=root.path("model").textValue();
+            boolean modelMatches=modelMatches(config, reportedModel);
             if (!modelMatches) LoggerFactory.getLogger(OpenAiChatProvider.class).warn("Assistant provider response model mismatch");
             if (!root.path("model").isTextual() || !modelMatches
                     || !choices.isArray() || choices.size()!=1) throw unavailable(usage);
@@ -99,8 +105,27 @@ public final class OpenAiChatProvider implements ChatProvider {
                     || (message.hasNonNull("tool_calls") && (!message.path("tool_calls").isArray() || !message.path("tool_calls").isEmpty()))
                     || message.hasNonNull("function_call") || message.hasNonNull("refusal")
                     || (usage.outputTokens()!=null && usage.outputTokens()>outputLimit)) throw unavailable(usage);
-            return new Completion(content.textValue(),"openai",root.path("model").textValue(),usage);
+            return new Completion(content.textValue(),"openai",reportedModel,usage);
         } catch (java.io.IOException | IllegalArgumentException e) { throw unavailable(usage); }
+    }
+    private boolean modelMatches(Connection config, String reportedModel) {
+        if (reportedModel == null || reportedModel.isBlank()) return false;
+        String requested = config.model();
+        if (requested.equals(reportedModel)
+                || (requested.equals(LlmSettings.NVIDIA_BOLT_ALIAS) && LlmSettings.NVIDIA_BOLT_MODEL.equals(reportedModel))
+                || (requested.equals(LlmSettings.NVIDIA_SUPER_MODEL) && LlmSettings.NVIDIA_SUPER_REPORTED_MODEL.equals(reportedModel))) {
+            return true;
+        }
+        if (!config.byok()) return false;
+        String req = stripModelsPrefix(requested);
+        String rep = stripModelsPrefix(reportedModel);
+        return rep.equals(req)
+                || rep.startsWith(req + "-")
+                || rep.startsWith(req + ":")
+                || rep.startsWith(req + "@");
+    }
+    private static String stripModelsPrefix(String model) {
+        return model.startsWith("models/") ? model.substring("models/".length()) : model;
     }
     private HttpResponse<byte[]> sendAttempt(Connection config, byte[] payload, long remainingMs) throws ConnectException {
         var request=HttpRequest.newBuilder(config.endpoint()).timeout(Duration.ofMillis(Math.max(1,remainingMs)))

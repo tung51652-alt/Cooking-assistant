@@ -26,6 +26,7 @@ public class ApiFailure extends RuntimeException {
             case "ASSISTANT_PROVIDER_UNAVAILABLE" -> "Trợ lý chưa trả lời được. Vui lòng thử lại sau.";
             case "ASSISTANT_PROVIDER_TIMEOUT" -> "Trợ lý phản hồi quá lâu. Hãy đọc lại phiên trước khi thử lại.";
             case "ASSISTANT_PROVIDER_AUTH_FAILED" -> "Cấu hình xác thực trợ lý chưa hợp lệ. Bạn vẫn có thể điều khiển bước nấu.";
+            case "ASSISTANT_MODEL_INVALID" -> "Model không hợp lệ hoặc không được nhà cung cấp hỗ trợ.";
             case "ASSISTANT_PROVIDER_UNSUPPORTED" -> "Nhà cung cấp trợ lý này chưa được hỗ trợ.";
             case "ASSISTANT_RATE_LIMITED" -> "Trợ lý đang giới hạn lượt hỏi. Vui lòng thử lại sau.";
             case "ASSISTANT_BUDGET_EXCEEDED" -> "Trợ lý đã hết ngân sách. Bạn vẫn có thể điều khiển bước nấu.";
@@ -33,6 +34,8 @@ public class ApiFailure extends RuntimeException {
             case "ASSISTANT_STORAGE_UNAVAILABLE" -> "Kho lưu phiên chưa sẵn sàng. Vui lòng thử lại sau.";
             case "ASSISTANT_NOT_CONFIGURED" -> "Hỏi đáp chưa được cấu hình. Bạn vẫn có thể điều khiển bước nấu.";
             case "INVALID_IMAGE" -> "Không đọc được ảnh. Vui lòng chọn ảnh JPG hoặc PNG hợp lệ.";
+            case "IMAGE_BLURRY" -> "Ảnh bị mờ, không đủ rõ nét để nhận diện món ăn. Vui lòng chụp hoặc chọn ảnh rõ nét hơn.";
+            case "LOW_CONFIDENCE_PREDICTION" -> "Ảnh có vấn đề hoặc không nhận diện được món ăn Việt phù hợp (độ tin cậy dưới 50%). Vui lòng chọn ảnh món ăn rõ nét hơn.";
             case "UPLOAD_TOO_LARGE" -> "Yêu cầu vượt quá giới hạn dung lượng.";
             case "UNSUPPORTED_MEDIA_TYPE" -> "Định dạng yêu cầu không được hỗ trợ.";
             case "INVALID_DISH" -> "Món ăn không thuộc danh mục hỗ trợ.";

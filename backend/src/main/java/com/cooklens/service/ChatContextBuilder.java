@@ -35,7 +35,9 @@ public final class ChatContextBuilder {
         this.mapper=mapper.copy().enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN); this.settings=settings;
     }
     public Prompt build(Session session, String question) {
-        int limit=settings.requireConfigured().maxInputTokens();
+        return build(session, question, settings.requireConfigured().maxInputTokens());
+    }
+    public Prompt build(Session session, String question, int limit) {
         if (question==null || question.isBlank() || question.length()>2000) throw ApiFailure.invalid();
         if (session==null || session.recipe()==null || session.messages()==null || session.messages().size()>60
                 || session.messages().size()%2!=0) throw new ApiFailure(503,"ASSISTANT_STORAGE_UNAVAILABLE");

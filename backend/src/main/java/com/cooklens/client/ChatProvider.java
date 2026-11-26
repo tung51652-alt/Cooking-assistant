@@ -1,5 +1,6 @@
 package com.cooklens.client;
 
+import com.cooklens.config.LlmSettings;
 import com.cooklens.exception.ApiFailure;
 import java.util.List;
 
@@ -26,5 +27,7 @@ public interface ChatProvider {
     }
     void requireConfigured();
     default void validate(Prompt prompt) { ChatPromptLimits.validate(prompt,6000); }
+    default void validate(Prompt prompt, LlmSettings.Connection config) { validate(prompt); }
     Completion complete(Prompt prompt);
+    default Completion complete(Prompt prompt, LlmSettings.Connection config) { return complete(prompt); }
 }

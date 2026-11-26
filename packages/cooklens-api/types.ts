@@ -10,3 +10,18 @@ export type AssistantAction = components['schemas']['SessionAction']['action'];
 export type CreateSession = components['schemas']['CreateSession'];
 export type SessionActionRequest = components['schemas']['SessionAction'];
 export type SessionMessageRequest = components['schemas']['SessionMessage'];
+
+export type LlmProviderPreset = 'gemini' | 'openai' | 'nvidia' | 'custom';
+export interface LlmUserConfig {
+  provider: LlmProviderPreset;
+  base_url?: string;
+  model: string;
+  api_key: string;
+}
+export interface LlmTestResult {
+  ok: boolean;
+  provider: string;
+  model: string;
+  reply: string;
+  latency_ms: number;
+}
