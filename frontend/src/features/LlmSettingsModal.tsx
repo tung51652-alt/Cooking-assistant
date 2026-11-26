@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle, Eye, EyeSlash, Key, Play, Trash, WarningCircle, X, XCircle } from '@phosphor-icons/react';
+import { Check, Key, Lock, LockOpen, Play, Trash, WarningCircle, WarningOctagon, X } from '@phosphor-icons/react';
 import * as api from '../lib/api';
 import {
   LLM_PRESETS,
@@ -180,7 +180,7 @@ export default function LlmSettingsModal({ open, currentConfig, onSave, onClear,
                 placeholder="https://example.com/v1"
               />
               <p className={`field-feedback ${urlFeedback.valid ? 'is-valid' : 'is-error'}`} aria-live="polite">
-                {urlFeedback.valid ? <CheckCircle size={15} aria-hidden="true" /> : <XCircle size={15} aria-hidden="true" />}
+                {urlFeedback.valid ? <Check size={15} aria-hidden="true" /> : <WarningOctagon size={15} aria-hidden="true" />}
                 <span>{urlFeedback.message}</span>
               </p>
             </div>
@@ -206,12 +206,12 @@ export default function LlmSettingsModal({ open, currentConfig, onSave, onClear,
                   onClick={() => setShowKey(prev => !prev)}
                   aria-label={showKey ? 'Ẩn API key' : 'Hiện API key'}
                 >
-                  {showKey ? <EyeSlash size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+                  {showKey ? <Lock size={18} aria-hidden="true" /> : <LockOpen size={18} aria-hidden="true" />}
                   <span>{showKey ? 'Ẩn' : 'Hiện'}</span>
                 </button>
               </div>
               <p className={`field-feedback ${keyFeedback.valid ? 'is-valid' : 'is-error'}`} aria-live="polite">
-                {keyFeedback.valid ? <CheckCircle size={15} aria-hidden="true" /> : <XCircle size={15} aria-hidden="true" />}
+                {keyFeedback.valid ? <Check size={15} aria-hidden="true" /> : <WarningOctagon size={15} aria-hidden="true" />}
                 <span>{keyFeedback.message}</span>
               </p>
               {keyFeedback.warning && (
@@ -250,7 +250,7 @@ export default function LlmSettingsModal({ open, currentConfig, onSave, onClear,
                 </div>
               )}
               <p className={`field-feedback ${modelFeedback.valid ? 'is-valid' : 'is-error'}`} aria-live="polite">
-                {modelFeedback.valid ? <CheckCircle size={15} aria-hidden="true" /> : <XCircle size={15} aria-hidden="true" />}
+                {modelFeedback.valid ? <Check size={15} aria-hidden="true" /> : <WarningOctagon size={15} aria-hidden="true" />}
                 <span>{modelFeedback.message}</span>
               </p>
             </div>
@@ -273,14 +273,14 @@ export default function LlmSettingsModal({ open, currentConfig, onSave, onClear,
             {testing && <p className="assistant-notice" role="status">Đang gửi &ldquo;hello&rdquo; tới {preset.label} ({model.trim()})…</p>}
             {testResult && (
               <div className="llm-test-result is-ok" role="status">
-                <strong><CheckCircle size={18} aria-hidden="true" /> Done / OK · Kết nối thành công ({testResult.latency_ms} ms)</strong>
+                <strong><Check size={18} aria-hidden="true" /> Done / OK · Kết nối thành công ({testResult.latency_ms} ms)</strong>
                 <p><strong>Nhà cung cấp:</strong> {testResult.provider} · <strong>Model:</strong> {testResult.model}</p>
                 <p className="llm-test-reply"><strong>Phản hồi:</strong> {testResult.reply}</p>
               </div>
             )}
             {testError && (
               <div className="llm-test-result is-error" role="alert">
-                <strong><XCircle size={18} aria-hidden="true" /> Kiểm tra thất bại</strong>
+                <strong><WarningOctagon size={18} aria-hidden="true" /> Kiểm tra thất bại</strong>
                 <p>{testError}</p>
               </div>
             )}
