@@ -239,6 +239,20 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
 
   await open(page);
   await expect(page.locator('.llm-status-badge')).toHaveCount(0);
+
+  await page.locator('.llm-nav-btn').click();
+  const defaultDialog = page.getByRole('dialog', { name: 'Cấu hình API Key LLM' });
+  await expect(defaultDialog).toBeVisible();
+  await expect(defaultDialog.getByRole('radio', { name: /Mặc định hệ thống/ })).toHaveAttribute('aria-checked', 'true');
+  await expect(defaultDialog).toContainText('Đang sử dụng cấu hình mặc định của máy chủ (.env)');
+  await expect(defaultDialog.getByRole('textbox', { name: /^API Key/ })).toHaveCount(0);
+  await defaultDialog.getByRole('radio', { name: /Tự cấu hình API Key/ }).click();
+  await expect(defaultDialog.getByRole('textbox', { name: /^API Key/ })).toBeVisible();
+  await defaultDialog.getByRole('button', { name: 'Quay về mặc định' }).click();
+  await expect(defaultDialog.getByRole('textbox', { name: /^API Key/ })).toHaveCount(0);
+  await defaultDialog.getByRole('button', { name: 'Đóng', exact: true }).click();
+  await expect(defaultDialog).toHaveCount(0);
+
   await question(page).fill('Mấy phút sôi?');
   await question(page).press('Enter');
   await expect(page.getByRole('alert')).toContainText('chưa được cấu hình');
@@ -290,7 +304,7 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
   expect(sentHeaders[1]['x-llm-api-key']).toBe('sk-test-valid-12345');
 
   await page.locator('.llm-nav-btn').click();
-  await page.getByRole('button', { name: 'Xóa key / Dùng mặc định' }).click();
+  await page.getByRole('button', { name: 'Quay về mặc định' }).click();
   await expect(page.locator('.llm-status-badge')).toHaveCount(0);
   await question(page).fill('Câu hỏi mặc định');
   await question(page).press('Enter');

@@ -33,9 +33,15 @@ export default function App() {
   const [busy, setBusy] = useState<'predict' | 'dishes' | 'search' | 'detail' | null>(null);
   const [llmConfig, setLlmConfig] = useState<LlmUserConfig | null>(loadLlmConfig);
   const [llmModalOpen, setLlmModalOpen] = useState(false);
+  const [llmModalInitialMode, setLlmModalInitialMode] = useState<'default' | 'custom' | undefined>(undefined);
   const request = useRef<AbortController | null>(null);
   const main = useRef<HTMLElement>(null);
   const previousView = useRef(view);
+
+  function openLlmModal(mode?: 'default' | 'custom') {
+    setLlmModalInitialMode(mode);
+    setLlmModalOpen(true);
+  }
 
   useEffect(() => {
     const pop = () => { cancel(); setError(null); setErrorCode(null); if (currentView() === 'assistant') setAssistantDocument(null); setView(currentView()); };
@@ -120,7 +126,7 @@ export default function App() {
       <a className="logo" href={routes.upload} onClick={event => link(event, 'upload')}><span aria-hidden="true">🍳</span> CookLens</a>
       <div className="nav-links">{(Object.keys(labels) as View[]).map(next => <a key={next} href={routes[next]} aria-current={view === next ? 'page' : undefined} onClick={event => link(event, next)}>{labels[next]}</a>)}</div>
       <div className="navbar-actions">
-        <button type="button" className={`llm-nav-btn${llmConfig ? ' is-configured' : ''}`} onClick={() => setLlmModalOpen(true)} title="Cấu hình API Key LLM">
+        <button type="button" className={`llm-nav-btn${llmConfig ? ' is-configured' : ''}`} onClick={() => openLlmModal()} title="Cấu hình API Key LLM">
           <Key size={17} aria-hidden="true" />
           <span>{llmConfig ? `${LLM_PRESETS[llmConfig.provider].shortLabel} · ${llmConfig.model}` : 'Cấu hình LLM'}</span>
         </button>
@@ -135,11 +141,12 @@ export default function App() {
       {view === 'upload' && <UploadPage image={image} busy={busy === 'predict'} onFiles={filesChanged} onRemove={() => replaceImage(null)} onPredict={recognize} onInvalid={invalidImage} />}
       {view === 'recognition' && <RecognitionPage image={image} predictions={predictions} chosen={chosen} dishes={dishes} busy={busy === 'dishes'} onChoose={choose} onConfirm={() => findRecipes()} onEdit={editDish} onUpload={() => { cancel(); setError(null); setErrorCode(null); navigate('upload'); }} />}
       {view === 'recipes' && <RecipePage dish={confirmed} recipes={recipes} detail={detail} busy={busy === 'search' ? 'search' : busy === 'detail' ? 'detail' : null} onOpen={openRecipe} onBack={() => { setDetail(null); setRecipeDocument(null); }} onSearch={query => findRecipes(confirmed, query)} onChooseDish={() => { cancel(); setError(null); setErrorCode(null); navigate('recognition'); }} onAssistant={() => { if (recipeDocument) { cancel(); setError(null); setErrorCode(null); setAssistantDocument(recipeDocument); navigate('assistant'); } }} />}
-      {view === 'assistant' && <AssistantPage key={assistantDocument ? `${assistantDocument.recipe.id}:${assistantDocument.corpus_version}` : 'restore'} document={assistantDocument} llmConfig={llmConfig} onOpenLlmSettings={() => setLlmModalOpen(true)} onRecipes={() => { setAssistantDocument(null); navigate('recipes'); }} />}
+      {view === 'assistant' && <AssistantPage key={assistantDocument ? `${assistantDocument.recipe.id}:${assistantDocument.corpus_version}` : 'restore'} document={assistantDocument} llmConfig={llmConfig} onOpenLlmSettings={openLlmModal} onRecipes={() => { setAssistantDocument(null); navigate('recipes'); }} />}
     </main>
     <footer><div className="footer-inner"><a className="footer-brand" href={routes.upload} onClick={event => link(event, 'upload')}><span aria-hidden="true">🍳</span> CookLens</a><span>© {new Date().getFullYear()} CookLens. Từ ảnh món ăn đến công thức của bạn.</span><a href="#main">Về đầu trang <ArrowRight size={16} aria-hidden="true" /></a></div></footer>
     <LlmSettingsModal
       open={llmModalOpen}
+      initialMode={llmModalInitialMode}
       currentConfig={llmConfig}
       onSave={cfg => { saveLlmConfig(cfg); setLlmConfig(cfg); setLlmModalOpen(false); }}
       onClear={() => { clearLlmConfig(); setLlmConfig(null); setLlmModalOpen(false); }}

@@ -20,7 +20,7 @@ const CONFIG_ERROR_CODES = new Set([
 export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, onRecipes }: {
   document: RecipeDocument | null;
   llmConfig: LlmUserConfig | null;
-  onOpenLlmSettings: () => void;
+  onOpenLlmSettings: (mode?: 'default' | 'custom') => void;
   onRecipes: () => void;
 }) {
   const [session, setSession] = useState<AssistantSession | null>(null);
@@ -153,14 +153,14 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
             {`BYOK: ${LLM_PRESETS[llmConfig.provider].shortLabel} · ${llmConfig.model}`}
           </span>
         )}
-        <button type="button" className="text-btn" onClick={onOpenLlmSettings}>
+        <button type="button" className="text-btn" onClick={() => onOpenLlmSettings()}>
           <Key size={15} aria-hidden="true" /> Cấu hình API Key
         </button>
       </div>
     </div>
     {storageWarning && <p className="assistant-notice" role="status">Trình duyệt chưa lưu được phiên. Bạn vẫn có thể nấu, nhưng có thể cần chọn lại công thức khi tải lại trang.</p>}
     {(error || retry) && <div className="error-message" role="alert"><div><p>{error || 'Yêu cầu trước chưa được xác nhận. Thử lại cùng yêu cầu hoặc bỏ yêu cầu đang chờ trước khi tiếp tục.'}</p><p>Nội dung chưa gửi vẫn được giữ trong ô hỏi.</p></div><div className="assistant-error-actions">
-      {errorCode && CONFIG_ERROR_CODES.has(errorCode) && <button type="button" className="secondary-btn" onClick={onOpenLlmSettings}><Key size={16} aria-hidden="true" /> Cấu hình API Key LLM</button>}
+      {errorCode && CONFIG_ERROR_CODES.has(errorCode) && <button type="button" className="secondary-btn" onClick={() => onOpenLlmSettings('custom')}><Key size={16} aria-hidden="true" /> Cấu hình API Key LLM</button>}
       {retry && <button className="secondary-btn" disabled={busy} onClick={() => void perform(retry)}>Thử lại yêu cầu</button>}
       <button className="text-btn" disabled={busy} onClick={refresh}>Kiểm tra phiên</button>
       {retry && <button className="text-btn" disabled={busy} onClick={() => { setRetry(null); setDraft(''); refresh(); }}>Bỏ câu hỏi đang chờ</button>}
