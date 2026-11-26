@@ -18,7 +18,7 @@ else:
     raise RuntimeError('Qdrant not ready')
 for _ in range(2):
     subprocess.run([sys.executable, '-m', 'ai.rag.ingestion.seed'], check=True, stdout=subprocess.DEVNULL)
-process = subprocess.Popen([sys.executable, '-m', 'uvicorn', 'ai.rag.api.main:app', '--host', '127.0.0.1', '--port', '8001', '--no-access-log'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+process = subprocess.Popen([sys.executable, '-m', 'uvicorn', 'ai.rag.api.main:app', '--host', '127.0.0.1', '--port', '8001', '--no-access-log'], stdout=subprocess.DEVNULL)
 def call(path, body=None):
     request = urllib.request.Request('http://127.0.0.1:8001'+path, data=json.dumps(body).encode() if body is not None else None, headers={'Content-Type':'application/json'})
     try:
@@ -61,7 +61,10 @@ try:
     status,detail=call('/recipes/wb_pho_ga')
     assert status==200 and detail['recipe']['ingredients'] and detail['recipe']['instructions']
     assert detail['recipe']['source']['license']=='CC-BY-SA-4.0'
-    assert call('/search',{'confirmed_dish':'banh_pia'})[1]['recipes'][0]['source']['name']=='CookLens — công thức do AI biên soạn'
+    status,detail=call('/recipes/cooklens_banh_pia_home')
+    assert status==200 and detail['recipe']['normalized_dish']=='banh_pia'
+    source=detail['recipe']['source']
+    assert source['name']=='CookLens — công thức do AI biên soạn' and source['license']=='CC-BY-4.0'
     assert call('/search',{'confirmed_dish':'unknown_dish'})[0]==422
     assert call('/search',{'confirmed_dish':'pho','top_k':True})[0]==422
     assert call('/recipes/unknown_recipe')[0]==404
@@ -80,7 +83,10 @@ finally:
 
 
 def docker(*arguments, **kwargs):
-    return subprocess.run(["docker", *arguments], check=True, capture_output=True, text=True, **kwargs).stdout
+    try:
+        return subprocess.run(["docker", *arguments], check=True, capture_output=True, text=True, **kwargs).stdout
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError(f"Docker {arguments[0]} failed:\n{error.stderr}") from error
 
 
 def main():
