@@ -1,4 +1,4 @@
-import { CheckSquare, PencilSimple } from '@phosphor-icons/react';
+import { CheckSquare, PencilSimple, WarningCircle } from '@phosphor-icons/react';
 import type { Dish, Prediction, SelectedImage } from '../types';
 
 interface Props {
@@ -14,19 +14,34 @@ interface Props {
 }
 
 export default function RecognitionPage({ image, predictions, chosen, dishes, busy, onChoose, onConfirm, onEdit, onUpload }: Props) {
+  const lowConfidence = predictions.length > 0 && predictions[0].confidence < 0.5;
+  const formatConfidence = (value: number) => new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(value * 100);
+
   function candidate(prediction: Prediction) {
     return <label className={`prediction-choice${chosen?.class_id === prediction.class_id ? ' is-selected' : ''}`} key={prediction.class_id}>
       <input type="radio" name="dish" checked={chosen?.class_id === prediction.class_id} onChange={() => onChoose(prediction)} />
       <span className="candidate-copy"><span className="rank">Khả năng {prediction.rank}</span><strong>{prediction.display_name}</strong></span>
-      <span className="confidence">{new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(prediction.confidence * 100)}%</span>
+      <span className="confidence">{formatConfidence(prediction.confidence)}%</span>
     </label>;
   }
   return <section className="section" aria-labelledby="recognition-title">
-    <div className="section-title"><h1 id="recognition-title">Kết quả nhận diện</h1><p>Ba gợi ý từ ảnh của bạn. Hãy chọn món đúng để tìm công thức.</p></div>
+    <div className="section-title"><h1 id="recognition-title">Kết quả nhận diện</h1><p>{lowConfidence ? 'Ảnh chưa đạt độ rõ hoặc độ tin cậy tối thiểu để gợi ý món.' : 'Ba gợi ý từ ảnh của bạn. Hãy chọn món đúng để tìm công thức.'}</p></div>
     {predictions.length === 0 ? <div className="empty-state">
       <h2>Chưa có kết quả nhận diện</h2><p>Hãy tải ảnh và nhấn “Nhận diện món” để bắt đầu.</p>
       <button className="primary-btn" onClick={onUpload}>Tải ảnh món ăn</button>
-    </div> : <>
+    </div> : lowConfidence ? <>
+      {image && <div className="recognition-photo"><img src={image.url} alt="Ảnh món ăn đang nhận diện" /><span>{image.file.name}</span><button className="text-btn" onClick={onUpload}>Đổi ảnh</button></div>}
+      <div className="vision-warning-card" role="alert">
+        <div className="vision-warning-copy">
+          <WarningCircle size={28} aria-hidden="true" />
+          <div>
+            <h2>Ảnh có vấn đề hoặc không nhận diện được món ăn</h2>
+            <p>Độ tin cậy cao nhất chỉ đạt {formatConfidence(predictions[0].confidence)}% (dưới ngưỡng 50%). Ảnh có thể bị mờ, thiếu sáng, chứa nhiều vật thể hoặc không thuộc 30 món Việt hỗ trợ.</p>
+          </div>
+        </div>
+        <button type="button" className="primary-btn" onClick={onUpload}>Chọn / tải ảnh khác</button>
+      </div>
+    </> : <>
       {image && <div className="recognition-photo"><img src={image.url} alt="Ảnh món ăn đang nhận diện" /><span>{image.file.name}</span><button className="text-btn" onClick={onUpload}>Đổi ảnh</button></div>}
       <div className="recognition-container" role="radiogroup" aria-label="Chọn món từ ba gợi ý">
         <div className="result-card"><h2>Món ăn được nhận diện</h2><div id="mainResult">{candidate(predictions[0])}</div><p className="muted" id="confidence">Độ tin cậy của mô hình, không phải xác nhận món ăn.</p></div>

@@ -230,3 +230,37 @@ test('changing the confirmed dish discards a late recipe response', async ({ pag
   release();
   await expect(page.getByRole('heading', { name: summary.title })).toHaveCount(0);
 });
+
+test('blurry and low-confidence vision errors hide dish suggestions and offer re-upload', async ({ page }) => {
+  for (const [code, text] of [['IMAGE_BLURRY', 'Ảnh bị mờ'], ['LOW_CONFIDENCE_PREDICTION', 'dưới 50%']] as const) {
+    await page.route('**/api/vision/predict', route => route.fulfill({ status: 422, ...json({ code }) }));
+    await upload(page);
+    await page.locator('#predictBtn').click();
+    await expect(page.getByRole('alert')).toContainText(text);
+    await expect(page).not.toHaveURL(/recognition\.html$/);
+    await expect(page.getByRole('radio')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Chọn / tải ảnh khác' }).click();
+    await expect(page.locator('#previewText')).toBeVisible();
+  }
+});
+
+test('defensive UI guard hides suggestions and confirmation when top-1 confidence is below 50%', async ({ page }, testInfo) => {
+  const lowPredictions = [
+    { rank: 1, class_id: 28, normalized_dish: 'pho', display_name: 'Phở', confidence: 0.42 },
+    { rank: 2, class_id: 14, normalized_dish: 'bun_bo_hue', display_name: 'Bún bò Huế', confidence: 0.31 },
+    { rank: 3, class_id: 3, normalized_dish: 'banh_canh', display_name: 'Bánh canh', confidence: 0.12 },
+  ];
+  await page.route('**/api/vision/predict', route => route.fulfill(json({ predictions: lowPredictions })));
+  await upload(page);
+  await page.locator('#predictBtn').click();
+  await expect(page).toHaveURL(/recognition\.html$/);
+  await expect(page.getByRole('alert')).toContainText('dưới ngưỡng 50%');
+  await expect(page.getByRole('radio')).toHaveCount(0);
+  await expect(page.locator('#confirmButton')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Sửa món trong danh mục' })).toHaveCount(0);
+  if (process.env.COOKLENS_SCREENSHOT_DIR && testInfo.project.name === 'desktop') {
+    await page.screenshot({ path: `${process.env.COOKLENS_SCREENSHOT_DIR}/recognition-low-confidence.png` });
+  }
+  await page.getByRole('button', { name: 'Chọn / tải ảnh khác' }).click();
+  await expect(page).toHaveURL(/index\.html$/);
+});

@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
-import { IconContext, BowlFood, ArrowRight } from '@phosphor-icons/react';
-import type { Dish, Prediction, RecipeDetail, RecipeDocument, RecipeSummary, SelectedImage, View } from './types';
+import { IconContext, BowlFood, ArrowRight, Key } from '@phosphor-icons/react';
+import type { Dish, LlmUserConfig, Prediction, RecipeDetail, RecipeDocument, RecipeSummary, SelectedImage, View } from './types';
 import * as api from './lib/api';
+import { clearLlmConfig, LLM_PRESETS, loadLlmConfig, saveLlmConfig } from './lib/llmConfig';
 import UploadPage from './features/UploadPage';
 import RecognitionPage from './features/RecognitionPage';
 import RecipePage from './features/RecipePage';
 import AssistantPage from './features/AssistantPage';
+import LlmSettingsModal from './features/LlmSettingsModal';
 
 const routes: Record<View, string> = { upload: '/index.html', recognition: '/recognition.html', recipes: '/recipe.html', assistant: '/assistant.html' };
 const labels: Record<View, string> = { upload: 'Trang chủ', recognition: 'Nhận diện', recipes: 'Công thức', assistant: 'Trợ lý' };
@@ -27,13 +29,16 @@ export default function App() {
   const [recipeDocument, setRecipeDocument] = useState<RecipeDocument | null>(null);
   const [assistantDocument, setAssistantDocument] = useState<RecipeDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [busy, setBusy] = useState<'predict' | 'dishes' | 'search' | 'detail' | null>(null);
+  const [llmConfig, setLlmConfig] = useState<LlmUserConfig | null>(loadLlmConfig);
+  const [llmModalOpen, setLlmModalOpen] = useState(false);
   const request = useRef<AbortController | null>(null);
   const main = useRef<HTMLElement>(null);
   const previousView = useRef(view);
 
   useEffect(() => {
-    const pop = () => { cancel(); setError(null); if (currentView() === 'assistant') setAssistantDocument(null); setView(currentView()); };
+    const pop = () => { cancel(); setError(null); setErrorCode(null); if (currentView() === 'assistant') setAssistantDocument(null); setView(currentView()); };
     window.addEventListener('popstate', pop);
     return () => { window.removeEventListener('popstate', pop); request.current?.abort(); };
   }, []);
@@ -49,31 +54,34 @@ export default function App() {
   }
   function link(event: MouseEvent<HTMLAnchorElement>, next: View) {
     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-    event.preventDefault(); cancel(); setError(null); if (next === 'assistant') setAssistantDocument(null); navigate(next);
+    event.preventDefault(); cancel(); setError(null); setErrorCode(null); if (next === 'assistant') setAssistantDocument(null); navigate(next);
   }
   function cancel() { request.current?.abort(); request.current = null; setBusy(null); }
   function resetRecipes() { setConfirmed(null); setRecipes(null); setDetail(null); setRecipeDocument(null); }
   function replaceImage(next: SelectedImage | null) {
-    cancel(); imageRef.current = next; setImage(next); setPredictions([]); setChosen(null); resetRecipes(); setError(null);
+    cancel(); imageRef.current = next; setImage(next); setPredictions([]); setChosen(null); resetRecipes(); setError(null); setErrorCode(null);
   }
   function filesChanged(files: FileList | null) {
     if (!files?.length) return;
-    if (files.length !== 1) { setError('Vui lòng chọn một ảnh cho mỗi lần nhận diện.'); return; }
+    if (files.length !== 1) { setError('Vui lòng chọn một ảnh cho mỗi lần nhận diện.'); setErrorCode(null); return; }
     const file = files[0];
-    if (!['image/jpeg', 'image/png'].includes(file.type)) { setError('Hãy chọn ảnh JPG hoặc PNG.'); return; }
-    if (file.size === 0 || file.size > 10 * 1024 * 1024) { setError('Ảnh phải có nội dung và không quá 10 MiB.'); return; }
+    if (!['image/jpeg', 'image/png'].includes(file.type)) { setError('Hãy chọn ảnh JPG hoặc PNG.'); setErrorCode(null); return; }
+    if (file.size === 0 || file.size > 10 * 1024 * 1024) { setError('Ảnh phải có nội dung và không quá 10 MiB.'); setErrorCode(null); return; }
     replaceImage({ file, url: URL.createObjectURL(file) });
   }
   function invalidImage(file: File, message: string) {
     if (imageRef.current?.file !== file) return;
-    replaceImage(null); setError(message);
+    replaceImage(null); setError(message); setErrorCode(null);
   }
   async function run(task: NonNullable<typeof busy>, action: (signal: AbortSignal) => Promise<void>) {
     cancel();
-    const controller = new AbortController(); request.current = controller; setBusy(task); setError(null);
+    const controller = new AbortController(); request.current = controller; setBusy(task); setError(null); setErrorCode(null);
     try { await action(controller.signal); }
     catch (failure) {
-      if (!controller.signal.aborted) setError(failure instanceof api.ApiError ? failure.message : 'Chưa xử lý được yêu cầu. Vui lòng thử lại.');
+      if (!controller.signal.aborted) {
+        setError(failure instanceof api.ApiError ? failure.message : 'Chưa xử lý được yêu cầu. Vui lòng thử lại.');
+        setErrorCode(failure instanceof api.ApiError ? (failure.code || null) : null);
+      }
     } finally { if (request.current === controller) { request.current = null; setBusy(null); } }
   }
   async function recognize() {
@@ -84,7 +92,7 @@ export default function App() {
       if (!signal.aborted) { setPredictions(result); navigate('recognition'); }
     });
   }
-  function choose(dish: Dish | null) { cancel(); setChosen(dish); resetRecipes(); setError(null); }
+  function choose(dish: Dish | null) { cancel(); setChosen(dish); resetRecipes(); setError(null); setErrorCode(null); }
   async function editDish() {
     if (dishes) return;
     await run('dishes', async signal => { const result = await api.getDishes(signal); if (!signal.aborted) setDishes(result); });
@@ -105,19 +113,37 @@ export default function App() {
       if (!signal.aborted) { setDetail(result.recipe); setRecipeDocument(result); }
     });
   }
+  const visionIssue = errorCode === 'IMAGE_BLURRY' || errorCode === 'LOW_CONFIDENCE_PREDICTION';
   return <IconContext.Provider value={{ weight: 'regular', size: 22 }}>
     <a className="skip-link" href="#main">Đến nội dung chính</a>
     <header className="header"><nav className="navbar" aria-label="Điều hướng chính">
       <a className="logo" href={routes.upload} onClick={event => link(event, 'upload')}><span aria-hidden="true">🍳</span> CookLens</a>
-      <div className="nav-links">{(Object.keys(labels) as View[]).map(next => <a key={next} href={routes[next]} aria-current={view === next ? 'page' : undefined} onClick={event => link(event, next)}>{labels[next]}</a>)}</div><span className="header-note"><BowlFood aria-hidden="true" /> Vị Việt, bếp nhà</span>
+      <div className="nav-links">{(Object.keys(labels) as View[]).map(next => <a key={next} href={routes[next]} aria-current={view === next ? 'page' : undefined} onClick={event => link(event, next)}>{labels[next]}</a>)}</div>
+      <div className="navbar-actions">
+        <button type="button" className={`llm-nav-btn${llmConfig ? ' is-configured' : ''}`} onClick={() => setLlmModalOpen(true)} title="Cấu hình API Key LLM">
+          <Key size={17} aria-hidden="true" />
+          <span>{llmConfig ? `${LLM_PRESETS[llmConfig.provider].shortLabel} · ${llmConfig.model}` : 'Cấu hình LLM'}</span>
+        </button>
+        <span className="header-note"><BowlFood aria-hidden="true" /> Vị Việt, bếp nhà</span>
+      </div>
     </nav></header>
     <main id="main" ref={main} tabIndex={-1}>
-      {error && <div className="error-message" role="alert"><p>{error}</p><button className="text-btn" onClick={() => setError(null)}>Đóng thông báo</button></div>}
+      {error && <div className="error-message" role="alert"><p>{error}</p><div className="error-actions">
+        {visionIssue && <button type="button" className="secondary-btn" onClick={() => { replaceImage(null); navigate('upload'); }}>Chọn / tải ảnh khác</button>}
+        <button className="text-btn" onClick={() => { setError(null); setErrorCode(null); }}>Đóng thông báo</button>
+      </div></div>}
       {view === 'upload' && <UploadPage image={image} busy={busy === 'predict'} onFiles={filesChanged} onRemove={() => replaceImage(null)} onPredict={recognize} onInvalid={invalidImage} />}
-      {view === 'recognition' && <RecognitionPage image={image} predictions={predictions} chosen={chosen} dishes={dishes} busy={busy === 'dishes'} onChoose={choose} onConfirm={() => findRecipes()} onEdit={editDish} onUpload={() => { cancel(); navigate('upload'); }} />}
-      {view === 'recipes' && <RecipePage dish={confirmed} recipes={recipes} detail={detail} busy={busy === 'search' ? 'search' : busy === 'detail' ? 'detail' : null} onOpen={openRecipe} onBack={() => { setDetail(null); setRecipeDocument(null); }} onSearch={query => findRecipes(confirmed, query)} onChooseDish={() => { cancel(); setError(null); navigate('recognition'); }} onAssistant={() => { if (recipeDocument) { cancel(); setError(null); setAssistantDocument(recipeDocument); navigate('assistant'); } }} />}
-      {view === 'assistant' && <AssistantPage key={assistantDocument ? `${assistantDocument.recipe.id}:${assistantDocument.corpus_version}` : 'restore'} document={assistantDocument} onRecipes={() => { setAssistantDocument(null); navigate('recipes'); }} />}
+      {view === 'recognition' && <RecognitionPage image={image} predictions={predictions} chosen={chosen} dishes={dishes} busy={busy === 'dishes'} onChoose={choose} onConfirm={() => findRecipes()} onEdit={editDish} onUpload={() => { cancel(); setError(null); setErrorCode(null); navigate('upload'); }} />}
+      {view === 'recipes' && <RecipePage dish={confirmed} recipes={recipes} detail={detail} busy={busy === 'search' ? 'search' : busy === 'detail' ? 'detail' : null} onOpen={openRecipe} onBack={() => { setDetail(null); setRecipeDocument(null); }} onSearch={query => findRecipes(confirmed, query)} onChooseDish={() => { cancel(); setError(null); setErrorCode(null); navigate('recognition'); }} onAssistant={() => { if (recipeDocument) { cancel(); setError(null); setErrorCode(null); setAssistantDocument(recipeDocument); navigate('assistant'); } }} />}
+      {view === 'assistant' && <AssistantPage key={assistantDocument ? `${assistantDocument.recipe.id}:${assistantDocument.corpus_version}` : 'restore'} document={assistantDocument} llmConfig={llmConfig} onOpenLlmSettings={() => setLlmModalOpen(true)} onRecipes={() => { setAssistantDocument(null); navigate('recipes'); }} />}
     </main>
     <footer><div className="footer-inner"><a className="footer-brand" href={routes.upload} onClick={event => link(event, 'upload')}><span aria-hidden="true">🍳</span> CookLens</a><span>© {new Date().getFullYear()} CookLens. Từ ảnh món ăn đến công thức của bạn.</span><a href="#main">Về đầu trang <ArrowRight size={16} aria-hidden="true" /></a></div></footer>
+    <LlmSettingsModal
+      open={llmModalOpen}
+      currentConfig={llmConfig}
+      onSave={cfg => { saveLlmConfig(cfg); setLlmConfig(cfg); setLlmModalOpen(false); }}
+      onClear={() => { clearLlmConfig(); setLlmConfig(null); setLlmModalOpen(false); }}
+      onClose={() => setLlmModalOpen(false)}
+    />
   </IconContext.Provider>;
 }
