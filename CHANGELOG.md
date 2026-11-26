@@ -13,6 +13,11 @@ Nó phản ánh kết quả đang có trong repository, không thay thế issue,
 
 ## [Unreleased]
 
+### Fixed
+
+- Khi mở lại trợ lý từ chi tiết công thức, tạo phiên nấu mới nếu phiên trước đã kết thúc. [#30](https://github.com/tung51652-alt/Cooking-assistant/issues/30)
+- Rút gọn phần xem trước công thức theo ranh giới từ và thêm dấu chấm lửng. [#34](https://github.com/tung51652-alt/Cooking-assistant/issues/34)
+
 ## 2.0.0 — 2026-11-25
 
 ### Added

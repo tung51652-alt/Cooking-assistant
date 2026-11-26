@@ -84,7 +84,8 @@ export default function AssistantPage({ document, onRecipes }: { document: Recip
       try {
         const restored = await api.getSession(previous.id, signal);
         if (restored.recipe.id !== previous.recipeId) throw new api.ApiError('Phiên trả về không khớp công thức đã chọn.');
-        if (document && (restored.corpus_version !== document.corpus_version || restored.recipe_version !== document.recipe.updated_at))
+        if (document && (restored.status === 'finished' || restored.corpus_version !== document.corpus_version
+          || restored.recipe_version !== document.recipe.updated_at))
           return api.createSession((createBody(document, creation.current) as Extract<Pending, { kind: 'create' }>).body, signal);
         return restored;
       } catch (failure) {
