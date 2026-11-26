@@ -136,9 +136,9 @@ export default function App() {
       <a className="logo" href={routes.upload} onClick={event => link(event, 'upload')}><span aria-hidden="true">🍳</span> CookLens</a>
       <div className="nav-links">{(Object.keys(labels) as View[]).map(next => <a key={next} href={routes[next]} aria-current={view === next ? 'page' : undefined} onClick={event => link(event, next)}>{labels[next]}</a>)}</div>
       <div className="navbar-actions">
-        <button type="button" className={`llm-nav-btn${llmConfig ? ' is-configured' : ''}`} onClick={() => openLlmModal()} title="Cấu hình API Key LLM">
+        <button type="button" className={`llm-nav-btn${llmConfig ? ' is-configured' : ''}`} onClick={() => openLlmModal()} title="Cài đặt trợ lý">
           <Key size={17} aria-hidden="true" />
-          <span>{llmConfig ? `${LLM_PRESETS[llmConfig.provider].shortLabel} · ${llmConfig.model}` : 'Cấu hình LLM'}</span>
+          <span>{llmConfig ? `${LLM_PRESETS[llmConfig.provider].shortLabel} · ${llmConfig.model}` : 'Cài đặt trợ lý'}</span>
         </button>
         <span className="header-note"><BowlFood aria-hidden="true" /> Vị Việt, bếp nhà</span>
       </div>
