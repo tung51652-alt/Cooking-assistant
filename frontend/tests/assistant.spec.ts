@@ -212,3 +212,103 @@ test('recipe entry creates the chosen snapshot, then selecting another recipe cr
   expect(current.messages).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test('LLM settings modal validates inputs, tests hello, saves to localStorage, sends BYOK headers and clears', async ({ page }, testInfo) => {
+  const state = await restored(page);
+  const sentHeaders: Record<string, string>[] = [];
+  await page.route('**/api/assistant/llm/test', async route => {
+    const body = route.request().postDataJSON();
+    expect(body).toEqual({
+      provider: 'openai',
+      base_url: 'https://api.openai.com/v1',
+      model: 'gpt-4o-mini',
+      api_key: 'sk-test-valid-12345',
+    });
+    await route.fulfill(json({ ok: true, provider: 'openai', model: 'gpt-4o-mini', reply: 'Hello! Tôi sẵn sàng hỗ trợ bạn nấu ăn.', latency_ms: 88 }));
+  });
+  await page.route('**/api/assistant/sessions/*/messages', async route => {
+    sentHeaders.push(route.request().headers());
+    const body = route.request().postDataJSON();
+    if (sentHeaders.length === 1) {
+      await route.fulfill(json({ code: 'ASSISTANT_NOT_CONFIGURED' }, 503));
+      return;
+    }
+    message(state, body.text);
+    await route.fulfill(json({ session: state }));
+  });
+
+  await open(page);
+  await expect(page.locator('.llm-status-badge')).toHaveCount(0);
+
+  await page.locator('.llm-nav-btn').click();
+  const defaultDialog = page.getByRole('dialog', { name: 'Cấu hình API Key LLM' });
+  await expect(defaultDialog).toBeVisible();
+  await expect(defaultDialog.getByRole('radio', { name: /Mặc định hệ thống/ })).toHaveAttribute('aria-checked', 'true');
+  await expect(defaultDialog).toContainText('Đang sử dụng cấu hình mặc định của máy chủ');
+  await expect(defaultDialog.getByRole('button', { name: 'Lưu', exact: true })).toBeVisible();
+  await expect(defaultDialog.getByRole('textbox', { name: /^API Key/ })).toHaveCount(0);
+  await defaultDialog.getByRole('radio', { name: /Tự cấu hình API Key/ }).click();
+  await expect(defaultDialog.getByRole('textbox', { name: /^API Key/ })).toBeVisible();
+  await defaultDialog.getByRole('button', { name: 'Quay về mặc định' }).click();
+  await expect(defaultDialog.getByRole('textbox', { name: /^API Key/ })).toHaveCount(0);
+  await defaultDialog.getByRole('button', { name: 'Đóng', exact: true }).click();
+  await expect(defaultDialog).toHaveCount(0);
+
+  await question(page).fill('Mấy phút sôi?');
+  await question(page).press('Enter');
+  await expect(page.getByRole('alert')).toContainText('chưa được cấu hình');
+  await page.getByRole('alert').getByRole('button', { name: 'Cấu hình API Key LLM', exact: true }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Cấu hình API Key LLM' });
+  await expect(dialog).toBeVisible();
+
+  await dialog.getByRole('radio', { name: /Custom OpenAI-compatible/ }).click();
+  await expect(dialog.getByLabel('Base URL (OpenAI-compatible)')).toBeEditable();
+  await dialog.getByLabel('Base URL (OpenAI-compatible)').fill('http://evil.example/api');
+  await expect(dialog).toContainText('HTTPS');
+
+  await dialog.getByRole('radio', { name: /OpenAI\s/ }).first().click();
+  await expect(dialog.getByLabel('Base URL (OpenAI-compatible)')).toHaveValue('https://api.openai.com/v1');
+
+  const keyInput = dialog.getByRole('textbox', { name: /^API Key/ });
+  await keyInput.fill('bad key');
+  await expect(dialog).toContainText('không được chứa khoảng trắng');
+  await keyInput.fill('sk-test-valid-12345');
+  await expect(dialog).toContainText('Định dạng API key hợp lệ');
+
+  await dialog.getByRole('button', { name: 'Hiện API key' }).click();
+  await expect(keyInput).toHaveAttribute('type', 'text');
+  await dialog.getByRole('button', { name: 'Ẩn API key' }).click();
+  await expect(keyInput).toHaveAttribute('type', 'password');
+
+  await dialog.getByRole('textbox', { name: 'Tên Model' }).fill('bad model!');
+  await expect(dialog).toContainText('tối đa 200 ký tự');
+  await dialog.getByRole('button', { name: 'gpt-4o-mini' }).click();
+  await expect(dialog).toContainText('Tên model hợp lệ.');
+
+  await dialog.getByRole('button', { name: 'Kiểm tra kết nối (Test hello)' }).click();
+  await expect(dialog).toContainText('Done / OK');
+  await expect(dialog).toContainText('Hello! Tôi sẵn sàng hỗ trợ bạn nấu ăn.');
+  if (process.env.COOKLENS_SCREENSHOT_DIR && testInfo.project.name === 'desktop') {
+    await page.screenshot({ path: `${process.env.COOKLENS_SCREENSHOT_DIR}/llm-settings-hello-ok.png` });
+  }
+
+  await dialog.getByRole('button', { name: 'Lưu cấu hình' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('.llm-status-badge')).toContainText('BYOK: OpenAI · gpt-4o-mini');
+
+  await page.getByRole('button', { name: 'Gửi câu hỏi' }).click();
+  await expect(page.getByRole('log')).toContainText('Theo công thức');
+  expect(sentHeaders[1]['x-llm-provider']).toBe('openai');
+  expect(sentHeaders[1]['x-llm-base-url']).toBe('https://api.openai.com/v1');
+  expect(sentHeaders[1]['x-llm-model']).toBe('gpt-4o-mini');
+  expect(sentHeaders[1]['x-llm-api-key']).toBe('sk-test-valid-12345');
+
+  await page.locator('.llm-nav-btn').click();
+  await page.getByRole('button', { name: 'Quay về mặc định' }).click();
+  await expect(page.locator('.llm-status-badge')).toHaveCount(0);
+  await question(page).fill('Câu hỏi mặc định');
+  await question(page).press('Enter');
+  await expect(page.getByRole('log')).toContainText('Câu hỏi mặc định');
+  expect(sentHeaders[2]['x-llm-api-key']).toBeUndefined();
+});

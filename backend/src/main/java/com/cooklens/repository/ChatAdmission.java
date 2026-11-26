@@ -15,6 +15,9 @@ public final class ChatAdmission {
     private static String sessionKey(String session) { return fingerprint("session",session,0); }
     private static String month(long now) { return YearMonth.from(Instant.ofEpochMilli(now).atZone(ZoneOffset.UTC)).toString(); }
     public void reserve(Connection c, String session, String operation, String model, Quote quote, long now) throws SQLException {
+        reserve(c, session, operation, model, quote, now, false);
+    }
+    public void reserve(Connection c, String session, String operation, String model, Quote quote, long now, boolean byok) throws SQLException {
         try (var query=c.prepareStatement("SELECT COUNT(*) FROM llm_calls WHERE session_key=? AND admitted_at>?")) {
             query.setString(1,sessionKey(session)); query.setLong(2,now-60000);
             try (var rows=query.executeQuery()) {
@@ -22,8 +25,11 @@ public final class ChatAdmission {
             }
         }
         String month=month(now);
-        long total=total(c,month);
-        if (total>=LIMIT || quote.reservedMicros()>LIMIT-total) throw new ApiFailure(503,"ASSISTANT_BUDGET_EXCEEDED");
+        long total=0;
+        if (!byok) {
+            total=total(c,month);
+            if (total>=LIMIT || quote.reservedMicros()>LIMIT-total) throw new ApiFailure(503,"ASSISTANT_BUDGET_EXCEEDED");
+        }
         try (var insert=c.prepareStatement("""
                 INSERT INTO llm_calls(call_key,session_key,month,admitted_at,model,reserved_micros,input_rate,output_rate,status)
                 VALUES (?,?,?,?,?,?,?,?,'reserved')
@@ -32,7 +38,7 @@ public final class ChatAdmission {
             insert.setLong(4,now); insert.setString(5,model); insert.setLong(6,quote.reservedMicros());
             insert.setLong(7,quote.inputRateMicrosPerMillion()); insert.setLong(8,quote.outputRateMicrosPerMillion()); insert.executeUpdate();
         }
-        warn(c,month,total+quote.reservedMicros());
+        if (!byok) warn(c,month,total+quote.reservedMicros());
     }
     public void settle(Connection c, String session, String operation, Usage usage, String outcome) throws SQLException {
         String month;

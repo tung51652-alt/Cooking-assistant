@@ -867,4 +867,34 @@ class AssistantServiceTest {
         assertEquals(2, reloadedBanhMi.totalSteps());
         assertEquals(2L, reloadedBanhMi.version());
     }
+
+    @Test
+    void byokWorksWhenServerEnvHasNoApiKeyConfigured() throws Exception {
+        Session session = freshSession();
+        var unconfiguredEnv = new LlmSettings("openai", "", "", "", "20", "512", "6000");
+        var mockProvider = mock(ChatProvider.class);
+        String userKey = "sk-user-" + uuid();
+        when(mockProvider.complete(any(), any())).thenReturn(
+                new ChatProvider.Completion("Xin chào từ BYOK!", "openai", "gpt-4o-mini", new ChatProvider.Usage(10L, 5L)));
+
+        var svc = configured(unconfiguredEnv, mockProvider);
+        // Without BYOK headers, unconfigured env fails with 503 ASSISTANT_NOT_CONFIGURED
+        assertFailure(503, "ASSISTANT_NOT_CONFIGURED",
+                () -> svc.message(session.id(), new SessionMessage("Hỏi mặc định", 0L, uuid()), uuid()));
+
+        // With BYOK override, works even though env has no API key
+        var userOverride = new LlmSettings.UserOverride("openai", null, "gpt-4o-mini", userKey);
+        Session answered = svc.message(session.id(), new SessionMessage("Hỏi BYOK", 0L, uuid()), uuid(),
+                new AssistantTiming(), userOverride).session();
+        assertEquals(1L, answered.version());
+        assertEquals("Xin chào từ BYOK!", answered.messages().get(1).text());
+
+        // testLlm works even when env is unconfigured
+        var testRes = svc.testLlm(new LlmTestRequest("openai", null, "gpt-4o-mini", userKey), uuid());
+        assertTrue(testRes.ok());
+        assertEquals("openai", testRes.provider());
+        assertEquals("gpt-4o-mini", testRes.model());
+        assertEquals("Xin chào từ BYOK!", testRes.reply());
+        verify(mockProvider, times(2)).complete(any(), any());
+    }
 }

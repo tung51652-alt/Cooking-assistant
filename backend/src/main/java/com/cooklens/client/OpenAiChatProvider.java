@@ -24,6 +24,7 @@ public final class OpenAiChatProvider implements ChatProvider {
     }
     @Override public void requireConfigured() { settings.requireConfigured(); }
     @Override public void validate(Prompt prompt) { payload(prompt,settings.requireConfigured()); }
+    @Override public void validate(Prompt prompt, Connection config) { payload(prompt,config); }
     private byte[] payload(Prompt prompt, Connection config) {
         ChatPromptLimits.validate(prompt,config.maxInputTokens());
         byte[] payload;
@@ -45,7 +46,9 @@ public final class OpenAiChatProvider implements ChatProvider {
         return payload;
     }
     @Override public Completion complete(Prompt prompt) {
-        Connection config=settings.requireConfigured();
+        return complete(prompt, settings.requireConfigured());
+    }
+    @Override public Completion complete(Prompt prompt, Connection config) {
         byte[] payload=payload(prompt,config);
         var request=HttpRequest.newBuilder(config.endpoint()).timeout(config.timeout())
                 .header("Authorization","Bearer "+config.key()).header("Content-Type","application/json")
@@ -66,6 +69,10 @@ public final class OpenAiChatProvider implements ChatProvider {
             LoggerFactory.getLogger(OpenAiChatProvider.class).warn("Assistant provider HTTP status {}",received.statusCode());
             switch (received.statusCode()) {
                 case 401,403 -> throw new Failure(503,"ASSISTANT_PROVIDER_AUTH_FAILED",Usage.unknown());
+                case 400,404 -> {
+                    if (config.byok()) throw new Failure(422,"ASSISTANT_MODEL_INVALID",Usage.unknown());
+                    throw unavailable(Usage.unknown());
+                }
                 case 429 -> throw new Failure(429,"ASSISTANT_RATE_LIMITED",Usage.unknown());
                 case 402 -> throw new Failure(503,"ASSISTANT_BUDGET_EXCEEDED",Usage.unknown());
                 default -> throw unavailable(Usage.unknown());
@@ -77,33 +84,56 @@ public final class OpenAiChatProvider implements ChatProvider {
                 throw unavailable(usage);
             JsonNode root=mapper.readTree(received.body());
             if (root==null || !root.isObject()) throw unavailable(usage);
-            usage=usage(root.get("usage"));
+            usage=usage(root.get("usage"), config.byok());
             var choices=root.path("choices");
-            boolean modelMatches=config.model().equals(root.path("model").textValue())
-                    || (config.model().equals(LlmSettings.NVIDIA_BOLT_ALIAS) && LlmSettings.NVIDIA_BOLT_MODEL.equals(root.path("model").textValue()))
-                    || (config.model().equals(LlmSettings.NVIDIA_SUPER_MODEL) && LlmSettings.NVIDIA_SUPER_REPORTED_MODEL.equals(root.path("model").textValue()));
+            String reportedModel=root.path("model").textValue();
+            boolean modelMatches=modelMatches(config, reportedModel);
             if (!modelMatches) LoggerFactory.getLogger(OpenAiChatProvider.class).warn("Assistant provider response model mismatch");
             if (!root.path("model").isTextual() || !modelMatches
                     || !choices.isArray() || choices.size()!=1) throw unavailable(usage);
             var choice=choices.get(0); var message=choice.path("message"); var content=message.path("content");
+            String finishReason=choice.path("finish_reason").asText();
+            boolean finishOk="stop".equals(finishReason) || (config.byok() && "length".equals(finishReason));
             if (!choice.path("index").isIntegralNumber() || !choice.path("index").canConvertToLong() || choice.path("index").longValue()!=0
-                    || !choice.path("finish_reason").asText().equals("stop") || !message.path("role").asText().equals("assistant")
+                    || !finishOk || !message.path("role").asText().equals("assistant")
                     || !content.isTextual() || content.textValue().isBlank() || content.textValue().length()>16384
                     || (message.hasNonNull("tool_calls") && (!message.path("tool_calls").isArray() || !message.path("tool_calls").isEmpty()))
                     || message.hasNonNull("function_call") || message.hasNonNull("refusal")
                     || (usage.outputTokens()!=null && usage.outputTokens()>config.maxOutputTokens())) throw unavailable(usage);
-            return new Completion(content.textValue(),"openai",root.path("model").textValue(),usage);
+            return new Completion(content.textValue(),"openai",reportedModel,usage);
         } catch (java.io.IOException | IllegalArgumentException e) { throw unavailable(usage); }
     }
-    private Usage usage(JsonNode value) {
+    private boolean modelMatches(Connection config, String reportedModel) {
+        if (reportedModel == null || reportedModel.isBlank()) return false;
+        String requested = config.model();
+        if (requested.equals(reportedModel)
+                || (requested.equals(LlmSettings.NVIDIA_BOLT_ALIAS) && LlmSettings.NVIDIA_BOLT_MODEL.equals(reportedModel))
+                || (requested.equals(LlmSettings.NVIDIA_SUPER_MODEL) && LlmSettings.NVIDIA_SUPER_REPORTED_MODEL.equals(reportedModel))) {
+            return true;
+        }
+        if (!config.byok()) return false;
+        String req = stripModelsPrefix(requested);
+        String rep = stripModelsPrefix(reportedModel);
+        return rep.equals(req)
+                || rep.startsWith(req + "-")
+                || rep.startsWith(req + ":")
+                || rep.startsWith(req + "@");
+    }
+    private static String stripModelsPrefix(String model) {
+        return model.startsWith("models/") ? model.substring("models/".length()) : model;
+    }
+    private Usage usage(JsonNode value, boolean byok) {
         if (value==null || value.isNull()) return Usage.unknown();
         if (!value.isObject()) throw unavailable(Usage.unknown());
         Long input=null, output=null;
         try {
             input=tokenCount(value.get("prompt_tokens")); output=tokenCount(value.get("completion_tokens"));
             Long total=tokenCount(value.get("total_tokens"));
-            if (input!=null && output!=null && total!=null && (input>Long.MAX_VALUE-output || input+output!=total))
-                throw unavailable(new Usage(input,output));
+            if (input!=null && output!=null && total!=null) {
+                if (input>Long.MAX_VALUE-output) throw unavailable(new Usage(input,output));
+                long sum=input+output;
+                if (byok ? sum>total : sum!=total) throw unavailable(new Usage(input,output));
+            }
             return new Usage(input,output);
         } catch (Failure failure) { throw unavailable(new Usage(input,output)); }
     }
