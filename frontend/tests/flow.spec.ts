@@ -68,6 +68,34 @@ test('upload, manual Top-3 selection, search, detail and image reset', async ({ 
   await expect(page.getByText('Bạn muốn nấu món gì?', { exact: true })).toBeVisible();
 });
 
+test('corpus bun dau renders extracted quantities and verified servings', async ({ page }) => {
+  const corpus = JSON.parse(readFileSync('../data/recipes/corpus.json', 'utf8'));
+  const recipe = corpus.find((item: { id: string }) => item.id === 'wb_bun_dau_mam_tom');
+  const dish = taxonomy.find((item: { normalized_dish: string }) => item.normalized_dish === recipe.normalized_dish);
+  const recipeSummary = { id: recipe.id, title: recipe.title, normalized_dish: recipe.normalized_dish,
+    language: recipe.language, cuisine: recipe.cuisine, servings: recipe.servings,
+    prep_time_minutes: recipe.prep_time_minutes, cook_time_minutes: recipe.cook_time_minutes,
+    preview: 'Công thức từ corpus', source: recipe.source, rank: 1, retrieval_score: .8 };
+  await page.route('**/api/vision/predict', route => route.fulfill(json({ predictions: [
+    { ...dish, rank: 1, confidence: .9 },
+    { ...predictions[0], rank: 2, confidence: .07 },
+    { ...predictions[1], rank: 3, confidence: .03 },
+  ] })));
+  await page.route('**/api/recipes/search', route => route.fulfill(json({ confirmed_dish: dish.normalized_dish, recipes: [recipeSummary] })));
+  await page.route(`**/api/recipes/${recipe.id}`, route => route.fulfill(json({ recipe })));
+  await upload(page);
+  await page.getByRole('button', { name: 'Nhận diện món', exact: true }).click();
+  await page.getByRole('radio').first().check();
+  await page.getByRole('button', { name: 'Xác nhận món' }).click();
+  await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
+  const noodles = page.locator('#ingredients li').filter({ has: page.getByText('Bún lá', { exact: true }) });
+  await expect(noodles.locator('strong')).toHaveText('1,2 kg');
+  const sauce = page.locator('#ingredients li').filter({ has: page.getByText('Mắm tôm', { exact: true }) });
+  await expect(sauce.locator('strong')).toHaveText('1 bát');
+  await expect(page.locator('#recipeInfo')).toContainText('4 người');
+  await expect(page.locator('#recipeInfo').getByText('Chưa có thông tin', { exact: true })).toHaveCount(2);
+});
+
 test('local upload validation and truthful service failure', async ({ page }) => {
   await page.goto('/');
   await page.locator('#imageInput').setInputFiles({ name: 'bad.txt', mimeType: 'text/plain', buffer: Buffer.from('text') });
