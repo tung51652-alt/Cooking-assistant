@@ -313,8 +313,9 @@ footer { border-top: 1px solid var(--line); background: #f3e6d3; }
 .llm-default-box { display: flex; align-items: flex-start; gap: 12px; padding: 18px; border-radius: 18px; background: var(--soft); border: 1px solid var(--line); color: #3a312b; }
 .llm-default-box > svg { flex-shrink: 0; color: #246b33; margin-top: 2px; }
 .llm-default-copy { display: grid; gap: 6px; }
-.llm-default-copy strong { display: block; font-size: 14px; margin: 0; }
+.llm-default-copy > strong { display: block; font-size: 14px; margin: 0; }
 .llm-default-copy p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.llm-default-copy p strong { color: #3a312b; font-weight: 700; }
 
 .llm-steps { display: grid; gap: 18px; }
 .llm-step { padding: 18px; border-radius: 18px; background: var(--soft); border: 1px solid var(--line); }
