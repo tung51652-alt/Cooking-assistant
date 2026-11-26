@@ -4,7 +4,7 @@ import * as api from '../lib/api';
 import { Source } from './RecipePage';
 
 const STORAGE = 'cooklens.assistant.session';
-const labels: Record<AssistantAction, string> = { start: 'Bắt đầu nấu', previous: 'Bước trước', repeat: 'Nhắc lại', next: 'Bước tiếp', finish: 'Kết thúc nấu' };
+const labels = { start: 'Bắt đầu nấu', previous: 'Bước trước', next: 'Bước tiếp', finish: 'Kết thúc nấu' };
 type Pending = { kind: 'create'; body: CreateSession } | { kind: 'action'; id: string; body: SessionActionRequest } | { kind: 'message'; id: string; body: SessionMessageRequest };
 type Saved = { id: string; recipeId: string };
 
@@ -144,7 +144,6 @@ export default function AssistantPage({ document, onRecipes }: { document: Recip
         <div className="assistant-controls" aria-label="Điều khiển bước nấu">
           {session.status === 'ready' ? <button className="primary-btn" disabled={busy || unavailable || !!retry} onClick={() => act('start')}>{labels.start}</button> : <>
             <button className="secondary-btn" disabled={busy || closed || !!retry || session.current_step <= 1 || session.history.length >= 99} onClick={() => act('previous')}>{labels.previous}</button>
-            <button className="secondary-btn" disabled={busy || closed || !!retry || session.history.length >= 99} onClick={() => act('repeat')}>{labels.repeat}</button>
             <button className="primary-btn" disabled={busy || closed || !!retry || session.current_step >= session.total_steps || session.history.length >= 99} onClick={() => act('next')}>{labels.next}</button>
             <button className="text-btn" disabled={busy || closed || !!retry} onClick={() => act('finish')}>{labels.finish}</button>
           </>}

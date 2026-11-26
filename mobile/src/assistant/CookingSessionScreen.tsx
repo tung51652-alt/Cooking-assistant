@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useSyncExternalStore } from 'react';
-import { AccessibilityInfo, ActivityIndicator, AppState, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, AppState, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { RecipeSource } from '../../../packages/cooklens-api/types';
 import { messageLimit, type createCookingSessionController } from './session-controller';
 
@@ -87,16 +87,6 @@ export function CookingSessionScreen({ controller, Button, Source, onStartOver, 
           onPress={() => { void controller.act('next'); }} />
         <Button title="Bước trước" secondary disabled={!canAct || actionLimit || session.current_step <= 1}
           onPress={() => { void controller.act('previous'); }} />
-        <Button title="Nhắc lại bước này" secondary disabled={!canAct || actionLimit}
-          onPress={() => {
-            void controller.act('repeat').then(() => {
-              const current = controller.getSnapshot();
-              if (!current.error && current.session?.id === session.id && current.session.version > session.version
-                && current.session.current_step === session.current_step && stepLabel && step) {
-                AccessibilityInfo.announceForAccessibility(`${stepLabel}. ${step.text}`);
-              }
-            });
-          }} />
       </>}
       {session.status !== 'finished' && <Button title="Kết thúc phiên" secondary disabled={!canAct}
         onPress={() => { void controller.act('finish'); }} />}
