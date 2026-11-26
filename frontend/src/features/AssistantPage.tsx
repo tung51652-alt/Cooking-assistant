@@ -4,6 +4,7 @@ import * as api from '../lib/api';
 import { Source } from './RecipePage';
 
 const STORAGE = 'cooklens.assistant.session';
+const RESEND_CODES = new Set(['ASSISTANT_PROVIDER_UNAVAILABLE', 'ASSISTANT_PROVIDER_TIMEOUT', 'ASSISTANT_RATE_LIMITED']);
 const labels: Record<AssistantAction, string> = { start: 'Bắt đầu nấu', previous: 'Bước trước', repeat: 'Nhắc lại', next: 'Bước tiếp', finish: 'Kết thúc nấu' };
 type Pending = { kind: 'create'; body: CreateSession } | { kind: 'action'; id: string; body: SessionActionRequest } | { kind: 'message'; id: string; body: SessionMessageRequest };
 type Saved = { id: string; recipeId: string };
@@ -13,6 +14,7 @@ export default function AssistantPage({ document, onRecipes }: { document: Recip
   const sessionRef = useRef<AssistantSession | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [storageWarning, setStorageWarning] = useState(false);
   const [retry, setRetry] = useState<Pending | null>(null);
@@ -42,7 +44,7 @@ export default function AssistantPage({ document, onRecipes }: { document: Recip
   async function run(work: (signal: AbortSignal) => Promise<AssistantSession | null>, operation?: Pending) {
     if (active.current) return;
     const controller = new AbortController(), ticket = generation.current;
-    active.current = controller; setBusy(true); setError(null); if (operation) setRetry(null);
+    active.current = controller; setBusy(true); setError(null); setErrorCode(null); if (operation) setRetry(null);
     if (operation?.kind === 'message') focusReply.current = true;
     const live = () => !controller.signal.aborted && ticket === generation.current;
     try {
@@ -56,6 +58,7 @@ export default function AssistantPage({ document, onRecipes }: { document: Recip
       if (!live()) return;
       const known = failure instanceof api.ApiError ? failure : null;
       setError(known?.message || 'Chưa kết nối được trợ lý. Hãy kiểm tra phiên trước khi thử lại.');
+      setErrorCode(known?.code ?? null);
       if (known?.status === 404 || known?.status === 410) setUnavailable(true);
       if (operation && (!known?.code || known.code === 'ASSISTANT_REQUEST_IN_PROGRESS')) setRetry(operation);
       if (known?.code === 'SESSION_VERSION_CONFLICT' && sessionRef.current) {
@@ -124,12 +127,14 @@ export default function AssistantPage({ document, onRecipes }: { document: Recip
   const step = session?.recipe.instructions.find(item => item.step === session.current_step);
   const closed = !session || session.status === 'finished' || unavailable;
   const quota = (session?.messages.length || 0) >= 60;
+  const canResend = !retry && !closed && !quota && !!draft.trim() && !!errorCode && RESEND_CODES.has(errorCode);
   return <section className="section assistant-page" aria-labelledby="assistant-title">
     <div className="section-title"><h1 id="assistant-title">Trợ lý nấu ăn</h1><p>Hỏi về công thức đã chọn và tự điều khiển từng bước nấu.</p></div>
     <div className="assistant-toolbar"><button className="text-btn" onClick={onRecipes}>← Chọn công thức khác</button>{session && <button className="text-btn" disabled={busy} onClick={newSession}>Tạo phiên mới</button>}</div>
     {storageWarning && <p className="assistant-notice" role="status">Trình duyệt chưa lưu được phiên. Bạn vẫn có thể nấu, nhưng có thể cần chọn lại công thức khi tải lại trang.</p>}
     {(error || retry) && <div className="error-message" role="alert"><div><p>{error || 'Yêu cầu trước chưa được xác nhận. Thử lại cùng yêu cầu hoặc bỏ yêu cầu đang chờ trước khi tiếp tục.'}</p><p>Nội dung chưa gửi vẫn được giữ trong ô hỏi.</p></div><div className="assistant-error-actions">
       {retry && <button className="secondary-btn" disabled={busy} onClick={() => void perform(retry)}>Thử lại yêu cầu</button>}
+      {canResend && <button className="secondary-btn" disabled={busy} onClick={send}>Gửi lại câu hỏi</button>}
       <button className="text-btn" disabled={busy} onClick={refresh}>Kiểm tra phiên</button>
       {retry && <button className="text-btn" disabled={busy} onClick={() => { setRetry(null); setDraft(''); refresh(); }}>Bỏ câu hỏi đang chờ</button>}
     </div></div>}

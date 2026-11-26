@@ -134,14 +134,15 @@ class AssistantJvmRestartTest {
         } return null; });
         stop(); start();
         error(send(route+"/messages",question("Vượt rate sau restart",2,id())),429,"ASSISTANT_RATE_LIMITED");
-        assertEquals(11,calls.get()); assertEquals(12,scalar("SELECT COUNT(*) FROM llm_calls"));
+        // Each of the 9 HTTP 503 turns retries once upstream (20 calls total) without adding extra ledger/rate entries (12 rows).
+        assertEquals(20,calls.get()); assertEquals(12,scalar("SELECT COUNT(*) FROM llm_calls"));
         assertEquals("finished",session(send(route+"/messages",question("kết thúc",2,id()))).path("status").asText());
         long remaining=10_000_000-scalar("SELECT SUM(COALESCE(charged_micros,reserved_micros)) FROM llm_calls");
         store().transact(c -> { new ChatAdmission().reserve(c,id(),id(),"mock-budget",new Quote(remaining,0,0),System.currentTimeMillis()); return null; });
         stop(); start();
         JsonNode fresh=create();
         error(send("/api/assistant/sessions/"+fresh.path("id").asText()+"/messages",question("Hết ngân sách",0,id())),503,"ASSISTANT_BUDGET_EXCEEDED");
-        assertEquals(1,scalar("SELECT COUNT(*) FROM llm_budget_warnings")); assertEquals(11,calls.get());
+        assertEquals(1,scalar("SELECT COUNT(*) FROM llm_budget_warnings")); assertEquals(20,calls.get());
         assertEquals(200,send("/api/health",null).statusCode()); stop();
         for (var log:logs) assertFalse(Files.readString(log).contains(key));
     }

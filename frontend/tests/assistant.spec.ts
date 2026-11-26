@@ -112,10 +112,31 @@ for (const code of ['ASSISTANT_NOT_CONFIGURED', 'ASSISTANT_PROVIDER_UNAVAILABLE'
     await open(page); await question(page).fill('Giữ câu hỏi này'); await question(page).press('Enter');
     await expect(page.getByRole('alert')).toBeVisible(); await expect(question(page)).toHaveValue('Giữ câu hỏi này');
     await expect(page.getByRole('button', { name: 'Thử lại yêu cầu' })).toHaveCount(0);
+    if (code === 'ASSISTANT_PROVIDER_UNAVAILABLE') await expect(page.getByRole('button', { name: 'Gửi lại câu hỏi' })).toBeVisible();
+    else await expect(page.getByRole('button', { name: 'Gửi lại câu hỏi' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
     await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
   });
 }
+
+test('provider unavailable offers resend with a fresh operation ID and clears draft on success', async ({ page }) => {
+  const state = await restored(page);
+  const bodies: { text: string; operation_id: string }[] = [];
+  await page.route('**/api/assistant/sessions/*/messages', async route => {
+    const body = route.request().postDataJSON(); bodies.push(body);
+    if (bodies.length === 1) return route.fulfill(json({ code: 'ASSISTANT_PROVIDER_UNAVAILABLE' }, 503));
+    message(state, body.text);
+    return route.fulfill(json({ session: state }));
+  });
+  await open(page); await question(page).fill('Hỏi lại sau 503'); await question(page).press('Enter');
+  await expect(page.getByRole('button', { name: 'Gửi lại câu hỏi' })).toBeVisible();
+  await page.getByRole('button', { name: 'Gửi lại câu hỏi' }).click();
+  await expect(page.getByRole('log')).toContainText('200 g');
+  await expect(question(page)).toHaveValue('');
+  expect(bodies).toHaveLength(2);
+  expect(bodies[1].text).toBe('Hỏi lại sau 503');
+  expect(bodies[1].operation_id).not.toBe(bodies[0].operation_id);
+});
 
 test('version conflict refreshes server state and preserves unsent text', async ({ page }) => {
   const state = await restored(page);
