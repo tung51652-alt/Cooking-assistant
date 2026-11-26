@@ -8,3 +8,4 @@
 Phạm vi: frontend; không đổi API hoặc lưu ảnh/kết quả nhận diện.
 Đã thêm kiểm thử hồi quy cho điều hướng, reload và storage.
 TypeScript và build Vite đạt; 6 lượt E2E trên desktop và mobile 390×844 đạt với Chrome đã cài.
+Sau khi cập nhật test chọn công thức khác theo luồng về thẳng danh sách, toàn bộ 62 lượt E2E desktop/mobile đạt.

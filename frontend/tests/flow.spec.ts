@@ -229,11 +229,11 @@ test('catalog correction, empty recipes and malformed predictions', async ({ pag
   await expect(page.getByText('Chưa có công thức phù hợp', { exact: true })).toBeVisible();
 });
 
-test('responsive navigation, direct entry and no chatbot or external assets', async ({ page }, testInfo) => {
+test('responsive navigation, direct entry and no chatbot or external assets', async ({ page, baseURL }, testInfo) => {
   const errors: string[] = [];
   const external: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  page.on('request', request => { if (!request.url().startsWith('http://127.0.0.1:4173') && !request.url().startsWith('blob:')) external.push(request.url()); });
+  page.on('request', request => { if (!request.url().startsWith('blob:') && new URL(request.url()).origin !== new URL(baseURL!).origin) external.push(request.url()); });
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Chụp món ngon. Tìm cách nấu.', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /Chat|Hỏi CookLens|Chế độ nấu/ })).toHaveCount(0);
