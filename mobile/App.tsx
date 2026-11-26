@@ -16,6 +16,10 @@ import { filterDishes } from './src/dishes';
 
 type Page = 'upload' | 'recognition' | 'recipes' | 'detail' | 'cooking';
 const configuredUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+const sessionStore = createSessionPointerStore(SecureStore);
+const confidenceFormat = new Intl.NumberFormat('vi-VN', {
+  style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1,
+});
 let api: ReturnType<typeof createApi> | null = null;
 let gateway: string | null = null;
 const nativeFileUploader: NativeFileUploader = async (url, file, requestId, signal) => {
@@ -36,24 +40,55 @@ try {
   }
 } catch { /* Show configuration help below. */ }
 
-function Button({ title, onPress, disabled = false, secondary = false }: {
-  title: string; onPress: () => void; disabled?: boolean; secondary?: boolean;
+function Button({ title, onPress, disabled = false, secondary = false, expanded }: {
+  title: string; onPress: () => void; disabled?: boolean; secondary?: boolean; expanded?: boolean;
 }) {
-  return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled}
+  return <Pressable accessibilityRole="button" accessibilityState={{ disabled, expanded }} disabled={disabled}
     onPress={onPress} style={({ pressed }) => [styles.button, secondary && styles.secondary,
       (disabled || pressed) && { opacity: .55 }]}>
     <Text style={[styles.buttonText, secondary && { color: '#713b1f' }]}>{title}</Text>
   </Pressable>;
 }
 
+function ResumeCooking({ gateway, disabled, onResume }: {
+  gateway: string; disabled: boolean; onResume: () => void;
+}) {
+  const [saved, setSaved] = useState<'loading' | 'available' | 'empty' | 'unavailable'>('loading');
+  useEffect(() => {
+    let active = true;
+    void sessionStore.read(gateway).then(
+      pointer => { if (active) setSaved(pointer ? 'available' : 'empty'); },
+      () => { if (active) setSaved('unavailable'); },
+    );
+    return () => { active = false; };
+  }, [gateway]);
+
+  if (saved === 'loading') return null;
+  if (saved === 'available') return <Button title="Tiếp tục phiên nấu" secondary disabled={disabled} onPress={onResume} />;
+  return <Text style={styles.small}>{saved === 'empty'
+    ? 'Bạn chưa có phiên nấu đã lưu. Chọn ảnh món ăn để bắt đầu.'
+    : 'Chưa đọc được phiên nấu đã lưu. Bạn vẫn có thể chọn ảnh để bắt đầu.'}</Text>;
+}
+
+function sourceNotes(text: string) {
+  return text.replace(/chưa xác (?:định|thực) để `?null\b`?/gi, 'chưa có thông tin')
+    .replace(/vẫn `?null\b`?/gi, 'vẫn chưa có thông tin')
+    .replace(/(?:giữ|để) `?null\b`?/gi, 'để trống');
+}
+
 function Source({ source }: { source: RecipeSource }) {
+  const [expanded, setExpanded] = useState(false);
   let href: string | null = null;
   try { const url = new URL(source.url); if (['https:', 'http:'].includes(url.protocol) && !url.username && !url.password) href = url.href; } catch { /* Plain attribution remains visible. */ }
   return <View style={styles.source}>
     <Text style={styles.label}>Nguồn: {source.name}</Text>
-    <Text style={styles.small}>{source.license}</Text><Text style={styles.body}>{source.attribution}</Text>
-    {!!source.modifications && <Text style={styles.small}>{source.modifications}</Text>}
-    {!!href && <Button title="Mở nguồn công thức" secondary onPress={() => { Linking.openURL(href!).catch(() => Alert.alert('Chưa mở được nguồn', 'Hãy kiểm tra kết nối rồi thử lại.')); }} />}
+    <Button title={expanded ? 'Ẩn ghi công và ghi chú' : 'Ghi công và ghi chú'} secondary expanded={expanded}
+      onPress={() => setExpanded(open => !open)} />
+    {expanded && <>
+      <Text style={styles.small}>{source.license}</Text><Text style={styles.body}>{source.attribution}</Text>
+      {!!source.modifications && <Text style={styles.small}>{sourceNotes(source.modifications)}</Text>}
+      {!!href && <Button title="Mở nguồn công thức" secondary onPress={() => { Linking.openURL(href!).catch(() => Alert.alert('Chưa mở được nguồn', 'Hãy kiểm tra kết nối rồi thử lại.')); }} />}
+    </>}
   </View>;
 }
 
@@ -68,7 +103,7 @@ function CookLens() {
   const [document, setDetail] = useState<RecipeDocument | null>(null);
   const detail = document?.recipe;
   const [cooking] = useState(() => api && gateway ? createCookingSessionController({
-    api, gateway, store: createSessionPointerStore(SecureStore), operationId: randomUUID,
+    api, gateway, store: sessionStore, operationId: randomUUID,
   }) : null);
   const cookingBackTo = useRef<'upload' | 'detail'>('upload');
   const [manual, setManual] = useState(false);
@@ -235,7 +270,7 @@ function CookLens() {
         <View style={styles.row}><Button title="Chụp ảnh" onPress={() => { void pick(true, true); }} disabled={!!busy} secondary />
           <Button title="Chọn từ thư viện" onPress={() => { void pick(false, true); }} disabled={!!busy} secondary /></View>
         {image && <Button title="Nhận diện món" onPress={recognize} disabled={!!busy || !api || visionIssue} />}
-        {cooking && <Button title="Tiếp tục phiên nấu" secondary disabled={!!busy} onPress={() => openCooking()} />}
+        {cooking && gateway && <ResumeCooking gateway={gateway} disabled={!!busy} onResume={() => openCooking()} />}
         <Text style={styles.small}>Ảnh được chuyển sang JPEG, tối đa 10 MiB và 25 triệu pixel. Ảnh và lựa chọn không được lưu thành lịch sử.</Text>
       </>}
       {page === 'recognition' && (() => {
@@ -244,19 +279,19 @@ function CookLens() {
           {image && <Image source={{ uri: image.uri }} style={styles.thumbnail} accessibilityLabel="Ảnh đang nhận diện" resizeMode="contain" />}
           {lowConfidence ? <View accessibilityRole="alert" style={styles.error}>
             <Text style={styles.label}>Ảnh có vấn đề hoặc không nhận diện được món ăn</Text>
-            <Text style={styles.body}>Độ tin cậy cao nhất chỉ đạt {(predictions[0].confidence * 100).toFixed(1)}% (dưới ngưỡng 50%). Vui lòng chụp hoặc chọn ảnh món ăn rõ nét hơn.</Text>
+            <Text style={styles.body}>Độ tin cậy cao nhất chỉ đạt {confidenceFormat.format(predictions[0].confidence)} (dưới ngưỡng 50%). Vui lòng chụp hoặc chọn ảnh món ăn rõ nét hơn.</Text>
             <View style={styles.row}>
               <Button title="Chọn ảnh khác" onPress={() => { void pick(false, false); }} disabled={!!busy} />
               <Button title="Chụp ảnh mới" secondary onPress={() => { void pick(true, false); }} disabled={!!busy} />
             </View>
           </View> : <>
-            <Text style={styles.body}>Chọn một dự đoán hoặc sửa món trong danh mục. Confidence là điểm model; bạn là người xác nhận.</Text>
+            <Text style={styles.body}>CookLens gợi ý món từ ảnh. Hãy chọn món đúng trước khi xem công thức.</Text>
             <View accessibilityRole="radiogroup" style={{ gap: 12 }}>
               {predictions.map(prediction => <Pressable key={prediction.class_id} accessibilityRole="radio"
                 accessibilityState={{ checked: selected?.class_id === prediction.class_id }} onPress={() => chooseDish(prediction)}
                 style={[styles.card, selected?.class_id === prediction.class_id && styles.selected]}>
                 <Text style={styles.label}>{prediction.rank}. {prediction.display_name}</Text>
-                <Text style={styles.small}>{(prediction.confidence * 100).toFixed(1)}% confidence</Text>
+                <Text style={styles.small}>Độ tin cậy của gợi ý: {confidenceFormat.format(prediction.confidence)}</Text>
               </Pressable>)}
             </View>
             <Button title="Sửa món trong danh mục" secondary onPress={showCatalog} />
@@ -312,13 +347,13 @@ function CookLens() {
       {page === 'cooking' && cooking && <CookingSessionScreen controller={cooking} Button={Button} Source={Source}
         onStartOver={document && cookingBackTo.current === 'detail'
           ? () => { void cooking.openRecipe(document); } : back}
-        startOverLabel={cookingBackTo.current === 'detail' ? 'Tạo phiên mới' : 'Tìm công thức'} scrollToChat={scrollToChat} />}
+        startOverLabel={cookingBackTo.current === 'detail' ? 'Tạo phiên mới' : 'Chọn ảnh món ăn'} scrollToChat={scrollToChat} />}
       {!!busy && <View accessibilityLiveRegion="polite" style={styles.loading}><ActivityIndicator color="#b84415" /><Text style={styles.body}>{busy}</Text></View>}
       {!!busy && !!flight.current && <Button title="Hủy tác vụ" secondary onPress={() => { cancel(); setError(''); retry.current = null; }} />}
       {page !== 'upload' && !!error && <View accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}><Text style={styles.body}>{error}</Text>
         {visionIssue && <Button title="Chọn ảnh khác" onPress={() => { void pick(false, false); }} disabled={!!busy} />}
         {!!retry.current && <Button title="Thử lại" onPress={() => retry.current?.()} disabled={!!busy} />}</View>}
-      <View style={styles.footer}><Text style={styles.small}>Hỗ trợ 30 món Việt. Ảnh ngoài danh mục hoặc nhiều món có thể cho kết quả sai. Công thức lấy từ corpus có nguồn; một số công thức được AI biên soạn và có ghi nguồn rõ ràng.</Text></View>
+      <View style={styles.footer}><Text style={styles.small}>Hỗ trợ 30 món Việt. Ảnh ngoài danh mục hoặc có nhiều món có thể cho gợi ý sai. Bộ công thức có ghi nguồn, gồm cả các công thức do AI biên soạn.</Text></View>
     </ScrollView>
   </SafeAreaView>;
 }
