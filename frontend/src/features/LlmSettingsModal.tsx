@@ -19,6 +19,20 @@ interface Props {
 }
 
 const PROVIDER_ORDER: LlmProviderPreset[] = ['gemini', 'openai', 'nvidia', 'custom'];
+const FOCUSABLE_SELECTOR = [
+  'button:not([disabled])',
+  '[href]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ');
+
+function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
+  if (!container) return [];
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+    .filter(el => !el.hasAttribute('hidden') && el.getClientRects().length > 0);
+}
 
 export default function LlmSettingsModal({ open, initialMode, currentConfig, onSave, onClear, onClose }: Props) {
   const [mode, setMode] = useState<'default' | 'custom'>(initialMode ?? (currentConfig ? 'custom' : 'default'));
@@ -31,6 +45,9 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, onS
   const [testResult, setTestResult] = useState<LlmTestResult | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
     if (!open) {
@@ -51,9 +68,59 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, onS
   }, [open, initialMode, currentConfig]);
 
   useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      wasOpenRef.current = true;
+      openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const frame = requestAnimationFrame(() => {
+        const panel = panelRef.current;
+        if (!panel) return;
+        const target = panel.querySelector<HTMLElement>('[role="radio"][aria-checked="true"]')
+          ?? getFocusableElements(panel)[0]
+          ?? panel;
+        target.focus();
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+    if (!open && wasOpenRef.current) {
+      wasOpenRef.current = false;
+      const target = openerRef.current?.isConnected
+        ? openerRef.current
+        : document.querySelector<HTMLElement>('.llm-nav-btn');
+      openerRef.current = null;
+      target?.focus();
+    }
+  }, [open]);
+
+  useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab' || !panelRef.current) return;
+      const focusables = getFocusableElements(panelRef.current);
+      if (focusables.length === 0) {
+        event.preventDefault();
+        panelRef.current.focus();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (!panelRef.current.contains(active) || active === panelRef.current) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => {
@@ -150,7 +217,7 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, onS
 
   return (
     <div className="modal-backdrop" role="presentation" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="modal-panel llm-modal" role="dialog" aria-modal="true" aria-labelledby="llm-settings-title">
+      <div ref={panelRef} tabIndex={-1} className="modal-panel llm-modal" role="dialog" aria-modal="true" aria-labelledby="llm-settings-title">
         <div className="modal-header">
           <div>
             <p className="assistant-eyebrow">BYOK · Trợ lý nấu ăn</p>
