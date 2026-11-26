@@ -338,3 +338,49 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
   await expect(page.getByRole('log')).toContainText('Câu hỏi mặc định');
   expect(sentHeaders[2]['x-llm-api-key']).toBeUndefined();
 });
+
+test('LLM settings modal moves focus inside on open, traps Tab and Shift+Tab, and restores focus on Escape', async ({ page }) => {
+  await page.goto('/');
+  const opener = page.locator('.llm-nav-btn');
+  await opener.focus();
+  await page.keyboard.press('Enter');
+
+  const dialog = page.getByRole('dialog', { name: 'Cấu hình API Key LLM' });
+  await expect(dialog).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const panel = document.querySelector('.llm-modal');
+    return !!panel && panel.contains(document.activeElement);
+  })).toBe(true);
+
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press('Tab');
+    const inside = await page.evaluate(() => !!document.querySelector('.llm-modal')?.contains(document.activeElement));
+    expect(inside).toBe(true);
+  }
+
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press('Shift+Tab');
+    const inside = await page.evaluate(() => !!document.querySelector('.llm-modal')?.contains(document.activeElement));
+    expect(inside).toBe(true);
+  }
+
+  await page.locator('.llm-modal').focus();
+  await page.keyboard.press('Shift+Tab');
+  const stayedInsideAfterPanelFocus = await page.evaluate(() => {
+    const panel = document.querySelector('.llm-modal');
+    const active = document.activeElement;
+    return !!panel && panel.contains(active) && active !== panel;
+  });
+  expect(stayedInsideAfterPanelFocus).toBe(true);
+
+  await dialog.getByRole('radio', { name: /Tự cấu hình API Key/ }).click();
+  for (let i = 0; i < 20; i++) {
+    await page.keyboard.press('Tab');
+    const inside = await page.evaluate(() => !!document.querySelector('.llm-modal')?.contains(document.activeElement));
+    expect(inside).toBe(true);
+  }
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+});

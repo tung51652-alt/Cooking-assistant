@@ -325,12 +325,24 @@ test('blurry and low-confidence vision errors hide dish suggestions and offer re
   for (const [code, text] of [['IMAGE_BLURRY', 'Ảnh bị mờ'], ['LOW_CONFIDENCE_PREDICTION', 'dưới 50%']] as const) {
     await page.route('**/api/vision/predict', route => route.fulfill({ status: 422, ...json({ code }) }));
     await upload(page);
+    await page.locator('#predictBtn').scrollIntoViewIfNeeded();
     await page.locator('#predictBtn').click();
-    await expect(page.getByRole('alert')).toContainText(text);
+    const alert = page.getByRole('alert');
+    const changeBtn = page.getByRole('button', { name: 'Chọn / tải ảnh khác' });
+    await expect(alert).toContainText(text);
+    await expect(alert).toBeInViewport();
+    await expect(changeBtn).toBeInViewport();
+    await expect(page.locator('#predictBtn')).toBeDisabled();
     await expect(page).not.toHaveURL(/recognition\.html$/);
     await expect(page.getByRole('radio')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Chọn / tải ảnh khác' }).click();
-    await expect(page.locator('#previewText')).toBeVisible();
+    const [chooser] = await Promise.all([
+      page.waitForEvent('filechooser'),
+      changeBtn.click(),
+    ]);
+    await expect(page.locator('#previewImage')).toBeVisible();
+    await chooser.setFiles(png);
+    await expect(alert).toHaveCount(0);
+    await expect(page.locator('#predictBtn')).toBeEnabled();
   }
 });
 

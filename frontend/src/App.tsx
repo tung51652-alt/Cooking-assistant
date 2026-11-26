@@ -150,11 +150,11 @@ export default function App() {
       </div>
     </nav></header>
     <main id="main" ref={main} tabIndex={-1}>
-      {error && <div className="error-message" role="alert"><p>{error}</p><div className="error-actions">
+      {error && view !== 'upload' && <div className="error-message" role="alert"><p>{error}</p><div className="error-actions">
         {visionIssue && <button type="button" className="secondary-btn" onClick={() => { replaceImage(null); navigate('upload'); }}>Chọn / tải ảnh khác</button>}
         <button className="text-btn" onClick={() => { setError(null); setErrorCode(null); }}>Đóng thông báo</button>
       </div></div>}
-      {view === 'upload' && <UploadPage image={image} busy={busy === 'predict'} onFiles={filesChanged} onRemove={() => replaceImage(null)} onPredict={recognize} onInvalid={invalidImage} />}
+      {view === 'upload' && <UploadPage image={image} busy={busy === 'predict'} error={error} visionIssue={visionIssue} onFiles={filesChanged} onRemove={() => replaceImage(null)} onPredict={recognize} onInvalid={invalidImage} onDismissError={() => { setError(null); setErrorCode(null); }} />}
       {view === 'recognition' && <RecognitionPage image={image} predictions={predictions} chosen={chosen} dishes={dishes} busy={busy === 'dishes'} onChoose={choose} onConfirm={() => findRecipes()} onEdit={editDish} onUpload={() => { cancel(); setError(null); setErrorCode(null); navigate('upload'); }} />}
       {view === 'recipes' && <RecipePage dish={confirmed} recipes={recipes} detail={detail} busy={busy === 'search' ? 'search' : busy === 'detail' ? 'detail' : null} onOpen={openRecipe} onBack={() => { setDetail(null); setRecipeDocument(null); }} onSearch={query => findRecipes(confirmed, query)} onChooseDish={() => { cancel(); setError(null); setErrorCode(null); navigate('recognition'); }} onAssistant={() => { if (recipeDocument) { cancel(); setError(null); setErrorCode(null); setAssistantDocument(recipeDocument); navigate('assistant'); } }} />}
       {view === 'assistant' && <AssistantPage key={assistantDocument ? `${assistantDocument.recipe.id}:${assistantDocument.corpus_version}` : 'restore'} document={assistantDocument} llmConfig={llmConfig} onOpenLlmSettings={openLlmModal} onRecipes={() => { setAssistantDocument(null); setDetail(null); setRecipeDocument(null); navigate('recipes'); }} />}
