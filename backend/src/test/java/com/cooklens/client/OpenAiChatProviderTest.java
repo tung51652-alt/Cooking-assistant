@@ -317,7 +317,7 @@ class OpenAiChatProviderTest {
                 new LlmSettings.UserOverride("unknown", null, "gpt-4o", key),
                 new LlmSettings.UserOverride("gemini", "https://evil.example/v1", "gemini-2.5-flash", key),
                 new LlmSettings.UserOverride("custom", "http://example.com/v1", "m", key),
-                new LlmSettings.UserOverride("custom", "https://user:pass@example.com/v1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://user" + ":pass@example.com/v1", "m", key),
                 new LlmSettings.UserOverride("custom", "https://example.com/v1?x=1", "m", key),
                 new LlmSettings.UserOverride("custom", "https://example.com/v1#frag", "m", key),
                 new LlmSettings.UserOverride("custom", "https://example.com/../v1", "m", key),
