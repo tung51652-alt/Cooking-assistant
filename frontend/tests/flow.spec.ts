@@ -264,3 +264,21 @@ test('defensive UI guard hides suggestions and confirmation when top-1 confidenc
   await page.getByRole('button', { name: 'Chọn / tải ảnh khác' }).click();
   await expect(page).toHaveURL(/index\.html$/);
 });
+
+test('navigating from a scrolled upload page to recognition starts below the sticky header', async ({ page }) => {
+  await page.route('**/api/vision/predict', route => route.fulfill(json({ predictions })));
+  await upload(page);
+  await page.locator('#predictBtn').scrollIntoViewIfNeeded();
+  await page.locator('#predictBtn').click();
+  await expect(page).toHaveURL(/recognition\.html$/);
+  await expect(page.locator('.recognition-photo')).toBeVisible();
+  const positions = await page.evaluate(() => {
+    const header = document.querySelector('.header')!.getBoundingClientRect();
+    const title = document.querySelector('#recognition-title')!.getBoundingClientRect();
+    const photo = document.querySelector('.recognition-photo')!.getBoundingClientRect();
+    return { scrollY: window.scrollY, headerBottom: header.bottom, titleTop: title.top, photoTop: photo.top };
+  });
+  expect(positions.scrollY).toBe(0);
+  expect(positions.titleTop).toBeGreaterThanOrEqual(positions.headerBottom);
+  expect(positions.photoTop).toBeGreaterThanOrEqual(positions.headerBottom);
+});

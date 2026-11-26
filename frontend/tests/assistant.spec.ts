@@ -109,8 +109,13 @@ for (const code of ['ASSISTANT_NOT_CONFIGURED', 'ASSISTANT_PROVIDER_UNAVAILABLE'
     await page.route('**/api/assistant/sessions/*/actions', route => {
       const body = route.request().postDataJSON(); action(state, body.action, body.operation_id); return route.fulfill(json({ session: state }));
     });
-    await open(page); await question(page).fill('Giữ câu hỏi này'); await question(page).press('Enter');
-    await expect(page.getByRole('alert')).toBeVisible(); await expect(question(page)).toHaveValue('Giữ câu hỏi này');
+    await open(page);
+    await question(page).scrollIntoViewIfNeeded();
+    await question(page).fill('Giữ câu hỏi này'); await question(page).press('Enter');
+    const inlineAlert = page.locator('.assistant-conversation').getByRole('alert');
+    await expect(inlineAlert).toBeVisible();
+    await expect(inlineAlert).toBeInViewport();
+    await expect(question(page)).toHaveValue('Giữ câu hỏi này');
     await expect(page.getByRole('button', { name: 'Thử lại yêu cầu' })).toHaveCount(0);
     if (code === 'ASSISTANT_PROVIDER_UNAVAILABLE') await expect(page.getByRole('button', { name: 'Gửi lại câu hỏi' })).toBeVisible();
     else await expect(page.getByRole('button', { name: 'Gửi lại câu hỏi' })).toHaveCount(0);
