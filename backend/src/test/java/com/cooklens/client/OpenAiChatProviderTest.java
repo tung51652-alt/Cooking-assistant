@@ -145,9 +145,9 @@ class OpenAiChatProviderTest {
         assertFalse(request.toString().contains("Câu mới")); assertFalse(result.toString().contains(result.text()));
     }
 
-    @Test void mapsHttpErrorsWithoutRetryOrLeakingProviderBody() {
+    @Test void mapsHttpErrorsWithoutLeakingProviderBodyAndRetriesOnlyTransient502And503() {
         var provider=provider(); payload="provider body containing "+key;
-        for (int code:List.of(401,403,429,402,500,503,404,422,202,302)) {
+        for (int code:List.of(401,403,429,402,500,404,422,202,302)) {
             status=code;
             String expected=switch (code) {
                 case 401,403 -> "ASSISTANT_PROVIDER_AUTH_FAILED";
@@ -158,6 +158,61 @@ class OpenAiChatProviderTest {
             int before=calls.get(); failure(code==429 ? 429 : 503,expected,() -> provider.complete(prompt()));
             assertEquals(before+1,calls.get());
         }
+        for (int code:List.of(502,503)) {
+            status=code;
+            int before=calls.get(); failure(503,"ASSISTANT_PROVIDER_UNAVAILABLE",() -> provider.complete(prompt()));
+            assertEquals(before+2,calls.get());
+        }
+    }
+
+    @Test void retriesTransient503OnceAndRecoversWithinDeadline() throws Exception {
+        var transientServer=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        var transientExecutor=Executors.newVirtualThreadPerTaskExecutor();
+        transientServer.setExecutor(transientExecutor);
+        var attempt=new AtomicInteger();
+        transientServer.createContext("/",exchange -> {
+            try (exchange) {
+                exchange.getRequestBody().readAllBytes();
+                int n=attempt.incrementAndGet();
+                byte[] body=(n==1 ? "{\"error\":\"busy\"}" : good().toString()).getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().set("Content-Type","application/json");
+                exchange.sendResponseHeaders(n==1 ? 503 : 200,body.length);
+                exchange.getResponseBody().write(body);
+            }
+        });
+        transientServer.start();
+        try {
+            var transientBase="http://127.0.0.1:"+transientServer.getAddress().getPort()+"/v1";
+            var provider=new OpenAiChatProvider(new LlmSettings("openai",transientBase,LlmSettings.NVIDIA_MODEL,key,"5","512","6000"),mapper);
+            Completion result=provider.complete(prompt());
+            assertEquals(2,attempt.get());
+            assertEquals(good().path("choices").get(0).path("message").path("content").asText(),result.text());
+        } finally { transientServer.stop(0); transientExecutor.shutdownNow(); }
+    }
+
+    @Test void skipsRetryWhenRemainingDeadlineWindowIsTooShort() throws Exception {
+        var slowServer=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        var slowExecutor=Executors.newVirtualThreadPerTaskExecutor();
+        slowServer.setExecutor(slowExecutor);
+        var attempt=new AtomicInteger();
+        slowServer.createContext("/",exchange -> {
+            try (exchange) {
+                exchange.getRequestBody().readAllBytes();
+                attempt.incrementAndGet();
+                try { Thread.sleep(350); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                byte[] body="{\"error\":\"busy\"}".getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().set("Content-Type","application/json");
+                exchange.sendResponseHeaders(503,body.length);
+                exchange.getResponseBody().write(body);
+            }
+        });
+        slowServer.start();
+        try {
+            var slowBase="http://127.0.0.1:"+slowServer.getAddress().getPort()+"/v1";
+            var provider=new OpenAiChatProvider(new LlmSettings("openai",slowBase,LlmSettings.NVIDIA_MODEL,key,"1","512","6000"),mapper);
+            failure(503,"ASSISTANT_PROVIDER_UNAVAILABLE",() -> provider.complete(prompt()));
+            assertEquals(1,attempt.get());
+        } finally { slowServer.stop(0); slowExecutor.shutdownNow(); }
     }
 
     @Test void preservesUnknownAndPartialUsageWithoutInventingZero() {
@@ -167,13 +222,32 @@ class OpenAiChatProviderTest {
         assertEquals(new Usage(120L,null),provider.complete(prompt()).usage());
     }
 
-    @Test void rejectsEmptyTruncatedToolOrWrongModelRepliesButRetainsUsage() {
+    @Test void acceptsLengthFinishReasonAndReasoningTokenTotalsWithinBounds() {
         var provider=provider();
-        for (String mode:List.of("blank","length","tools","role","model","output-limit")) {
+        var truncated=good(); ((ObjectNode)truncated.path("choices").get(0)).put("finish_reason","length");
+        payload=truncated.toString();
+        assertEquals(good().path("choices").get(0).path("message").path("content").asText(),provider.complete(prompt()).text());
+
+        var geminiReasoning=good();
+        ((ObjectNode)geminiReasoning.path("usage")).put("prompt_tokens",15).put("completion_tokens",20).put("total_tokens",60);
+        payload=geminiReasoning.toString();
+        assertEquals(new Usage(15L,20L),provider.complete(prompt()).usage());
+
+        var includedReasoning=good();
+        var includedUsage=(ObjectNode)includedReasoning.path("usage");
+        includedUsage.put("prompt_tokens",100).put("completion_tokens",520).put("total_tokens",620);
+        includedUsage.putObject("completion_tokens_details").put("reasoning_tokens",20);
+        payload=includedReasoning.toString();
+        assertEquals(new Usage(100L,520L),provider.complete(prompt()).usage());
+    }
+
+    @Test void rejectsEmptyToolWrongModelOrExceededRepliesButRetainsUsage() {
+        var provider=provider();
+        for (String mode:List.of("blank","blank-length","tools","role","model","output-limit")) {
             var root=good(); var choice=(ObjectNode)root.path("choices").get(0); var message=(ObjectNode)choice.path("message");
             switch (mode) {
                 case "blank" -> message.put("content"," ");
-                case "length" -> choice.put("finish_reason","length");
+                case "blank-length" -> { choice.put("finish_reason","length"); message.put("content"," "); }
                 case "tools" -> message.putArray("tool_calls").addObject().put("id","tool");
                 case "role" -> message.put("role","system");
                 case "model" -> root.put("model","different-model");
@@ -187,14 +261,16 @@ class OpenAiChatProviderTest {
 
     @Test void rejectsMalformedUsageJsonAndUnexpectedResponseTypes() {
         var provider=provider();
-        for (String mode:List.of("negative","string","float","overflow","wrong-total","array","duplicate","trailing","bad-json")) {
+        for (String mode:List.of("negative","string","float","overflow","wrong-total","bad-reasoning-details","negative-reasoning","array","duplicate","trailing","bad-json")) {
             var root=good(); var usage=(ObjectNode)root.path("usage");
             switch (mode) {
                 case "negative" -> usage.put("prompt_tokens",-1);
                 case "string" -> usage.put("completion_tokens","30");
                 case "float" -> usage.put("completion_tokens",1.5);
                 case "overflow" -> usage.put("total_tokens",new java.math.BigInteger("18446744073709551616"));
-                case "wrong-total" -> usage.put("total_tokens",999);
+                case "wrong-total" -> usage.put("total_tokens",100);
+                case "bad-reasoning-details" -> usage.put("completion_tokens_details","bad");
+                case "negative-reasoning" -> usage.putObject("completion_tokens_details").put("reasoning_tokens",-1);
                 case "array" -> root.putArray("usage");
             }
             payload=switch (mode) {

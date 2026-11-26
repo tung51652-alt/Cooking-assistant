@@ -6,6 +6,7 @@ import { LLM_PRESETS } from '../lib/llmConfig';
 import { Source } from './RecipePage';
 
 const STORAGE = 'cooklens.assistant.session';
+const RESEND_CODES = new Set(['ASSISTANT_PROVIDER_UNAVAILABLE', 'ASSISTANT_PROVIDER_TIMEOUT', 'ASSISTANT_RATE_LIMITED']);
 const labels: Record<AssistantAction, string> = { start: 'Bắt đầu nấu', previous: 'Bước trước', repeat: 'Nhắc lại', next: 'Bước tiếp', finish: 'Kết thúc nấu' };
 type Pending = { kind: 'create'; body: CreateSession } | { kind: 'action'; id: string; body: SessionActionRequest } | { kind: 'message'; id: string; body: SessionMessageRequest };
 type Saved = { id: string; recipeId: string };
@@ -71,7 +72,7 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
       if (!live()) return;
       const known = failure instanceof api.ApiError ? failure : null;
       setError(known?.message || 'Chưa kết nối được trợ lý. Hãy kiểm tra phiên trước khi thử lại.');
-      setErrorCode(known?.code || null);
+      setErrorCode(known?.code ?? null);
       if (known?.status === 404 || known?.status === 410) setUnavailable(true);
       if (operation && (!known?.code || known.code === 'ASSISTANT_REQUEST_IN_PROGRESS')) setRetry(operation);
       if (known?.code === 'SESSION_VERSION_CONFLICT' && sessionRef.current) {
@@ -140,6 +141,7 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
   const step = session?.recipe.instructions.find(item => item.step === session.current_step);
   const closed = !session || session.status === 'finished' || unavailable;
   const quota = (session?.messages.length || 0) >= 60;
+  const canResend = !retry && !closed && !quota && !!draft.trim() && !!errorCode && RESEND_CODES.has(errorCode);
   return <section className="section assistant-page" aria-labelledby="assistant-title">
     <div className="section-title"><h1 id="assistant-title">Trợ lý nấu ăn</h1><p>Hỏi về công thức đã chọn và tự điều khiển từng bước nấu.</p></div>
     <div className="assistant-toolbar">
@@ -162,6 +164,7 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
     {(error || retry) && <div className="error-message" role="alert"><div><p>{error || 'Yêu cầu trước chưa được xác nhận. Thử lại cùng yêu cầu hoặc bỏ yêu cầu đang chờ trước khi tiếp tục.'}</p><p>Nội dung chưa gửi vẫn được giữ trong ô hỏi.</p></div><div className="assistant-error-actions">
       {errorCode && CONFIG_ERROR_CODES.has(errorCode) && <button type="button" className="secondary-btn" onClick={() => onOpenLlmSettings('custom')}><Key size={16} aria-hidden="true" /> Cấu hình API Key LLM</button>}
       {retry && <button className="secondary-btn" disabled={busy} onClick={() => void perform(retry)}>Thử lại yêu cầu</button>}
+      {canResend && <button className="secondary-btn" disabled={busy} onClick={send}>Gửi lại câu hỏi</button>}
       <button className="text-btn" disabled={busy} onClick={refresh}>Kiểm tra phiên</button>
       {retry && <button className="text-btn" disabled={busy} onClick={() => { setRetry(null); setDraft(''); refresh(); }}>Bỏ câu hỏi đang chờ</button>}
     </div></div>}
