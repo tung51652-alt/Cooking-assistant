@@ -244,7 +244,8 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
   const defaultDialog = page.getByRole('dialog', { name: 'Cấu hình API Key LLM' });
   await expect(defaultDialog).toBeVisible();
   await expect(defaultDialog.getByRole('radio', { name: /Mặc định hệ thống/ })).toHaveAttribute('aria-checked', 'true');
-  await expect(defaultDialog).toContainText('Đang sử dụng cấu hình mặc định của máy chủ (.env)');
+  await expect(defaultDialog).toContainText('Đang sử dụng cấu hình mặc định của máy chủ');
+  await expect(defaultDialog.getByRole('button', { name: 'Lưu', exact: true })).toBeVisible();
   await expect(defaultDialog.getByRole('textbox', { name: /^API Key/ })).toHaveCount(0);
   await defaultDialog.getByRole('radio', { name: /Tự cấu hình API Key/ }).click();
   await expect(defaultDialog.getByRole('textbox', { name: /^API Key/ })).toBeVisible();

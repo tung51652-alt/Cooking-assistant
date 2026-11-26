@@ -305,10 +305,9 @@ footer { border-top: 1px solid var(--line); background: #f3e6d3; }
 .llm-mode-option.is-selected { background: #fff0e6; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .llm-mode-option strong { font-size: 14px; }
 .llm-mode-option span { font-size: 12px; color: var(--muted); }
-.llm-default-box { display: flex; align-items: flex-start; gap: 12px; padding: 18px; border-radius: 18px; background: var(--soft); border: 1px solid var(--line); color: #3a312b; }
-.llm-default-box > svg { flex-shrink: 0; margin-top: 2px; color: #246b33; }
-.llm-default-box strong { display: block; font-size: 14px; margin-bottom: 6px; }
-.llm-default-box p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.55; }
+.llm-default-box { display: flex; align-items: center; gap: 12px; padding: 18px; border-radius: 18px; background: var(--soft); border: 1px solid var(--line); color: #3a312b; }
+.llm-default-box > svg { flex-shrink: 0; color: #246b33; }
+.llm-default-box strong { display: block; font-size: 14px; margin: 0; }
 
 .llm-steps { display: grid; gap: 18px; }
 .llm-step { padding: 18px; border-radius: 18px; background: var(--soft); border: 1px solid var(--line); }

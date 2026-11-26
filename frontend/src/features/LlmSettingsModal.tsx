@@ -170,7 +170,7 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, onS
             onClick={() => switchMode('default')}
           >
             <strong>Mặc định hệ thống</strong>
-            <span>Dùng file .env của máy chủ</span>
+            <span>Dùng cấu hình mặc định của máy chủ</span>
           </button>
           <button
             type="button"
@@ -188,24 +188,15 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, onS
           <>
             <div className="llm-default-box">
               <ShieldCheck size={22} aria-hidden="true" />
-              <div>
-                <strong>Đang sử dụng cấu hình mặc định của máy chủ (.env)</strong>
-                <p>Hệ thống tự động dùng cấu hình mặc định trong file .env. Vì lý do bảo mật, thông tin API key mặc định không được hiển thị trên giao diện.</p>
-              </div>
+              <strong>Đang sử dụng cấu hình mặc định của máy chủ</strong>
             </div>
 
             <div className="modal-footer">
               <div className="modal-footer-actions">
                 <button type="button" className="secondary-btn" onClick={onClose}>Đóng</button>
-                {currentConfig ? (
-                  <button type="button" className="primary-btn" onClick={handleBackToDefault}>
-                    Áp dụng mặc định
-                  </button>
-                ) : (
-                  <button type="button" className="primary-btn" onClick={() => switchMode('custom')}>
-                    Tự cấu hình API Key
-                  </button>
-                )}
+                <button type="button" className="primary-btn" onClick={() => (currentConfig ? handleBackToDefault() : onClose())}>
+                  Lưu
+                </button>
               </div>
             </div>
           </>
