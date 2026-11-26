@@ -51,7 +51,11 @@ export default function App() {
   useEffect(() => () => { if (image) URL.revokeObjectURL(image.url); }, [image]);
   useEffect(() => {
     document.title = `CookLens · ${labels[view]}`;
-    if (previousView.current !== view) { previousView.current = view; main.current?.focus(); }
+    if (previousView.current !== view) {
+      previousView.current = view;
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      main.current?.focus({ preventScroll: true });
+    }
   }, [view]);
 
   function navigate(next: View) {

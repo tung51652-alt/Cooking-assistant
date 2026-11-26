@@ -29,6 +29,7 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [errorTarget, setErrorTarget] = useState<'session' | 'message' | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [storageWarning, setStorageWarning] = useState(false);
   const [retry, setRetry] = useState<Pending | null>(null);
@@ -58,7 +59,7 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
   async function run(work: (signal: AbortSignal) => Promise<AssistantSession | null>, operation?: Pending) {
     if (active.current) return;
     const controller = new AbortController(), ticket = generation.current;
-    active.current = controller; setBusy(true); setError(null); setErrorCode(null); if (operation) setRetry(null);
+    active.current = controller; setBusy(true); setError(null); setErrorCode(null); setErrorTarget(null); if (operation) setRetry(null);
     if (operation?.kind === 'message') focusReply.current = true;
     const live = () => !controller.signal.aborted && ticket === generation.current;
     try {
@@ -73,12 +74,17 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
       const known = failure instanceof api.ApiError ? failure : null;
       setError(known?.message || 'Chưa kết nối được trợ lý. Hãy kiểm tra phiên trước khi thử lại.');
       setErrorCode(known?.code ?? null);
+      setErrorTarget(operation?.kind === 'message' ? 'message' : 'session');
       if (known?.status === 404 || known?.status === 410) setUnavailable(true);
       if (operation && (!known?.code || known.code === 'ASSISTANT_REQUEST_IN_PROGRESS')) setRetry(operation);
       if (known?.code === 'SESSION_VERSION_CONFLICT' && sessionRef.current) {
         try {
           const latest = await api.getSession(sessionRef.current.id, controller.signal, sessionRef.current.version);
-          if (live()) { accept(latest); setError('Phiên đã được cập nhật. Hãy xem lại bước và hội thoại trước khi gửi lại.'); setErrorCode(null); }
+          if (live()) {
+            accept(latest);
+            setError('Phiên đã được cập nhật. Hãy xem lại bước và hội thoại trước khi gửi lại.');
+            setErrorCode(null);
+          }
         } catch { /* Keep the original error and the user's text; refresh remains available. */ }
       }
     } finally {
@@ -142,6 +148,14 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
   const closed = !session || session.status === 'finished' || unavailable;
   const quota = (session?.messages.length || 0) >= 60;
   const canResend = !retry && !closed && !quota && !!draft.trim() && !!errorCode && RESEND_CODES.has(errorCode);
+  const inlineChatError = !!session && (errorTarget === 'message' || retry?.kind === 'message');
+  const errorBanner = (error || retry) && <div className={inlineChatError ? 'error-message error-message-inline' : 'error-message'} role="alert"><div><p>{error || 'Yêu cầu trước chưa được xác nhận. Thử lại cùng yêu cầu hoặc bỏ yêu cầu đang chờ trước khi tiếp tục.'}</p><p>Nội dung chưa gửi vẫn được giữ trong ô hỏi.</p></div><div className="assistant-error-actions">
+    {errorCode && CONFIG_ERROR_CODES.has(errorCode) && <button type="button" className="secondary-btn" onClick={() => onOpenLlmSettings('custom')}><Key size={16} aria-hidden="true" /> Cấu hình API Key LLM</button>}
+    {retry && <button className="secondary-btn" disabled={busy} onClick={() => void perform(retry)}>Thử lại yêu cầu</button>}
+    {canResend && <button className="secondary-btn" disabled={busy} onClick={send}>Gửi lại câu hỏi</button>}
+    <button className="text-btn" disabled={busy} onClick={refresh}>Kiểm tra phiên</button>
+    {retry && <button className="text-btn" disabled={busy} onClick={() => { setRetry(null); setDraft(''); refresh(); }}>Bỏ câu hỏi đang chờ</button>}
+  </div></div>;
   return <section className="section assistant-page" aria-labelledby="assistant-title">
     <div className="section-title"><h1 id="assistant-title">Trợ lý nấu ăn</h1><p>Hỏi về công thức đã chọn và tự điều khiển từng bước nấu.</p></div>
     <div className="assistant-toolbar">
@@ -161,13 +175,7 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
       </div>
     </div>
     {storageWarning && <p className="assistant-notice" role="status">Trình duyệt chưa lưu được phiên. Bạn vẫn có thể nấu, nhưng có thể cần chọn lại công thức khi tải lại trang.</p>}
-    {(error || retry) && <div className="error-message" role="alert"><div><p>{error || 'Yêu cầu trước chưa được xác nhận. Thử lại cùng yêu cầu hoặc bỏ yêu cầu đang chờ trước khi tiếp tục.'}</p><p>Nội dung chưa gửi vẫn được giữ trong ô hỏi.</p></div><div className="assistant-error-actions">
-      {errorCode && CONFIG_ERROR_CODES.has(errorCode) && <button type="button" className="secondary-btn" onClick={() => onOpenLlmSettings('custom')}><Key size={16} aria-hidden="true" /> Cấu hình API Key LLM</button>}
-      {retry && <button className="secondary-btn" disabled={busy} onClick={() => void perform(retry)}>Thử lại yêu cầu</button>}
-      {canResend && <button className="secondary-btn" disabled={busy} onClick={send}>Gửi lại câu hỏi</button>}
-      <button className="text-btn" disabled={busy} onClick={refresh}>Kiểm tra phiên</button>
-      {retry && <button className="text-btn" disabled={busy} onClick={() => { setRetry(null); setDraft(''); refresh(); }}>Bỏ câu hỏi đang chờ</button>}
-    </div></div>}
+    {!inlineChatError && errorBanner}
     {busy && <p role="status" className="assistant-notice">{session ? 'Đang xử lý yêu cầu…' : 'Đang mở phiên nấu…'}</p>}
     {!session && !busy && <div className="empty-state"><h2>{unavailable ? 'Phiên không còn khả dụng' : 'Chưa có phiên nấu'}</h2><p>Chọn một công thức để mở trợ lý. Phiên gần nhất sẽ được khôi phục khi còn hiệu lực.</p><button className="primary-btn" onClick={onRecipes}>Chọn công thức</button></div>}
     {session && <div className="assistant-grid">
@@ -192,6 +200,7 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
           {session.messages.map((message, i) => <article key={i} className={`assistant-message assistant-message-${message.role}`} aria-label={message.role === 'user' ? 'Câu hỏi của bạn' : 'Câu trả lời của CookLens'}><strong>{message.role === 'user' ? 'Bạn' : 'CookLens'}</strong><p>{message.text}</p></article>)}
         </div>
         {quota && <p className="assistant-notice">Phiên đã đạt giới hạn 30 lượt hỏi. Bạn vẫn có thể dùng các nút bước nấu.</p>}
+        {inlineChatError && errorBanner}
         <form className="assistant-form" onSubmit={event => { event.preventDefault(); send(); }}>
           <label htmlFor="assistant-question">Câu hỏi về công thức</label><textarea id="assistant-question" ref={input} value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000} rows={3} disabled={busy || closed || quota || !!retry} placeholder="Ví dụ: Bước này cần lưu ý điều gì?" onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send(); } }} />
           <div className="assistant-compose-footer"><small>Enter để gửi · Shift + Enter để xuống dòng</small><button className="primary-btn" disabled={busy || closed || quota || !!retry || !draft.trim()}>Gửi câu hỏi</button></div>
