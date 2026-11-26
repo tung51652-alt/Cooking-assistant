@@ -148,9 +148,11 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
         {session && <button className="text-btn" disabled={busy} onClick={newSession}>Tạo phiên mới</button>}
       </div>
       <div className="assistant-llm-status">
-        <span className={`llm-status-badge${llmConfig ? ' is-custom' : ''}`}>
-          {llmConfig ? `BYOK: ${LLM_PRESETS[llmConfig.provider].shortLabel} · ${llmConfig.model}` : 'LLM: Mặc định máy chủ'}
-        </span>
+        {llmConfig && (
+          <span className="llm-status-badge is-custom">
+            {`BYOK: ${LLM_PRESETS[llmConfig.provider].shortLabel} · ${llmConfig.model}`}
+          </span>
+        )}
         <button type="button" className="text-btn" onClick={onOpenLlmSettings}>
           <Key size={15} aria-hidden="true" /> Cấu hình API Key
         </button>

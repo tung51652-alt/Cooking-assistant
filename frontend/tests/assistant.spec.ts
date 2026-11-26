@@ -238,6 +238,7 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
   });
 
   await open(page);
+  await expect(page.locator('.llm-status-badge')).toHaveCount(0);
   await question(page).fill('Mấy phút sôi?');
   await question(page).press('Enter');
   await expect(page.getByRole('alert')).toContainText('chưa được cấu hình');
@@ -290,7 +291,7 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
 
   await page.locator('.llm-nav-btn').click();
   await page.getByRole('button', { name: 'Xóa key / Dùng mặc định' }).click();
-  await expect(page.locator('.llm-status-badge')).toContainText('Mặc định máy chủ');
+  await expect(page.locator('.llm-status-badge')).toHaveCount(0);
   await question(page).fill('Câu hỏi mặc định');
   await question(page).press('Enter');
   await expect(page.getByRole('log')).toContainText('Câu hỏi mặc định');
