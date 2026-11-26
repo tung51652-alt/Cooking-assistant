@@ -8,7 +8,8 @@ Với 21 record Wikibooks: giữ URL phiên bản bài viết, liên kết lịc
 
 Ngày 2026-11-26, đối chiếu bảng thông tin tại URL nguồn và bổ sung khẩu phần cho bánh bột lọc, bún bò Huế, bún đậu mắm tôm, bún mắm, cao lầu, cơm tấm, gỏi cuốn và phở gà. Đây là khẩu phần nguồn công bố, chưa nấu kiểm chứng. Nguồn chỉ ghi tổng thời gian thì giữ thông tin đó trong `source.modifications`, không gán vào `prep_time_minutes` hay `cook_time_minutes`; không cộng thời gian từng bước vì có thể diễn ra song song hoặc thiếu bước được định giờ.
 
-Để dùng v2 trong dịch vụ, tạo lại vector bundle và build image recipes theo [development.md](../../docs/development.md), rồi chạy `recipe-init` trước khi khởi động lại recipes. Đổi version giúp tạo collection riêng, giữ index v1 để rollback; sửa JSON trong checkout không cập nhật image đã đóng gói.
+Để dùng v2 trong dịch vụ, tạo lại vector bundle và build image recipes theo [development.md](https://github.com/tung51652-alt/Cooking-assistant/blob/main/docs/development.md), rồi chạy `recipe-init` trước khi khởi động lại recipes.
+Đổi version giúp tạo collection riêng, giữ index v1 để rollback; sửa JSON trong checkout không cập nhật image đã đóng gói.
 
 Với 12 record mới: source name và tag `ai_authored` công khai nguồn AI; giấy phép CC BY 4.0, `revision_url` null. Xem [Tác giả và phạm vi](AUTHORSHIP.md). Không gán nguồn Wikibooks/tác giả bên ngoài hoặc tạo liên kết bài viết giả. Công thức có định lượng gợi ý và bước làm đầy đủ, chưa nấu kiểm chứng; tổng thời gian để null. Món nem chua dùng biến thể rán từ nem thành phẩm và ghi rõ điều đó trong tên, tags, nguyên liệu, hướng dẫn và source.
 
