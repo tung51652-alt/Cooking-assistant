@@ -78,7 +78,7 @@ test('assistant still accepts legacy action-only sessions', async t => {
 });
 
 test('assistant persistence errors retain their machine-readable code', async t => {
-  for (const [status,code] of [[409,'ASSISTANT_REQUEST_IN_PROGRESS'],[409,'SESSION_MESSAGE_LIMIT'],[503,'ASSISTANT_OUTCOME_UNKNOWN'],[504,'ASSISTANT_PROVIDER_TIMEOUT'],
+  for (const [status,code] of [[503,'ASSISTANT_NOT_CONFIGURED'],[409,'ASSISTANT_REQUEST_IN_PROGRESS'],[409,'SESSION_MESSAGE_LIMIT'],[503,'ASSISTANT_OUTCOME_UNKNOWN'],[504,'ASSISTANT_PROVIDER_TIMEOUT'],
     [503,'ASSISTANT_PROVIDER_AUTH_FAILED'],[503,'ASSISTANT_PROVIDER_UNSUPPORTED'],[429,'ASSISTANT_RATE_LIMITED'],[503,'ASSISTANT_BUDGET_EXCEEDED'],[422,'ASSISTANT_CONTEXT_TOO_LARGE'],
     [422,'ASSISTANT_MODEL_INVALID'],[422,'VALIDATION_ERROR']]) {
     t.mock.method(globalThis,'fetch',async () => response({ code, message:'Không lộ nội dung provider' },status));

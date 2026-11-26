@@ -80,7 +80,7 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
           INVALID_SESSION_ACTION: 'Thao tác không phù hợp với trạng thái phiên.',
           SESSION_FINISHED: 'Phiên nấu ăn đã kết thúc. Hãy tạo phiên mới.',
           SESSION_HISTORY_LIMIT: 'Phiên đã đạt giới hạn thao tác. Hãy tạo phiên mới.',
-          ASSISTANT_NOT_CONFIGURED: 'Hỏi đáp chưa được cấu hình. Bạn vẫn có thể điều khiển bước nấu.',
+          ASSISTANT_NOT_CONFIGURED: 'Tính năng hỏi đáp trên máy chủ chưa được cấu hình. Bạn vẫn có thể xem các bước nấu, hoặc chọn Dùng khóa API riêng hay liên hệ người quản lý hệ thống.',
           ASSISTANT_STORAGE_UNAVAILABLE: 'Kho lưu phiên chưa sẵn sàng. Vui lòng thử lại sau.',
           ASSISTANT_REQUEST_IN_PROGRESS: 'Trợ lý đang trả lời. Hãy đợi rồi tải lại phiên.',
           SESSION_MESSAGE_LIMIT: 'Phiên đã đạt giới hạn hỏi đáp. Bạn vẫn có thể điều khiển bước nấu.',
