@@ -44,7 +44,12 @@ try:
             assert detail['recipe']['ingredients'] and detail['recipe']['instructions']
     assert pathlib.Path('/opt/cooklens/notices/AUTHORSHIP.md').is_file()
     health = call('/health/ready')[1]
-    cases = [('pho','phở bò','wb_pho_bo_ninh_xuong'),('pho','phở gà','wb_pho_ga'),('banh_canh','bánh canh cua','wb_banh_canh_cua'),('banh_canh','bánh canh cá','wb_banh_canh_ca')]
+    cases = [
+        ('pho', 'phở ninh xương bò hồi quế', 'wb_pho_bo_ninh_xuong'),
+        ('pho', 'phở dùng gà nguyên con', 'wb_pho_ga'),
+        ('banh_canh', 'bánh canh cua có hột điều tạo màu', 'wb_banh_canh_cua'),
+        ('banh_canh', 'bánh canh cá basa xào sơ với nước hầm xương', 'wb_banh_canh_ca'),
+    ]
     latencies=[]
     for i in range(100):
         dish,query,expected=cases[i%len(cases)]

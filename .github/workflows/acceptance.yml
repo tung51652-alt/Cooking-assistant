@@ -13,6 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # Match the fixtures and runtime manifest to the published 2.0.0 images.
+          ref: v2.0.0
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -37,7 +39,7 @@ jobs:
           curl --fail --location --retry 3 https://raw.githubusercontent.com/pytorch/hub/master/images/dog.jpg --output /tmp/cooklens-evaluation/out-of-domain.jpg
       - name: Fixed clean split with the published CPU vision runtime
         run: |
-          docker run --rm --network none --no-healthcheck -e PYTHONPATH=/app -v "$PWD:/acceptance:ro" -v /tmp/cooklens-evaluation:/evaluation:ro trantung2006/cooklens-vision:2.0.0-rc.2 python /acceptance/deploy/scripts/evaluate_release_vision.py --archive /evaluation/test.zip --manifest /acceptance/data/processed/manifests/30vnfoods_clean_split_manifest.csv > /tmp/cooklens-acceptance-evidence/phase-7-vision.json
+          docker run --rm --network none --no-healthcheck -e PYTHONPATH=/app -v "$PWD:/acceptance:ro" -v /tmp/cooklens-evaluation:/evaluation:ro trantung2006/cooklens-vision:2.0.0 python /acceptance/deploy/scripts/evaluate_release_vision.py --archive /evaluation/test.zip --manifest /acceptance/data/processed/manifests/30vnfoods_clean_split_manifest.csv > /tmp/cooklens-acceptance-evidence/phase-7-vision.json
       - name: Thirty photo flows, retrieval and real browsers
         run: python deploy/scripts/accept_release_flow.py --archive /tmp/cooklens-evaluation/test.zip --out-of-domain /tmp/cooklens-evaluation/out-of-domain.jpg --report /tmp/cooklens-acceptance-evidence/phase-7-flow.json
       - name: Offline, lifecycle, rollback and warm latency
