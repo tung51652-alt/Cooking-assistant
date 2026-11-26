@@ -231,7 +231,7 @@ test('recipe entry creates the chosen snapshot, then selecting another recipe cr
   await expect(page.getByRole('heading', { name: recipe.title })).toBeVisible(); const original = current.id;
   expect(creates[0].corpus_version).toBe('test-corpus'); expect(creates[0].recipe_id).toBe(recipe.id);
   await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
-  await page.getByRole('button', { name: '← Danh sách công thức' }).click();
+  await expect(page.getByRole('heading', { name: 'Công thức', exact: true })).toBeVisible();
   await page.getByRole('button', { name: `Xem công thức ${other.title}` }).click();
   await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
   await expect(page.getByRole('heading', { name: other.title })).toBeVisible(); expect(current.id).not.toBe(original);
