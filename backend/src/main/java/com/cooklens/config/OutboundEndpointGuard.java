@@ -45,8 +45,12 @@ public class OutboundEndpointGuard {
             InetAddress ipv6 = parseBracketedIpv6(rawHost);
             return ipv6 == null || !isPublicAddress(ipv6);
         }
-        String normalized = rawHost.endsWith(".") ? rawHost.substring(0, rawHost.length() - 1) : rawHost;
-        if (normalized.isEmpty() || normalized.startsWith(".") || normalized.endsWith(".") || normalized.contains("..")) {
+        String normalized =
+                rawHost.endsWith(".") ? rawHost.substring(0, rawHost.length() - 1) : rawHost;
+        if (normalized.isEmpty()
+                || normalized.startsWith(".")
+                || normalized.endsWith(".")
+                || normalized.contains("..")) {
             return true;
         }
         String lower = normalized.toLowerCase(Locale.ROOT);
@@ -67,7 +71,8 @@ public class OutboundEndpointGuard {
         if (ipv4 != null) {
             return !isPublicAddress(ipv4);
         }
-        // Reject non-canonical numeric IPv4 tricks (octal 0177.0.0.1, hex 0x7f.0.0.1, shorthand 127.1).
+        // Reject non-canonical numeric IPv4 tricks (octal 0177.0.0.1, hex 0x7f.0.0.1, shorthand
+        // 127.1).
         if (looksLikeNumericIpv4Variant(lower)) {
             return true;
         }
@@ -83,7 +88,8 @@ public class OutboundEndpointGuard {
             if (ipv6 == null || !isPublicAddress(ipv6)) throw blockedEndpoint();
             return ipv6;
         }
-        String dnsHost = rawHost.endsWith(".") ? rawHost.substring(0, rawHost.length() - 1) : rawHost;
+        String dnsHost =
+                rawHost.endsWith(".") ? rawHost.substring(0, rawHost.length() - 1) : rawHost;
         InetAddress ipv4 = parseCanonicalIpv4(dnsHost);
         if (ipv4 != null) {
             if (!isPublicAddress(ipv4)) throw blockedEndpoint();
@@ -182,7 +188,11 @@ public class OutboundEndpointGuard {
         // ::/96 (unspecified, loopback, deprecated IPv4-compatible)
         if (allZero(raw, 0, 12)) return false;
         // ::ffff:0:0:0/96 (IPv4-translated SIIT)
-        if (allZero(raw, 0, 8) && (raw[8] & 0xFF) == 0xFF && (raw[9] & 0xFF) == 0xFF && raw[10] == 0 && raw[11] == 0) {
+        if (allZero(raw, 0, 8)
+                && (raw[8] & 0xFF) == 0xFF
+                && (raw[9] & 0xFF) == 0xFF
+                && raw[10] == 0
+                && raw[11] == 0) {
             return false;
         }
         // 64:ff9b::/96 and 64:ff9b:1::/48 (NAT64)
@@ -204,9 +214,11 @@ public class OutboundEndpointGuard {
         // 2001:0000::/32 (Teredo)
         if (b0 == 0x20 && b1 == 0x01 && b2 == 0x00 && b3 == 0x00) return false;
         // 2001:0002::/48 (benchmarking)
-        if (b0 == 0x20 && b1 == 0x01 && b2 == 0x00 && b3 == 0x02 && b4 == 0x00 && b5 == 0x00) return false;
+        if (b0 == 0x20 && b1 == 0x01 && b2 == 0x00 && b3 == 0x02 && b4 == 0x00 && b5 == 0x00)
+            return false;
         // 2001:0010::/28 (ORCHID) and 2001:0020::/28 (ORCHIDv2)
-        if (b0 == 0x20 && b1 == 0x01 && b2 == 0x00 && ((b3 & 0xF0) == 0x10 || (b3 & 0xF0) == 0x20)) return false;
+        if (b0 == 0x20 && b1 == 0x01 && b2 == 0x00 && ((b3 & 0xF0) == 0x10 || (b3 & 0xF0) == 0x20))
+            return false;
         // 2002::/16 (6to4 embeds arbitrary IPv4)
         if (b0 == 0x20 && b1 == 0x02) return false;
 
@@ -233,11 +245,15 @@ public class OutboundEndpointGuard {
         if (!inner.contains(":")) return null;
         for (int i = 0; i < inner.length(); i++) {
             char ch = inner.charAt(i);
-            boolean hex = (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+            boolean hex =
+                    (ch >= '0' && ch <= '9')
+                            || (ch >= 'a' && ch <= 'f')
+                            || (ch >= 'A' && ch <= 'F');
             if (!hex && ch != ':' && ch != '.') return null;
         }
         try {
-            // Because inner contains ':' and only IPv6 literal characters, InetAddress parses it locally without DNS.
+            // Because inner contains ':' and only IPv6 literal characters, InetAddress parses it
+            // locally without DNS.
             return InetAddress.getByName(inner);
         } catch (UnknownHostException e) {
             return null;
@@ -277,7 +293,10 @@ public class OutboundEndpointGuard {
                 if (part.length() == 2) return true;
                 for (int i = 2; i < part.length(); i++) {
                     char ch = part.charAt(i);
-                    boolean hex = (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+                    boolean hex =
+                            (ch >= '0' && ch <= '9')
+                                    || (ch >= 'a' && ch <= 'f')
+                                    || (ch >= 'A' && ch <= 'F');
                     if (!hex) return false;
                 }
             } else {

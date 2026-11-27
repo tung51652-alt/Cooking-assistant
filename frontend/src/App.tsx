@@ -3,7 +3,13 @@ import type { MouseEvent } from 'react';
 import { IconContext, BowlFood, ArrowRight, Key } from '@phosphor-icons/react';
 import type { Dish, Prediction, RecipeSummary, SelectedImage, View } from './types';
 import * as api from './lib/api';
-import { clearLlmConfig, LLM_PRESETS, loadLlmConfigWithScope, saveLlmConfig, type StoredLlmConfig } from './lib/llmConfig';
+import {
+  clearLlmConfig,
+  LLM_PRESETS,
+  loadLlmConfigWithScope,
+  saveLlmConfig,
+  type StoredLlmConfig,
+} from './lib/llmConfig';
 import { loadConfirmedDish, saveConfirmedDish, saveRecipeSelection } from './lib/recipeContext';
 import UploadPage from './features/UploadPage';
 import RecognitionPage from './features/RecognitionPage';

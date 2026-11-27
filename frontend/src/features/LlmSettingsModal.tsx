@@ -1,5 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { CaretDown, Check, Key, Lock, LockOpen, Play, ShieldCheck, Trash, WarningCircle, WarningOctagon, X } from '@phosphor-icons/react';
+import {
+  CaretDown,
+  Check,
+  Key,
+  Lock,
+  LockOpen,
+  Play,
+  ShieldCheck,
+  Trash,
+  WarningCircle,
+  WarningOctagon,
+  X,
+} from '@phosphor-icons/react';
 import * as api from '../lib/api';
 import {
   LLM_PRESETS,
@@ -32,11 +44,20 @@ const FOCUSABLE_SELECTOR = [
 
 function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
   if (!container) return [];
-  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
-    .filter(el => !el.hasAttribute('hidden') && el.getClientRects().length > 0);
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    (el) => !el.hasAttribute('hidden') && el.getClientRects().length > 0,
+  );
 }
 
-export default function LlmSettingsModal({ open, initialMode, currentConfig, currentStorageScope = 'session', onSave, onClear, onClose }: Props) {
+export default function LlmSettingsModal({
+  open,
+  initialMode,
+  currentConfig,
+  currentStorageScope = 'session',
+  onSave,
+  onClear,
+  onClose,
+}: Props) {
   const [mode, setMode] = useState<'default' | 'custom'>(initialMode ?? (currentConfig ? 'custom' : 'default'));
   const [provider, setProvider] = useState<LlmProviderPreset>(currentConfig?.provider || 'gemini');
   const [baseUrl, setBaseUrl] = useState<string>(currentConfig?.base_url || LLM_PRESETS.gemini.baseUrl);
@@ -80,9 +101,10 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
       const frame = requestAnimationFrame(() => {
         const panel = panelRef.current;
         if (!panel) return;
-        const target = panel.querySelector<HTMLElement>('[role="radio"][aria-checked="true"]')
-          ?? getFocusableElements(panel)[0]
-          ?? panel;
+        const target =
+          panel.querySelector<HTMLElement>('[role="radio"][aria-checked="true"]') ??
+          getFocusableElements(panel)[0] ??
+          panel;
         target.focus();
       });
       return () => cancelAnimationFrame(frame);
@@ -150,7 +172,9 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
     setAdvancedOpen(next === 'custom');
     const meta = LLM_PRESETS[next];
     setBaseUrl(meta.baseUrl);
-    const matchesAnyDefault = Object.values(LLM_PRESETS).some(item => item.defaultModel && item.defaultModel === model.trim());
+    const matchesAnyDefault = Object.values(LLM_PRESETS).some(
+      (item) => item.defaultModel && item.defaultModel === model.trim(),
+    );
     if (!model.trim() || matchesAnyDefault) {
       setModel(meta.defaultModel);
     }
@@ -167,12 +191,15 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
     setTestResult(null);
     setTestError(null);
     try {
-      const result = await api.testLlmConfig({
-        provider,
-        base_url: provider === 'custom' ? baseUrl.trim() : preset.baseUrl,
-        model: model.trim(),
-        api_key: apiKey,
-      }, controller.signal);
+      const result = await api.testLlmConfig(
+        {
+          provider,
+          base_url: provider === 'custom' ? baseUrl.trim() : preset.baseUrl,
+          model: model.trim(),
+          api_key: apiKey,
+        },
+        controller.signal,
+      );
       if (!controller.signal.aborted) {
         setTestResult(result);
       }
@@ -190,12 +217,15 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
 
   function handleSave() {
     if (!allValid) return;
-    onSave({
-      provider,
-      base_url: provider === 'custom' ? baseUrl.trim() : preset.baseUrl,
-      model: model.trim(),
-      api_key: apiKey,
-    }, sessionOnly ? 'session' : 'local');
+    onSave(
+      {
+        provider,
+        base_url: provider === 'custom' ? baseUrl.trim() : preset.baseUrl,
+        model: model.trim(),
+        api_key: apiKey,
+      },
+      sessionOnly ? 'session' : 'local',
+    );
   }
 
   function handleBackToDefault() {
@@ -224,12 +254,27 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
   }
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-      <div ref={panelRef} tabIndex={-1} className="modal-panel llm-modal" role="dialog" aria-modal="true" aria-labelledby="llm-settings-title">
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        className="modal-panel llm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="llm-settings-title"
+      >
         <div className="modal-header">
           <div>
             <p className="assistant-eyebrow">Trợ lý nấu ăn</p>
-            <h2 id="llm-settings-title"><Key size={20} aria-hidden="true" /> Cài đặt trợ lý</h2>
+            <h2 id="llm-settings-title">
+              <Key size={20} aria-hidden="true" /> Cài đặt trợ lý
+            </h2>
           </div>
           <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Đóng cài đặt trợ lý">
             <X size={20} aria-hidden="true" />
@@ -266,15 +311,22 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
               <div className="llm-default-copy">
                 <strong>Hỏi đáp hoạt động khi máy chủ đã được cấu hình</strong>
                 <p>
-                  Nếu máy chủ chưa bật tính năng hỏi đáp, bạn vẫn có thể xem các bước nấu như bình thường. Khi cần hỏi đáp ngay, hãy chuyển sang <strong>Dùng khóa API riêng</strong> hoặc liên hệ người quản lý hệ thống.
+                  Nếu máy chủ chưa bật tính năng hỏi đáp, bạn vẫn có thể xem các bước nấu như bình thường. Khi cần hỏi
+                  đáp ngay, hãy chuyển sang <strong>Dùng khóa API riêng</strong> hoặc liên hệ người quản lý hệ thống.
                 </p>
               </div>
             </div>
 
             <div className="modal-footer">
               <div className="modal-footer-actions">
-                <button type="button" className="secondary-btn" onClick={onClose}>Đóng</button>
-                <button type="button" className="primary-btn" onClick={() => (currentConfig ? handleBackToDefault() : onClose())}>
+                <button type="button" className="secondary-btn" onClick={onClose}>
+                  Đóng
+                </button>
+                <button
+                  type="button"
+                  className="primary-btn"
+                  onClick={() => (currentConfig ? handleBackToDefault() : onClose())}
+                >
                   Lưu
                 </button>
               </div>
@@ -283,14 +335,17 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
         ) : (
           <>
             <p className="modal-lead">
-              Mặc định khóa API chỉ được giữ trong phiên mở tab hiện tại và tự xóa khi bạn đóng tab; máy chủ không lưu trữ khóa của bạn.
+              Mặc định khóa API chỉ được giữ trong phiên mở tab hiện tại và tự xóa khi bạn đóng tab; máy chủ không lưu
+              trữ khóa của bạn.
             </p>
 
             <div className="llm-steps">
               <section className="llm-step" aria-labelledby="llm-step-1">
-                <h3 id="llm-step-1"><span className="llm-step-num">1</span> Chọn nhà cung cấp</h3>
+                <h3 id="llm-step-1">
+                  <span className="llm-step-num">1</span> Chọn nhà cung cấp
+                </h3>
                 <div className="llm-provider-grid" role="radiogroup" aria-label="Nhà cung cấp trợ lý">
-                  {PROVIDER_ORDER.map(id => {
+                  {PROVIDER_ORDER.map((id) => {
                     const item = LLM_PRESETS[id];
                     const active = provider === id;
                     return (
@@ -314,11 +369,19 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
                     className="llm-advanced-toggle"
                     aria-expanded={advancedOpen}
                     aria-controls="llm-advanced-panel"
-                    onClick={() => setAdvancedOpen(prev => !prev)}
+                    onClick={() => setAdvancedOpen((prev) => !prev)}
                   >
-                    <CaretDown size={16} aria-hidden="true" className={`llm-advanced-caret${advancedOpen ? ' is-open' : ''}`} />
+                    <CaretDown
+                      size={16}
+                      aria-hidden="true"
+                      className={`llm-advanced-caret${advancedOpen ? ' is-open' : ''}`}
+                    />
                     <span>Cài đặt nâng cao</span>
-                    <small>{provider === 'custom' ? 'Bắt buộc với nhà cung cấp tùy chỉnh' : 'Địa chỉ kết nối & ghi chú kỹ thuật'}</small>
+                    <small>
+                      {provider === 'custom'
+                        ? 'Bắt buộc với nhà cung cấp tùy chỉnh'
+                        : 'Địa chỉ kết nối & ghi chú kỹ thuật'}
+                    </small>
                   </button>
                   {!advancedOpen && !urlFeedback.valid && (
                     <p className="field-feedback is-error" aria-live="polite">
@@ -335,16 +398,28 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
                           type="url"
                           value={baseUrl}
                           readOnly={provider !== 'custom'}
-                          onChange={event => { setBaseUrl(event.target.value); setTestResult(null); setTestError(null); }}
+                          onChange={(event) => {
+                            setBaseUrl(event.target.value);
+                            setTestResult(null);
+                            setTestError(null);
+                          }}
                           placeholder="https://example.com/v1"
                         />
-                        <p className={`field-feedback ${urlFeedback.valid ? 'is-valid' : 'is-error'}`} aria-live="polite">
-                          {urlFeedback.valid ? <Check size={15} aria-hidden="true" /> : <WarningOctagon size={15} aria-hidden="true" />}
+                        <p
+                          className={`field-feedback ${urlFeedback.valid ? 'is-valid' : 'is-error'}`}
+                          aria-live="polite"
+                        >
+                          {urlFeedback.valid ? (
+                            <Check size={15} aria-hidden="true" />
+                          ) : (
+                            <WarningOctagon size={15} aria-hidden="true" />
+                          )}
                           <span>{urlFeedback.message}</span>
                         </p>
                       </div>
                       <p className="llm-technical-note">
-                        Ghi chú kỹ thuật: Khóa API và địa chỉ kết nối chỉ được gửi qua HTTPS header khi bạn hỏi đáp; máy chủ không lưu khóa vào cơ sở dữ liệu.
+                        Ghi chú kỹ thuật: Khóa API và địa chỉ kết nối chỉ được gửi qua HTTPS header khi bạn hỏi đáp; máy
+                        chủ không lưu khóa vào cơ sở dữ liệu.
                       </p>
                     </div>
                   )}
@@ -352,7 +427,9 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
               </section>
 
               <section className="llm-step" aria-labelledby="llm-step-2">
-                <h3 id="llm-step-2"><span className="llm-step-num">2</span> Nhập khóa API</h3>
+                <h3 id="llm-step-2">
+                  <span className="llm-step-num">2</span> Nhập khóa API
+                </h3>
                 <div className="llm-field">
                   <label htmlFor="llm-api-key">Khóa API ({preset.label})</label>
                   <div className="llm-input-group">
@@ -362,13 +439,17 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
                       value={apiKey}
                       autoComplete="off"
                       spellCheck={false}
-                      onChange={event => { setApiKey(event.target.value); setTestResult(null); setTestError(null); }}
+                      onChange={(event) => {
+                        setApiKey(event.target.value);
+                        setTestResult(null);
+                        setTestError(null);
+                      }}
                       placeholder={preset.keyHint}
                     />
                     <button
                       type="button"
                       className="secondary-btn llm-toggle-btn"
-                      onClick={() => setShowKey(prev => !prev)}
+                      onClick={() => setShowKey((prev) => !prev)}
                       aria-label={showKey ? 'Ẩn khóa API' : 'Hiện khóa API'}
                     >
                       {showKey ? <Lock size={18} aria-hidden="true" /> : <LockOpen size={18} aria-hidden="true" />}
@@ -376,7 +457,11 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
                     </button>
                   </div>
                   <p className={`field-feedback ${keyFeedback.valid ? 'is-valid' : 'is-error'}`} aria-live="polite">
-                    {keyFeedback.valid ? <Check size={15} aria-hidden="true" /> : <WarningOctagon size={15} aria-hidden="true" />}
+                    {keyFeedback.valid ? (
+                      <Check size={15} aria-hidden="true" />
+                    ) : (
+                      <WarningOctagon size={15} aria-hidden="true" />
+                    )}
                     <span>{keyFeedback.message}</span>
                   </p>
                   {keyFeedback.warning && (
@@ -392,7 +477,7 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
                       id="llm-session-only"
                       type="checkbox"
                       checked={sessionOnly}
-                      onChange={event => setSessionOnly(event.target.checked)}
+                      onChange={(event) => setSessionOnly(event.target.checked)}
                     />
                     <span className="llm-checkbox-copy">
                       <strong>Chỉ dùng trong phiên này (khuyên dùng)</strong>
@@ -406,14 +491,18 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
                   <p className="llm-security-warning" role="note">
                     <WarningCircle size={16} aria-hidden="true" />
                     <span>
-                      Lưu ý bảo mật: Khóa API lưu trong bộ nhớ trình duyệt có thể bị lộ trên thiết bị dùng chung hoặc nếu trang gặp lỗ hổng mã kịch bản. Hãy giữ chọn chế độ chỉ dùng trong phiên này và xóa khóa khi không còn sử dụng.
+                      Lưu ý bảo mật: Khóa API lưu trong bộ nhớ trình duyệt có thể bị lộ trên thiết bị dùng chung hoặc
+                      nếu trang gặp lỗ hổng mã kịch bản. Hãy giữ chọn chế độ chỉ dùng trong phiên này và xóa khóa khi
+                      không còn sử dụng.
                     </span>
                   </p>
                 </div>
               </section>
 
               <section className="llm-step" aria-labelledby="llm-step-3">
-                <h3 id="llm-step-3"><span className="llm-step-num">3</span> Chọn tên Model</h3>
+                <h3 id="llm-step-3">
+                  <span className="llm-step-num">3</span> Chọn tên Model
+                </h3>
                 <div className="llm-field">
                   <label htmlFor="llm-model-name">Tên Model</label>
                   <input
@@ -421,17 +510,25 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
                     type="text"
                     value={model}
                     spellCheck={false}
-                    onChange={event => { setModel(event.target.value); setTestResult(null); setTestError(null); }}
+                    onChange={(event) => {
+                      setModel(event.target.value);
+                      setTestResult(null);
+                      setTestError(null);
+                    }}
                     placeholder={preset.defaultModel || 'Ví dụ: gpt-4o-mini'}
                   />
                   {preset.suggestions.length > 0 && (
                     <div className="llm-suggestions" aria-label="Gợi ý model">
-                      {preset.suggestions.map(item => (
+                      {preset.suggestions.map((item) => (
                         <button
                           key={item}
                           type="button"
                           className={`llm-chip${model.trim() === item ? ' is-selected' : ''}`}
-                          onClick={() => { setModel(item); setTestResult(null); setTestError(null); }}
+                          onClick={() => {
+                            setModel(item);
+                            setTestResult(null);
+                            setTestError(null);
+                          }}
                         >
                           {item}
                         </button>
@@ -439,14 +536,20 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
                     </div>
                   )}
                   <p className={`field-feedback ${modelFeedback.valid ? 'is-valid' : 'is-error'}`} aria-live="polite">
-                    {modelFeedback.valid ? <Check size={15} aria-hidden="true" /> : <WarningOctagon size={15} aria-hidden="true" />}
+                    {modelFeedback.valid ? (
+                      <Check size={15} aria-hidden="true" />
+                    ) : (
+                      <WarningOctagon size={15} aria-hidden="true" />
+                    )}
                     <span>{modelFeedback.message}</span>
                   </p>
                 </div>
               </section>
 
               <section className="llm-step" aria-labelledby="llm-step-4">
-                <h3 id="llm-step-4"><span className="llm-step-num">4</span> Kiểm tra kết nối</h3>
+                <h3 id="llm-step-4">
+                  <span className="llm-step-num">4</span> Kiểm tra kết nối
+                </h3>
                 <div className="llm-test-row">
                   <button
                     type="button"
@@ -457,19 +560,33 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
                     <Play size={17} aria-hidden="true" />
                     <span>{testing ? 'Đang kiểm tra…' : 'Kiểm tra kết nối'}</span>
                   </button>
-                  <small className="muted">Gửi một tin nhắn thử ngắn để xác nhận khóa API và model hoạt động bình thường.</small>
+                  <small className="muted">
+                    Gửi một tin nhắn thử ngắn để xác nhận khóa API và model hoạt động bình thường.
+                  </small>
                 </div>
-                {testing && <p className="assistant-notice" role="status">Đang kiểm tra kết nối tới {preset.label} ({model.trim()})…</p>}
+                {testing && (
+                  <p className="assistant-notice" role="status">
+                    Đang kiểm tra kết nối tới {preset.label} ({model.trim()})…
+                  </p>
+                )}
                 {testResult && (
                   <div className="llm-test-result is-ok" role="status">
-                    <strong><Check size={18} aria-hidden="true" /> Kết nối thành công ({testResult.latency_ms} ms)</strong>
-                    <p><strong>Nhà cung cấp:</strong> {testResult.provider} · <strong>Model:</strong> {testResult.model}</p>
-                    <p className="llm-test-reply"><strong>Phản hồi:</strong> {testResult.reply}</p>
+                    <strong>
+                      <Check size={18} aria-hidden="true" /> Kết nối thành công ({testResult.latency_ms} ms)
+                    </strong>
+                    <p>
+                      <strong>Nhà cung cấp:</strong> {testResult.provider} · <strong>Model:</strong> {testResult.model}
+                    </p>
+                    <p className="llm-test-reply">
+                      <strong>Phản hồi:</strong> {testResult.reply}
+                    </p>
                   </div>
                 )}
                 {testError && (
                   <div className="llm-test-result is-error" role="alert">
-                    <strong><WarningOctagon size={18} aria-hidden="true" /> Kiểm tra thất bại</strong>
+                    <strong>
+                      <WarningOctagon size={18} aria-hidden="true" /> Kiểm tra thất bại
+                    </strong>
                     <p>{testError}</p>
                   </div>
                 )}
@@ -481,7 +598,9 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, cur
                 <Trash size={16} aria-hidden="true" /> Quay về mặc định
               </button>
               <div className="modal-footer-actions">
-                <button type="button" className="secondary-btn" onClick={onClose}>Đóng</button>
+                <button type="button" className="secondary-btn" onClick={onClose}>
+                  Đóng
+                </button>
                 <button type="button" className="primary-btn" disabled={!allValid || testing} onClick={handleSave}>
                   Lưu cài đặt
                 </button>

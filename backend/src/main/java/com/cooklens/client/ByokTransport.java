@@ -6,5 +6,6 @@ import java.net.ConnectException;
 public interface ByokTransport {
     record Response(int statusCode, String contentType, byte[] body) {}
 
-    Response send(LlmSettings.Connection config, byte[] payload, long remainingMs) throws ConnectException;
+    Response send(LlmSettings.Connection config, byte[] payload, long remainingMs)
+            throws ConnectException;
 }

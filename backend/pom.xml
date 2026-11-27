@@ -39,17 +39,6 @@
               <include>src/main/java/**/*.java</include>
               <include>src/test/java/**/*.java</include>
             </includes>
-            <!-- Temporary exclusions to avoid merge conflicts with #66; remove after merging #66 and run spotless:apply -->
-            <excludes>
-              <exclude>src/main/java/com/cooklens/config/LlmSettings.java</exclude>
-              <exclude>src/main/java/com/cooklens/client/OpenAiChatProvider.java</exclude>
-              <exclude>src/main/java/com/cooklens/service/AssistantService.java</exclude>
-              <exclude>src/main/java/com/cooklens/controller/AssistantController.java</exclude>
-              <exclude>src/main/java/com/cooklens/exception/ApiFailure.java</exclude>
-              <exclude>src/test/java/com/cooklens/client/OpenAiChatProviderTest.java</exclude>
-              <exclude>src/test/java/com/cooklens/AssistantChatIntegrationTest.java</exclude>
-              <exclude>src/test/java/com/cooklens/service/AssistantServiceTest.java</exclude>
-            </excludes>
             <googleJavaFormat>
               <version>1.25.2</version>
               <style>AOSP</style>

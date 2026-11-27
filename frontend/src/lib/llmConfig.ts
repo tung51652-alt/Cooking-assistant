@@ -89,14 +89,24 @@ function isPublicIpv4Octets(a: number, b: number, c: number): boolean {
 
 function isBlockedCustomHost(rawHost: string): boolean {
   const host = rawHost.toLowerCase().replace(/\.$/, '');
-  if (!host || host === 'localhost' || BLOCKED_HOST_SUFFIXES.some(suffix => host.endsWith(suffix))) {
+  if (!host || host === 'localhost' || BLOCKED_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix))) {
     return true;
   }
   if (host.startsWith('[') && host.endsWith(']')) {
     const inner = host.slice(1, -1);
-    if (inner === '::' || inner === '::1' || inner.startsWith('fc') || inner.startsWith('fd')
-      || inner.startsWith('fe8') || inner.startsWith('fe9') || inner.startsWith('fea') || inner.startsWith('feb')
-      || inner.startsWith('ff') || inner.startsWith('2001:db8:') || inner.startsWith('::ffff:')) {
+    if (
+      inner === '::' ||
+      inner === '::1' ||
+      inner.startsWith('fc') ||
+      inner.startsWith('fd') ||
+      inner.startsWith('fe8') ||
+      inner.startsWith('fe9') ||
+      inner.startsWith('fea') ||
+      inner.startsWith('feb') ||
+      inner.startsWith('ff') ||
+      inner.startsWith('2001:db8:') ||
+      inner.startsWith('::ffff:')
+    ) {
       return true;
     }
     return !/^[23][0-9a-f]{3}:/i.test(inner);
@@ -105,7 +115,7 @@ function isBlockedCustomHost(rawHost: string): boolean {
   const ipv4Match = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);
   if (ipv4Match) {
     const parts = ipv4Match.slice(1).map(Number);
-    if (parts.some(part => part > 255)) return true;
+    if (parts.some((part) => part > 255)) return true;
     return !isPublicIpv4Octets(parts[0], parts[1], parts[2]);
   }
   return false;
@@ -178,10 +188,13 @@ export function validateBaseUrl(provider: LlmProviderPreset, baseUrl: string): V
     return { valid: false, message: 'Base URL phải dùng HTTPS với địa chỉ công khai hợp lệ.' };
   }
   if (isBlockedCustomHost(parsed.hostname)) {
-    return { valid: false, message: 'Base URL phải dùng địa chỉ HTTPS công khai (không hỗ trợ localhost hoặc địa chỉ nội bộ).' };
+    return {
+      valid: false,
+      message: 'Base URL phải dùng địa chỉ HTTPS công khai (không hỗ trợ localhost hoặc địa chỉ nội bộ).',
+    };
   }
   const cleanPath = parsed.pathname.replace(/\/+$/, '');
-  if (cleanPath.includes('//') || !VALID_CUSTOM_PATH_SUFFIXES.some(suffix => cleanPath.endsWith(suffix))) {
+  if (cleanPath.includes('//') || !VALID_CUSTOM_PATH_SUFFIXES.some((suffix) => cleanPath.endsWith(suffix))) {
     return { valid: false, message: 'Đường dẫn Base URL phải kết thúc bằng /v1, /v1beta/openai hoặc /openai.' };
   }
   return { valid: true, message: 'Base URL hợp lệ.' };
@@ -199,12 +212,15 @@ function parseStoredConfig(raw: string | null): LlmUserConfig | null {
   if (!isProviderPreset(record.provider) || typeof record.model !== 'string' || typeof record.api_key !== 'string') {
     return null;
   }
-  const baseUrl = typeof record.base_url === 'string' && record.base_url.trim()
-    ? record.base_url.trim()
-    : LLM_PRESETS[record.provider].baseUrl;
-  if (!validateApiKey(record.provider, record.api_key).valid
-    || !validateModelName(record.model).valid
-    || !validateBaseUrl(record.provider, baseUrl).valid) {
+  const baseUrl =
+    typeof record.base_url === 'string' && record.base_url.trim()
+      ? record.base_url.trim()
+      : LLM_PRESETS[record.provider].baseUrl;
+  if (
+    !validateApiKey(record.provider, record.api_key).valid ||
+    !validateModelName(record.model).valid ||
+    !validateBaseUrl(record.provider, baseUrl).valid
+  ) {
     return null;
   }
   return {
@@ -245,10 +261,18 @@ export function saveLlmConfig(config: LlmUserConfig, scope: LlmStorageScope = 's
   try {
     if (scope === 'local') {
       localStorage.setItem(LLM_CONFIG_STORAGE, serialized);
-      try { sessionStorage.removeItem(LLM_CONFIG_STORAGE); } catch { /* Ignore cleanup errors. */ }
+      try {
+        sessionStorage.removeItem(LLM_CONFIG_STORAGE);
+      } catch {
+        /* Ignore cleanup errors. */
+      }
     } else {
       sessionStorage.setItem(LLM_CONFIG_STORAGE, serialized);
-      try { localStorage.removeItem(LLM_CONFIG_STORAGE); } catch { /* Ignore cleanup errors. */ }
+      try {
+        localStorage.removeItem(LLM_CONFIG_STORAGE);
+      } catch {
+        /* Ignore cleanup errors. */
+      }
     }
     return true;
   } catch {
