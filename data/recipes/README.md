@@ -41,7 +41,7 @@ Biến thể vùng miền hoặc chay được giữ khi còn đặc trưng các
 | `wb_pho_ga_nam_dong_co` | Nguồn dùng bún; bản nháp thay bằng bánh phở |
 | `cooklens_nem_chua_home`, `vi_nem_chua_ran_thit_heo_bi_ao_bot` | Thành phẩm là nem tẩm bột chiên, không phải nem chua lên men |
 
-Kết quả truy xuất ở [đánh giá retrieval](../../ai/rag/evaluation/REVIEW.md). Gói runtime v3, nghiệm thu ngoài nhóm và thử nấu chưa thực hiện.
+Kết quả truy xuất ở [đánh giá retrieval](https://github.com/tung51652-alt/Cooking-assistant/blob/main/ai/rag/evaluation/REVIEW.md). Gói runtime v3, nghiệm thu ngoài nhóm và thử nấu chưa thực hiện.
 
 ## Kiểm tra
 
