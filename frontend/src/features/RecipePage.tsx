@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Clock, Users, MagnifyingGlass } from '@phosphor-icons/react';
+import { recipeSourceHref } from '../../../packages/cooklens-api';
 import type { Dish, RecipeDetail, RecipeSource, RecipeSummary } from '../types';
 import DishCatalogPicker from './DishCatalogPicker';
 
 export function Source({ source }: { source: RecipeSource }) {
-  let url: URL | null = null;
-  try { url = new URL(source.url); } catch { /* Render attribution as text when no valid URL exists. */ }
+  const href = recipeSourceHref(source.url);
   return <div className="source-info"><span>Nguồn: </span>
-    {url && !url.username && !url.password && ['https:', 'http:'].includes(url.protocol)
-      ? <a href={url.href} target="_blank" rel="noopener noreferrer">{source.name}</a> : <span>{source.name}</span>}
+    {href ? <a href={href} target="_blank" rel="noopener noreferrer">{source.name}</a> : <span>{source.name}</span>}
     <small>{source.license}</small>
     <details><summary>Ghi nguồn &amp; ghi chú công thức</summary><p>{source.attribution}</p><p>{source.modifications}</p></details>
   </div>;

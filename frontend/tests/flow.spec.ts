@@ -260,6 +260,30 @@ test('recipe content is escaped and unsafe source links are not clickable', asyn
   await expect(page.locator('.recipe-list img')).toHaveCount(0);
 });
 
+test('AI-authored recipe credit is visible without linking to the pull request', async ({ page }) => {
+  const aiSource = { ...source, name: 'CookLens — công thức do AI biên soạn', license: 'CC-BY-4.0',
+    url: 'https://github.com/tung51652-alt/Cooking-assistant/pull/10/files' };
+  await page.route('**/api/vision/predict', route => route.fulfill(json({ predictions })));
+  await page.route('**/api/recipes/search', route => route.fulfill(json({ recipes: [{ ...summary, source: aiSource }] })));
+  await page.route(`**/api/recipes/${summary.id}`, route => route.fulfill(json({ recipe: { ...detail, source: aiSource } })));
+  await upload(page);
+  await page.locator('#predictBtn').click();
+  await page.getByRole('radio').first().check();
+  await page.getByRole('button', { name: 'Xác nhận món' }).click();
+
+  const credit = page.locator('.source-info');
+  await expect(credit).toContainText(aiSource.name);
+  await expect(credit).toContainText(aiSource.license);
+  await expect(credit.getByRole('link')).toHaveCount(0);
+
+  await page.getByRole('button', { name: `Xem công thức ${summary.title}` }).click();
+  await expect(page.getByRole('heading', { name: 'Nguyên liệu', exact: true })).toBeVisible();
+  await expect(credit).toContainText(aiSource.name);
+  await expect(credit.getByRole('link')).toHaveCount(0);
+  await credit.locator('summary').click();
+  await expect(credit.getByText(aiSource.attribution, { exact: true })).toBeVisible();
+});
+
 
 test('navigation cancels a late prediction instead of changing the current page', async ({ page }) => {
   let release!: () => void;

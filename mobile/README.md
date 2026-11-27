@@ -51,7 +51,7 @@ Chỉ đưa base URL công khai vào `EXPO_PUBLIC_*`. Giữ `LLM_API_KEY` riêng
 ## Phiên hướng dẫn nấu trên Android
 
 Luồng này dùng gateway từ ứng viên chứa API phiên và hỏi đáp. `2.0.0-rc.2` phục vụ luồng ảnh/công thức.
-Trong trang chi tiết, chọn **Hướng dẫn nấu**. Gửi câu hỏi về công thức hoặc chọn **Bắt đầu nấu** rồi dùng các nút bước tiếp, bước trước, nhắc lại và kết thúc.
+Trong trang chi tiết, chọn **Hướng dẫn nấu**. Gửi câu hỏi về công thức hoặc chọn **Bắt đầu nấu** rồi dùng các nút bước tiếp, bước trước và kết thúc.
 Chọn **Tiếp tục phiên nấu** ở màn hình đầu để đọc phiên đã lưu của gateway đang cấu hình.
 Nếu phiên đã hết hạn, mở lại công thức để tạo phiên mới.
 Khi trở lại ứng dụng, màn hướng dẫn chỉ đọc trạng thái từ máy chủ.

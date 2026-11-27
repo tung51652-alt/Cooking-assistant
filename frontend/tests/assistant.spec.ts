@@ -63,11 +63,12 @@ test('restores, cooks through all controls, chats, reloads and finishes', async 
   await open(page);
   await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
   await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Nhắc lại', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Bước trước', exact: true })).toBeDisabled();
   await question(page).fill('Cần bao nhiêu nguyên liệu?'); await question(page).press('Enter');
   await expect(page.getByRole('log')).toContainText('200 g'); await expect(question(page)).toBeFocused();
   await page.getByRole('button', { name: 'Bước tiếp', exact: true }).click();
-  await page.getByRole('button', { name: 'Nhắc lại', exact: true }).click();
+  await expect(page.getByText('Bước 2/3', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Bước trước', exact: true }).click();
   await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
   await page.reload(); await expect(page.getByRole('log')).toContainText('Cần bao nhiêu nguyên liệu?');
