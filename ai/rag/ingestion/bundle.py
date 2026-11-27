@@ -11,12 +11,12 @@ from data.recipes.validate import load, require, validate
 class Bundle:
     def __init__(self, directory):
         directory = Path(directory)
-        self.recipes = json.loads((directory / "corpus.json").read_text())
-        self.taxonomy = json.loads((directory / "taxonomy.json").read_text())
-        self.manifest = json.loads((directory / "manifest.json").read_text())
+        self.recipes = json.loads((directory / "corpus.json").read_text(encoding="utf-8"))
+        self.taxonomy = json.loads((directory / "taxonomy.json").read_text(encoding="utf-8"))
+        self.manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
         coverage = validate(self.recipes, self.taxonomy)
         require(coverage == self.manifest["coverage"] and len(self.recipes) == self.manifest["recipe_count"], "Corpus manifest mismatch")
-        self.vectors = json.loads((directory / "vectors.json").read_text())
+        self.vectors = json.loads((directory / "vectors.json").read_text(encoding="utf-8"))
         self.versions = {"corpus_version": self.manifest["corpus_version"],
                          "embedding_version": "multilingual-e5-small-v1", "taxonomy_version": "1.0.0"}
         require(isinstance(self.versions["corpus_version"], str) and re.fullmatch(r"[a-z][a-z0-9_-]{0,60}", self.versions["corpus_version"]), "Invalid corpus version")
@@ -58,7 +58,7 @@ def build(root, model, output):
                               "taxonomy_version": "1.0.0", "dimension": 384,
                               "passage_template_version": "recipe-plain-v1", "points": points}}
     for name, content in files.items():
-        (output / name).write_text(json.dumps(content, ensure_ascii=False, allow_nan=False) + "\n")
+        (output / name).write_text(json.dumps(content, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8")
     Bundle(output)
     print(f"Validated release bundle: {len(recipes)} recipes, 384-dimensional vectors")
 

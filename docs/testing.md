@@ -36,8 +36,9 @@ Kết quả local và các check đã lược bỏ theo yêu cầu người dùn
 
 ## Nghiệm thu bộ image
 
-[Workflow acceptance](../.github/workflows/acceptance.yml) chạy thủ công: tải test
-archive, pull image public, đánh giá CV, 30 luồng ảnh, 204 query và browser desktop/mobile.
+[Workflow acceptance](../.github/workflows/acceptance.yml) chạy thủ công với manifest và 204 query từ tag `v2.0.0`, cùng phiên bản với các image public đang được kiểm tra.
+Workflow tải test archive, đánh giá CV, chạy 30 luồng ảnh và kiểm tra browser desktop/mobile.
+[Recipes runtime](../.github/workflows/recipes.yml) dùng corpus và query từ source đang được review.
 Sau đó kiểm tra offline/lifecycle/rollback với 100 mẫu warm/API. Artifact ghi vào
 thư mục mới trên runner để tránh dùng nhầm báo cáo cũ.
 

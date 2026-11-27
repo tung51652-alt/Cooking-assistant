@@ -136,13 +136,13 @@
     "ci_source_uri": "https://github.com/tung51652-alt/Cooking-assistant/releases/download/embedding-model-v1/cooklens-embedding-model-v1.zip"
   },
   "corpus": {
-    "corpus_version": "cooklens-recipes-v2",
-    "recipe_count": 33,
+    "corpus_version": "cooklens-recipes-v3",
+    "recipe_count": 90,
     "reviewed_class_coverage": 30,
     "required_class_coverage": 30,
-    "source_selection": "21 Wikibooks text recipes and 12 explicitly labeled original AI-authored recipes authorized by project owner",
+    "source_selection": "42 Wikibooks recipes, 37 normalized recipes from other published Vietnamese sources, and 11 legacy Phase 2 AI-authored recipes",
     "source_policy_url": "https://en.wikibooks.org/wiki/Wikibooks:Copyrights",
-    "status": "full_taxonomy_coverage_structure_reviewed_kitchen_validation_not_performed"
+    "status": "full_taxonomy_coverage_after_dish_fit_audit_kitchen_validation_not_performed"
   },
   "registry": {
     "provider": "docker_hub",

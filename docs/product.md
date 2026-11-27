@@ -19,7 +19,7 @@ bước nấu, nguồn và giấy phép rõ ràng.
 | Web | Upload, nhận diện, xác nhận/sửa món, tìm và xem công thức; responsive |
 | Expo Go | Chụp/chọn ảnh, dùng chung API và luồng công thức với web |
 | Nhận diện | EfficientNet-B2, 30 lớp món Việt, trả Top-3 và confidence |
-| Công thức | 33 công thức phủ 30 món; 21 từ Wikibooks, 12 do AI biên soạn có gắn nhãn |
+| Công thức | Dữ liệu trong source có 90 công thức cho đủ 30 món, gồm 42 từ Wikibooks, 37 từ các nguồn tiếng Việt khác và 11 công thức có gắn nhãn AI từ Phase 2. Bản phát hành `2.0.0` có 33 công thức. |
 | Triển khai | Docker Compose; model, corpus và vector nằm trong image |
 
 ## Giới hạn
