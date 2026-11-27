@@ -8,6 +8,7 @@ import java.net.http.*;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.Flow;
 import org.springframework.stereotype.Component;
@@ -27,13 +28,19 @@ public class UpstreamTransport {
         return URI.create(base.replaceAll("/$", "") + path);
     }
     public <T> CompletableFuture<T> async(HttpRequest request, Class<T> type) {
+        return async(request, type, Map.of());
+    }
+    public <T> CompletableFuture<T> async(HttpRequest request, Class<T> type, Map<String, Integer> extraErrors) {
         var response = http.sendAsync(request, info -> new LimitedBody());
-        var result = response.thenApply(r -> decode(r, type));
+        var result = response.thenApply(r -> decode(r, type, extraErrors));
         result.whenComplete((value, error) -> { if (result.isCancelled()) response.cancel(true); });
         return result;
     }
     public <T> T call(HttpRequest request, Class<T> type, Duration budget) {
-        var future = async(request, type);
+        return call(request, type, budget, Map.of());
+    }
+    public <T> T call(HttpRequest request, Class<T> type, Duration budget, Map<String, Integer> extraErrors) {
+        var future = async(request, type, extraErrors);
         try { return future.get(budget.toMillis(), TimeUnit.MILLISECONDS); }
         catch (TimeoutException e) { future.cancel(true); throw ApiFailure.timeout(); }
         catch (InterruptedException e) { future.cancel(true); Thread.currentThread().interrupt(); throw ApiFailure.unavailable(); }
@@ -46,13 +53,13 @@ public class UpstreamTransport {
             throw ApiFailure.unavailable();
         }
     }
-    private <T> T decode(HttpResponse<byte[]> response, Class<T> type) {
+    private <T> T decode(HttpResponse<byte[]> response, Class<T> type, Map<String, Integer> extraErrors) {
         try {
             if (!response.headers().firstValue("content-type").orElse("").split(";")[0].equalsIgnoreCase("application/json"))
                 throw ApiFailure.unavailable();
             if (response.statusCode() != 200) {
                 var code = mapper.readTree(response.body()).path("code").asText();
-                int expected = switch (code) {
+                int expected = extraErrors.getOrDefault(code, switch (code) {
                     case "INVALID_IMAGE" -> 400;
                     case "UPLOAD_TOO_LARGE" -> 413;
                     case "UNSUPPORTED_MEDIA_TYPE" -> 415;
@@ -61,7 +68,7 @@ public class UpstreamTransport {
                     case "DEPENDENCY_NOT_READY", "SERVICE_BUSY" -> 503;
                     case "DEPENDENCY_TIMEOUT" -> 504;
                     default -> -1;
-                };
+                });
                 if (expected == response.statusCode()) throw new ApiFailure(expected, code);
                 throw ApiFailure.unavailable();
             }

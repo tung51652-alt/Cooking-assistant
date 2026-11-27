@@ -1,20 +1,31 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Camera, Images, ImageSquare, Scan, Sparkle, X, ArrowRight, CheckSquare, ShieldCheck } from '@phosphor-icons/react';
 import type { SelectedImage } from '../types';
 
 interface Props {
   image: SelectedImage | null;
   busy: boolean;
+  error: string | null;
+  visionIssue: boolean;
   onFiles: (files: FileList | null) => void;
   onRemove: () => void;
   onPredict: () => void;
   onInvalid: (file: File, message: string) => void;
+  onDismissError: () => void;
+  onOpenCatalog: () => void;
 }
 
-export default function UploadPage({ image, busy, onFiles, onRemove, onPredict, onInvalid }: Props) {
+export default function UploadPage({ image, busy, error, visionIssue, onFiles, onRemove, onPredict, onInvalid, onDismissError, onOpenCatalog }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const camera = useRef<HTMLInputElement>(null);
+  const inlineErrorRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      inlineErrorRef.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [error]);
   return <section id="uploadSection" className="section upload-section" aria-labelledby="upload-title">
     <div className="home-intro">
       <span className="intro-badge"><Sparkle size={17} weight="fill" aria-hidden="true" /> Cảm hứng cho bữa cơm Việt</span>
@@ -54,9 +65,17 @@ export default function UploadPage({ image, busy, onFiles, onRemove, onPredict, 
           </> : <div className="empty-preview"><span className="preview-icon"><ImageSquare size={30} aria-hidden="true" /></span><strong id="previewText">Chưa có ảnh được chọn</strong><p>Ảnh món ăn của bạn sẽ xuất hiện ở đây<br /> để xem trước và nhận diện.</p></div>}
         </div>
         {image && <p className="file-name"><CheckSquare size={15} aria-hidden="true" /> {image.file.name}</p>}
+        {error && <div ref={inlineErrorRef} className="error-message error-message-inline upload-inline-error" role="alert">
+          <p>{error}</p>
+          <div className="error-actions">
+            {visionIssue && <button type="button" className="secondary-btn" onClick={() => input.current?.click()}>Chọn / tải ảnh khác</button>}
+            {visionIssue && <button type="button" className="secondary-btn" onClick={onOpenCatalog}>Chọn món từ danh mục</button>}
+            <button type="button" className="text-btn" onClick={onDismissError}>Đóng thông báo</button>
+          </div>
+        </div>}
         <div className="button-row two-buttons">
           <button id="removeImageBtn" className="secondary-btn" disabled={!image} onClick={onRemove}><X size={19} aria-hidden="true" /> Xóa ảnh</button>
-          <button id="predictBtn" className="primary-btn" disabled={!image || busy} onClick={onPredict}><Scan size={19} aria-hidden="true" />{busy ? 'Đang nhận diện…' : 'Nhận diện món'}</button>
+          <button id="predictBtn" className="primary-btn" disabled={!image || busy || visionIssue} onClick={onPredict}><Scan size={19} aria-hidden="true" />{busy ? 'Đang nhận diện…' : 'Nhận diện món'}</button>
         </div>
       </div>
     </div>

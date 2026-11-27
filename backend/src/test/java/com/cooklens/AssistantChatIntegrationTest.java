@@ -35,7 +35,7 @@ class AssistantChatIntegrationTest {
     static final JsonNode RECIPES;
     static final AtomicInteger CALLS=new AtomicInteger();
     static final Queue<JsonNode> PROMPTS=new ConcurrentLinkedQueue<>();
-    static volatile String mode="normal";
+    static volatile String mode="normal", lastAuthorization=null;
     static volatile CountDownLatch entered=new CountDownLatch(1), release=new CountDownLatch(1);
     static {
         try {
@@ -49,7 +49,10 @@ class AssistantChatIntegrationTest {
     static class Pricing {
         @Bean @Primary ChatPricing testPricing() {
             return new ChatPricing() {
-                @Override public Quote quote(LlmSettings.Connection config, Prompt prompt) { return new Quote(1000,1_000_000,1_000_000); }
+                @Override public Quote quote(LlmSettings.Connection config, Prompt prompt) {
+                    if (config.byok()) return super.quote(config, prompt);
+                    return new Quote(1000,1_000_000,1_000_000);
+                }
             };
         }
     }
@@ -60,12 +63,13 @@ class AssistantChatIntegrationTest {
         properties.add("cooklens.llm.base-url",() -> base+"/v1"); properties.add("cooklens.llm.api-key",() -> KEY);
         properties.add("cooklens.llm.model",() -> LlmSettings.NVIDIA_MODEL);
         properties.add("cooklens.llm.timeout-seconds",() -> "2");
+        properties.add("cooklens.cors-origins",() -> "http://localhost:5173");
     }
     @Autowired SessionStore store;
     @LocalServerPort int port;
     final HttpClient client=HttpClient.newHttpClient();
     @BeforeEach void reset() {
-        mode="normal"; CALLS.set(0); PROMPTS.clear(); entered=new CountDownLatch(1); release=new CountDownLatch(1);
+        mode="normal"; lastAuthorization=null; CALLS.set(0); PROMPTS.clear(); entered=new CountDownLatch(1); release=new CountDownLatch(1);
         store.transact(c -> { try (var st=c.createStatement()) {
             st.executeUpdate("DELETE FROM sessions"); st.executeUpdate("DELETE FROM llm_calls"); st.executeUpdate("DELETE FROM llm_budget_warnings");
         } return null; });
@@ -82,17 +86,31 @@ class AssistantChatIntegrationTest {
             JsonNode body;
             int status=200;
             if (path.equals("/v1/chat/completions")) {
-                CALLS.incrementAndGet(); PROMPTS.add(JSON.readTree(exchange.getRequestBody().readAllBytes()));
+                CALLS.incrementAndGet();
+                lastAuthorization=exchange.getRequestHeaders().getFirst("Authorization");
+                JsonNode reqBody=JSON.readTree(exchange.getRequestBody().readAllBytes());
+                PROMPTS.add(reqBody);
                 String selected=mode;
                 if (selected.equals("hold") || selected.equals("stall")) {
                     entered.countDown();
                     try { release.await(4,TimeUnit.SECONDS); } catch (InterruptedException error) { Thread.currentThread().interrupt(); return; }
                 }
-                var result=JSON.createObjectNode(); result.put("model",LlmSettings.NVIDIA_MODEL);
-                var choice=result.putArray("choices").addObject().put("index",0).put("finish_reason","stop");
-                choice.putObject("message").put("role","assistant").put("content",selected.equals("blank") ? " " : "Theo công thức: giải thích bước tiếp, không tự chuyển bước.");
-                if (!selected.equals("no-usage")) result.putObject("usage").put("prompt_tokens",120).put("completion_tokens",30).put("total_tokens",150);
+                var result=JSON.createObjectNode();
+                if (selected.equals("byok-snapshot")) {
+                    result.put("model",reqBody.path("model").asText()+"-2026-01-01");
+                    var choice=result.putArray("choices").addObject().put("index",0).put("finish_reason","length");
+                    choice.putObject("message").put("role","assistant").put("content","Hello from BYOK!");
+                    result.putObject("usage").put("prompt_tokens",12).put("completion_tokens",8).put("total_tokens",35);
+                } else {
+                    result.put("model",selected.equals("byok-echo") ? reqBody.path("model").asText() : LlmSettings.NVIDIA_MODEL);
+                    var choice=result.putArray("choices").addObject().put("index",0).put("finish_reason","stop");
+                    choice.putObject("message").put("role","assistant").put("content",selected.equals("blank") ? " " : "Theo công thức: giải thích bước tiếp, không tự chuyển bước.");
+                    if (!selected.equals("no-usage")) result.putObject("usage").put("prompt_tokens",120).put("completion_tokens",30).put("total_tokens",150);
+                }
                 if (selected.equals("fail")) { status=500; result.put("error",KEY); }
+                else if (selected.equals("auth-fail")) { status=401; result.put("error","invalid key "+KEY); }
+                else if (selected.equals("model-invalid")) { status=404; result.put("error","unknown model"); }
+                else if (selected.equals("rate-limit")) { status=429; result.put("error","too many requests"); }
                 body=result;
             } else if (path.startsWith("/recipes/")) {
                 var result=JSON.createObjectNode().put("corpus_version",CONTRACT.corpusVersion);
@@ -280,8 +298,147 @@ class AssistantChatIntegrationTest {
 
     @Test void openApiExposesChatRateLimitWithoutChangingExistingRoutes() throws Exception {
         var response=send("/v3/api-docs",null); assertEquals(200,response.statusCode());
-        var schema=JSON.readTree(response.body()); assertEquals(9,schema.path("paths").size());
+        var schema=JSON.readTree(response.body()); assertEquals(10,schema.path("paths").size());
         assertTrue(schema.path("paths").path("/api/assistant/sessions/{id}/messages").path("post").path("responses").has("429"));
+        assertTrue(schema.path("paths").path("/api/assistant/llm/test").path("post").path("responses").has("200"));
         Files.writeString(Path.of("target","phase10-openapi.json"),response.body(),StandardCharsets.UTF_8);
+    }
+
+    @Test void llmTestHelloValidatesInputsMapsUpstreamErrorsAndNeverPersistsKey() throws Exception {
+        String byokKey="sk-test-"+UUID.randomUUID();
+        String base="http://127.0.0.1:"+UPSTREAM.getAddress().getPort()+"/v1";
+
+        mode="byok-snapshot";
+        var okResp=send("/api/assistant/llm/test",Map.of(
+                "provider","custom","base_url",base,"model","gpt-4o-mini","api_key",byokKey));
+        assertEquals(200,okResp.statusCode(),okResp.body());
+        assertFalse(okResp.body().contains(byokKey));
+        JsonNode okJson=JSON.readTree(okResp.body());
+        assertEquals("1.0.0",okJson.path("api_version").asText());
+        assertTrue(okJson.path("ok").asBoolean());
+        assertEquals("custom",okJson.path("provider").asText());
+        assertEquals("gpt-4o-mini-2026-01-01",okJson.path("model").asText());
+        assertEquals("Hello from BYOK!",okJson.path("reply").asText());
+        assertTrue(okJson.path("latency_ms").asLong()>=0);
+        assertEquals("Bearer "+byokKey,lastAuthorization);
+        JsonNode sentPrompt=PROMPTS.peek();
+        assertEquals("hello",sentPrompt.path("messages").get(1).path("content").asText());
+        assertTrue(sentPrompt.path("max_tokens").asInt()<=64);
+
+        mode="auth-fail";
+        var authResp=send("/api/assistant/llm/test",Map.of("provider","custom","base_url",base,"model","gpt-4o-mini","api_key",byokKey));
+        error(authResp,503,"ASSISTANT_PROVIDER_AUTH_FAILED");
+        assertFalse(authResp.body().contains(byokKey));
+
+        mode="model-invalid";
+        var modelResp=send("/api/assistant/llm/test",Map.of("provider","custom","base_url",base,"model","bad-model","api_key",byokKey));
+        error(modelResp,422,"ASSISTANT_MODEL_INVALID");
+        assertFalse(modelResp.body().contains(byokKey));
+
+        mode="rate-limit";
+        error(send("/api/assistant/llm/test",Map.of("provider","custom","base_url",base,"model","gpt-4o-mini","api_key",byokKey)),
+                429,"ASSISTANT_RATE_LIMITED");
+
+        mode="stall";
+        error(send("/api/assistant/llm/test",Map.of("provider","custom","base_url",base,"model","gpt-4o-mini","api_key",byokKey)),
+                504,"ASSISTANT_PROVIDER_TIMEOUT");
+        release.countDown();
+
+        int callsBeforeInvalid=CALLS.get();
+        for (var badBody:List.of(
+                Map.of("provider","unknown","base_url",base,"model","gpt-4o","api_key",byokKey),
+                Map.of("provider","custom","base_url","http://example.com/v1","model","gpt-4o","api_key",byokKey),
+                Map.of("provider","custom","base_url",base+"?q=1","model","gpt-4o","api_key",byokKey),
+                Map.of("provider","custom","base_url",base,"model","bad model","api_key",byokKey),
+                Map.of("provider","custom","base_url",base,"model","gpt-4o","api_key","bad key"))) {
+            var badResp=send("/api/assistant/llm/test",badBody);
+            error(badResp,422,"VALIDATION_ERROR");
+            assertFalse(badResp.body().contains(byokKey));
+        }
+        assertEquals(callsBeforeInvalid,CALLS.get());
+        assertEquals(0,scalar("SELECT COUNT(*) FROM sessions"));
+        assertEquals(0,scalar("SELECT COUNT(*) FROM session_operations"));
+        assertEquals(0,scalar("SELECT COUNT(*) FROM session_chat_turns"));
+        assertEquals(0,scalar("SELECT COUNT(*) FROM llm_calls"));
+    }
+
+    @Test void byokHeadersOverrideEnvFallbackAndNeverStoreApiKeyInSqliteOrResponse() throws Exception {
+        String byokKey="sk-byok-"+UUID.randomUUID();
+        String base="http://127.0.0.1:"+UPSTREAM.getAddress().getPort()+"/v1";
+        JsonNode session=create(0);
+
+        // Exhaust server monthly budget to verify BYOK calls still work
+        store.transact(c -> {
+            new ChatAdmission().reserve(c,id(),id(),"server-model",new ChatPricing.Quote(10_000_000,0,0),System.currentTimeMillis());
+            return null;
+        });
+
+        mode="byok-echo";
+        var msgReq=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+route(session)+"/messages"))
+                .timeout(Duration.ofSeconds(10))
+                .header("X-Request-ID",id())
+                .header("Content-Type","application/json")
+                .header("X-LLM-Provider","custom")
+                .header("X-LLM-Base-Url",base)
+                .header("X-LLM-Model","custom-byok-model")
+                .header("X-LLM-Api-Key",byokKey)
+                .POST(HttpRequest.BodyPublishers.ofString(JSON.writeValueAsString(message("Giải thích bước này",0,id()))))
+                .build();
+        var msgResp=client.send(msgReq,HttpResponse.BodyHandlers.ofString());
+        JsonNode answered=ok(msgResp);
+        assertEquals(1,answered.path("version").asInt());
+        assertFalse(msgResp.body().contains(byokKey));
+        assertEquals("Bearer "+byokKey,lastAuthorization);
+
+        // Verify SQLite never contains the BYOK api key
+        String dbDump=store.transact(c -> {
+            var sb=new StringBuilder();
+            for (String table:List.of("sessions","session_operations","session_chat_turns","llm_calls")) {
+                try (var st=c.createStatement(); var rs=st.executeQuery("SELECT * FROM "+table)) {
+                    int cols=rs.getMetaData().getColumnCount();
+                    while (rs.next()) for (int i=1;i<=cols;i++) sb.append(rs.getObject(i)).append('|');
+                }
+            }
+            return sb.toString();
+        });
+        assertFalse(dbDump.contains(byokKey));
+        assertFalse(dbDump.contains(KEY));
+        assertEquals(1,scalar("SELECT COUNT(*) FROM llm_calls WHERE model='custom-byok-model' AND reserved_micros=0 AND charged_micros=0"));
+
+        // Invalid X-LLM-Api-Key header returns 422 VALIDATION_ERROR without mutating session
+        var invalidKeyReq=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+route(session)+"/messages"))
+                .timeout(Duration.ofSeconds(10))
+                .header("X-Request-ID",id())
+                .header("Content-Type","application/json")
+                .header("X-LLM-Provider","openai")
+                .header("X-LLM-Model","gpt-4o-mini")
+                .header("X-LLM-Api-Key","invalid key with space")
+                .POST(HttpRequest.BodyPublishers.ofString(JSON.writeValueAsString(message("Câu hỏi lỗi",1,id()))))
+                .build();
+        error(client.send(invalidKeyReq,HttpResponse.BodyHandlers.ofString()),422,"VALIDATION_ERROR");
+        assertEquals(1,ok(send(route(session),null)).path("version").asInt());
+
+        // Without X-LLM-Api-Key, falls back to .env (and hits server budget cap)
+        error(send(route(session)+"/messages",message("Fallback env",1,id())),503,"ASSISTANT_BUDGET_EXCEEDED");
+
+        // Clear budget and verify fallback uses .env KEY
+        store.transact(c -> { try (var st=c.createStatement()) { st.executeUpdate("DELETE FROM llm_calls"); } return null; });
+        mode="normal";
+        ok(send(route(session)+"/messages",message("Fallback env ok",1,id())));
+        assertEquals("Bearer "+KEY,lastAuthorization);
+
+        // Verify CORS allows X-LLM-* headers
+        var corsReq=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+"/api/assistant/llm/test"))
+                .header("Origin","http://localhost:5173")
+                .header("Access-Control-Request-Method","POST")
+                .header("Access-Control-Request-Headers","Content-Type,X-Request-ID,X-LLM-Provider,X-LLM-Base-Url,X-LLM-Model,X-LLM-Api-Key")
+                .method("OPTIONS",HttpRequest.BodyPublishers.noBody())
+                .build();
+        var corsResp=client.send(corsReq,HttpResponse.BodyHandlers.ofString());
+        assertEquals(200,corsResp.statusCode());
+        String allowed=corsResp.headers().firstValue("Access-Control-Allow-Headers").orElse("").toLowerCase(Locale.ROOT);
+        for (String h:List.of("x-llm-provider","x-llm-base-url","x-llm-model","x-llm-api-key")) {
+            assertTrue(allowed.contains(h),"Missing allowed CORS header "+h+" in "+allowed);
+        }
     }
 }

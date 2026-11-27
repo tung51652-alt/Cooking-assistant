@@ -102,7 +102,7 @@ def run(args):
         bad, mime = image(b'not an image')
         assert request('/api/vision/predict', bad, mime, 400)['code'] == 'INVALID_IMAGE'
         spec = internal_request('/v3/api-docs')
-        assert spec['info']['version'] == '1.0.0' and len(spec['paths']) == 9
+        assert spec['info']['version'] == '1.0.0' and len(spec['paths']) == 10
         command('exec', '-T', 'recipes', 'python', '-c',
                 "from urllib.request import urlopen; assert urlopen('http://backend:8080/swagger-ui/index.html').status == 200")
 

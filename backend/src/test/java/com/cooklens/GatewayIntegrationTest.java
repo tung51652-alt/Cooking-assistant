@@ -127,6 +127,10 @@ class GatewayIntegrationTest {
     @Test void dependencyErrorsAreSanitizedAndTyped() throws Exception {
         mode="unavailable"; error(search("{\"confirmed_dish\":\"pho\"}"),503,"DEPENDENCY_NOT_READY");
         mode="invalid-image"; error(image(new byte[]{1},"image/png",""),400,"INVALID_IMAGE");
+        mode="blurry-image"; error(image(new byte[]{1},"image/png",""),422,"IMAGE_BLURRY");
+        mode="low-confidence-error"; error(image(new byte[]{1},"image/png",""),422,"LOW_CONFIDENCE_PREDICTION");
+        mode="low-confidence-score"; error(image(new byte[]{1},"image/png",""),422,"LOW_CONFIDENCE_PREDICTION");
+        mode="threshold-confidence"; assertEquals(200,image(new byte[]{1},"image/png","").statusCode());
         mode="busy"; error(image(new byte[]{1},"image/png",""),503,"SERVICE_BUSY");
         mode="empty"; var r=search("{\"confirmed_dish\":\"pho\"}"); assertEquals(200,r.statusCode()); assertTrue(body(r).path("recipes").isEmpty());
     }
@@ -175,7 +179,7 @@ class GatewayIntegrationTest {
         error(get("/api/recipes/INVALID"),422,"VALIDATION_ERROR");
         mode="missing"; error(get("/api/recipes/missing"),404,"RECIPE_NOT_FOUND"); mode="normal";
         var spec=body(get("/v3/api-docs")); assertEquals("1.0.0",spec.path("info").path("version").asText());
-        assertEquals(9,spec.path("paths").size());
+        assertEquals(10,spec.path("paths").size());
         for (String path:List.of("/api/vision/predict","/api/recipes/search","/api/dishes","/api/recipes/{id}","/api/health")) {
             var operation=spec.path("paths").path(path).path(path.contains("predict") || path.endsWith("search") ? "post" : "get");
             assertTrue(operation.path("responses").has("200"),path);
@@ -201,13 +205,29 @@ class GatewayIntegrationTest {
             Object result; int status=200;
             if(current.equals("unavailable")) { status=500; result=Map.of("detail","provider-private-detail"); }
             else if(current.equals("invalid-image")) { status=400; result=Map.of("code","INVALID_IMAGE","message","provider-private-detail"); }
+            else if(current.equals("blurry-image")) { status=422; result=Map.of("code","IMAGE_BLURRY","message","provider-private-detail"); }
+            else if(current.equals("low-confidence-error")) { status=422; result=Map.of("code","LOW_CONFIDENCE_PREDICTION","message","provider-private-detail"); }
             else if(current.equals("busy")) { status=503; result=Map.of("code","SERVICE_BUSY"); }
             else if(current.equals("missing")) { status=404; result=Map.of("code","RECIPE_NOT_FOUND"); }
             else if(path.equals("/health/ready")) result=Map.of("status","ready","model_version",current.equals("version")?"wrong":contract.modelVersion,
                     "taxonomy_version",contract.taxonomyVersion,"embedding_version",contract.embeddingVersion,
                     "corpus_version",current.equals("version")?"wrong":contract.corpusVersion);
             else if(path.equals("/predict")) {
-                var p=prediction.deepCopy(); if(current.equals("version")) ((com.fasterxml.jackson.databind.node.ObjectNode)p).put("model_version","wrong"); result=p;
+                var p=prediction.deepCopy();
+                if(current.equals("version")) ((com.fasterxml.jackson.databind.node.ObjectNode)p).put("model_version","wrong");
+                if(current.equals("low-confidence-score")) {
+                    var preds=(com.fasterxml.jackson.databind.node.ArrayNode)p.path("predictions");
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(0)).put("confidence",0.49);
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(1)).put("confidence",0.30);
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(2)).put("confidence",0.21);
+                }
+                if(current.equals("threshold-confidence")) {
+                    var preds=(com.fasterxml.jackson.databind.node.ArrayNode)p.path("predictions");
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(0)).put("confidence",0.50);
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(1)).put("confidence",0.30);
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(2)).put("confidence",0.20);
+                }
+                result=p;
             } else if(path.equals("/dishes")) result=new DishesResult(contract.taxonomyVersion,contract.dishes);
             else if(path.startsWith("/recipes/")) result=Map.of("corpus_version",contract.corpusVersion,"recipe",recipe);
             else {

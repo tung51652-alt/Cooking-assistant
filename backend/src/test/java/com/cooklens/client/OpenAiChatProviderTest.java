@@ -145,9 +145,9 @@ class OpenAiChatProviderTest {
         assertFalse(request.toString().contains("Câu mới")); assertFalse(result.toString().contains(result.text()));
     }
 
-    @Test void mapsHttpErrorsWithoutRetryOrLeakingProviderBody() {
+    @Test void mapsHttpErrorsWithoutLeakingProviderBodyAndRetriesOnlyTransient502And503() {
         var provider=provider(); payload="provider body containing "+key;
-        for (int code:List.of(401,403,429,402,500,503,404,422,202,302)) {
+        for (int code:List.of(401,403,429,402,500,404,422,202,302)) {
             status=code;
             String expected=switch (code) {
                 case 401,403 -> "ASSISTANT_PROVIDER_AUTH_FAILED";
@@ -158,6 +158,61 @@ class OpenAiChatProviderTest {
             int before=calls.get(); failure(code==429 ? 429 : 503,expected,() -> provider.complete(prompt()));
             assertEquals(before+1,calls.get());
         }
+        for (int code:List.of(502,503)) {
+            status=code;
+            int before=calls.get(); failure(503,"ASSISTANT_PROVIDER_UNAVAILABLE",() -> provider.complete(prompt()));
+            assertEquals(before+2,calls.get());
+        }
+    }
+
+    @Test void retriesTransient503OnceAndRecoversWithinDeadline() throws Exception {
+        var transientServer=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        var transientExecutor=Executors.newVirtualThreadPerTaskExecutor();
+        transientServer.setExecutor(transientExecutor);
+        var attempt=new AtomicInteger();
+        transientServer.createContext("/",exchange -> {
+            try (exchange) {
+                exchange.getRequestBody().readAllBytes();
+                int n=attempt.incrementAndGet();
+                byte[] body=(n==1 ? "{\"error\":\"busy\"}" : good().toString()).getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().set("Content-Type","application/json");
+                exchange.sendResponseHeaders(n==1 ? 503 : 200,body.length);
+                exchange.getResponseBody().write(body);
+            }
+        });
+        transientServer.start();
+        try {
+            var transientBase="http://127.0.0.1:"+transientServer.getAddress().getPort()+"/v1";
+            var provider=new OpenAiChatProvider(new LlmSettings("openai",transientBase,LlmSettings.NVIDIA_MODEL,key,"5","512","6000"),mapper);
+            Completion result=provider.complete(prompt());
+            assertEquals(2,attempt.get());
+            assertEquals(good().path("choices").get(0).path("message").path("content").asText(),result.text());
+        } finally { transientServer.stop(0); transientExecutor.shutdownNow(); }
+    }
+
+    @Test void skipsRetryWhenRemainingDeadlineWindowIsTooShort() throws Exception {
+        var slowServer=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        var slowExecutor=Executors.newVirtualThreadPerTaskExecutor();
+        slowServer.setExecutor(slowExecutor);
+        var attempt=new AtomicInteger();
+        slowServer.createContext("/",exchange -> {
+            try (exchange) {
+                exchange.getRequestBody().readAllBytes();
+                attempt.incrementAndGet();
+                try { Thread.sleep(350); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                byte[] body="{\"error\":\"busy\"}".getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().set("Content-Type","application/json");
+                exchange.sendResponseHeaders(503,body.length);
+                exchange.getResponseBody().write(body);
+            }
+        });
+        slowServer.start();
+        try {
+            var slowBase="http://127.0.0.1:"+slowServer.getAddress().getPort()+"/v1";
+            var provider=new OpenAiChatProvider(new LlmSettings("openai",slowBase,LlmSettings.NVIDIA_MODEL,key,"1","512","6000"),mapper);
+            failure(503,"ASSISTANT_PROVIDER_UNAVAILABLE",() -> provider.complete(prompt()));
+            assertEquals(1,attempt.get());
+        } finally { slowServer.stop(0); slowExecutor.shutdownNow(); }
     }
 
     @Test void preservesUnknownAndPartialUsageWithoutInventingZero() {
@@ -167,13 +222,32 @@ class OpenAiChatProviderTest {
         assertEquals(new Usage(120L,null),provider.complete(prompt()).usage());
     }
 
-    @Test void rejectsEmptyTruncatedToolOrWrongModelRepliesButRetainsUsage() {
+    @Test void acceptsLengthFinishReasonAndReasoningTokenTotalsWithinBounds() {
         var provider=provider();
-        for (String mode:List.of("blank","length","tools","role","model","output-limit")) {
+        var truncated=good(); ((ObjectNode)truncated.path("choices").get(0)).put("finish_reason","length");
+        payload=truncated.toString();
+        assertEquals(good().path("choices").get(0).path("message").path("content").asText(),provider.complete(prompt()).text());
+
+        var geminiReasoning=good();
+        ((ObjectNode)geminiReasoning.path("usage")).put("prompt_tokens",15).put("completion_tokens",20).put("total_tokens",60);
+        payload=geminiReasoning.toString();
+        assertEquals(new Usage(15L,20L),provider.complete(prompt()).usage());
+
+        var includedReasoning=good();
+        var includedUsage=(ObjectNode)includedReasoning.path("usage");
+        includedUsage.put("prompt_tokens",100).put("completion_tokens",520).put("total_tokens",620);
+        includedUsage.putObject("completion_tokens_details").put("reasoning_tokens",20);
+        payload=includedReasoning.toString();
+        assertEquals(new Usage(100L,520L),provider.complete(prompt()).usage());
+    }
+
+    @Test void rejectsEmptyToolWrongModelOrExceededRepliesButRetainsUsage() {
+        var provider=provider();
+        for (String mode:List.of("blank","blank-length","tools","role","model","output-limit")) {
             var root=good(); var choice=(ObjectNode)root.path("choices").get(0); var message=(ObjectNode)choice.path("message");
             switch (mode) {
                 case "blank" -> message.put("content"," ");
-                case "length" -> choice.put("finish_reason","length");
+                case "blank-length" -> { choice.put("finish_reason","length"); message.put("content"," "); }
                 case "tools" -> message.putArray("tool_calls").addObject().put("id","tool");
                 case "role" -> message.put("role","system");
                 case "model" -> root.put("model","different-model");
@@ -187,14 +261,16 @@ class OpenAiChatProviderTest {
 
     @Test void rejectsMalformedUsageJsonAndUnexpectedResponseTypes() {
         var provider=provider();
-        for (String mode:List.of("negative","string","float","overflow","wrong-total","array","duplicate","trailing","bad-json")) {
+        for (String mode:List.of("negative","string","float","overflow","wrong-total","bad-reasoning-details","negative-reasoning","array","duplicate","trailing","bad-json")) {
             var root=good(); var usage=(ObjectNode)root.path("usage");
             switch (mode) {
                 case "negative" -> usage.put("prompt_tokens",-1);
                 case "string" -> usage.put("completion_tokens","30");
                 case "float" -> usage.put("completion_tokens",1.5);
                 case "overflow" -> usage.put("total_tokens",new java.math.BigInteger("18446744073709551616"));
-                case "wrong-total" -> usage.put("total_tokens",999);
+                case "wrong-total" -> usage.put("total_tokens",100);
+                case "bad-reasoning-details" -> usage.put("completion_tokens_details","bad");
+                case "negative-reasoning" -> usage.putObject("completion_tokens_details").put("reasoning_tokens",-1);
                 case "array" -> root.putArray("usage");
             }
             payload=switch (mode) {
@@ -240,5 +316,96 @@ class OpenAiChatProviderTest {
         failure(422,"ASSISTANT_CONTEXT_TOO_LARGE",() -> provider().complete(
                 new Prompt(List.of(new Message(Role.system,"Rules"),new Message(Role.user,"\u0000".repeat(17000))))));
         assertEquals(0,calls.get());
+    }
+
+    @Test void byokAcceptsLengthFinishSnapshotPrefixReasoningTokensAndMapsErrors() throws Exception {
+        var settings = settings();
+        var userConfig = settings.resolveUserConnection(
+                new LlmSettings.UserOverride("custom", base, "gpt-4o-mini", key), 64, true);
+        assertTrue(userConfig.byok());
+
+        // Accept finish_reason=length, snapshot model prefix, and prompt+completion <= total (reasoning_tokens)
+        var root = mapper.createObjectNode();
+        root.put("model", "gpt-4o-mini-2024-07-18");
+        var choice = root.putArray("choices").addObject();
+        choice.put("index", 0);
+        choice.put("finish_reason", "length");
+        choice.putObject("message").put("role", "assistant").put("content", "Hello!");
+        root.putObject("usage").put("prompt_tokens", 10).put("completion_tokens", 5).put("total_tokens", 40);
+        payload = root.toString();
+
+        var testPrompt = new Prompt(List.of(new Message(Role.system, "Reply briefly."), new Message(Role.user, "hello")));
+        Completion ok = provider().complete(testPrompt, userConfig);
+        assertEquals("gpt-4o-mini-2024-07-18", ok.model());
+        assertEquals("Hello!", ok.text());
+        assertEquals(64, mapper.readTree(received).path("max_tokens").asInt());
+
+        // Gemini models/ prefix is also accepted
+        root.put("model", "models/gpt-4o-mini-001");
+        payload = root.toString();
+        assertEquals("models/gpt-4o-mini-001", provider().complete(testPrompt, userConfig).model());
+
+        // Reject when prompt + completion > total even in BYOK
+        ((ObjectNode) root.path("usage")).put("total_tokens", 14);
+        payload = root.toString();
+        failure(503, "ASSISTANT_PROVIDER_UNAVAILABLE", () -> provider().complete(testPrompt, userConfig));
+
+        // Error mappings for BYOK: 400/404 -> 422 ASSISTANT_MODEL_INVALID, 401/403 -> 503 ASSISTANT_PROVIDER_AUTH_FAILED, 429 -> 429
+        payload = "{\"error\":\"bad " + key + "\"}";
+        for (int code : List.of(400, 404)) {
+            status = code;
+            failure(422, "ASSISTANT_MODEL_INVALID", () -> provider().complete(testPrompt, userConfig));
+        }
+        for (int code : List.of(401, 403)) {
+            status = code;
+            failure(503, "ASSISTANT_PROVIDER_AUTH_FAILED", () -> provider().complete(testPrompt, userConfig));
+        }
+        status = 429;
+        failure(429, "ASSISTANT_RATE_LIMITED", () -> provider().complete(testPrompt, userConfig));
+
+        // Timeout -> 504 ASSISTANT_PROVIDER_TIMEOUT
+        status = 200;
+        stall = true;
+        payload = good().toString();
+        var shortByok = new LlmSettings("openai", base, LlmSettings.NVIDIA_MODEL, "", "1", "512", "6000")
+                .resolveUserConnection(new LlmSettings.UserOverride("custom", base, "gpt-4o-mini", key), 64, true);
+        failure(504, "ASSISTANT_PROVIDER_TIMEOUT", () -> provider().complete(testPrompt, shortByok));
+    }
+
+    @Test void byokPresetsAndCustomUrlValidationEnforceSecurityRules() {
+        var unconfigured = new LlmSettings("openai", "", "", "", "20", "512", "6000");
+        assertEquals("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                unconfigured.resolveUserConnection(new LlmSettings.UserOverride("gemini", null, "gemini-2.5-flash", key), 64, true).endpoint().toString());
+        assertEquals("https://api.openai.com/v1/chat/completions",
+                unconfigured.resolveUserConnection(new LlmSettings.UserOverride("openai", "https://api.openai.com/v1/", "gpt-4o-mini", key), 64, true).endpoint().toString());
+        assertEquals("https://integrate.api.nvidia.com/v1/chat/completions",
+                unconfigured.resolveUserConnection(new LlmSettings.UserOverride("nvidia", "", "meta/llama-3.1-8b-instruct", key), 64, true).endpoint().toString());
+        for (String validCustom : List.of(
+                "https://llm.example.com/v1",
+                "https://llm.example.com/proxy/v1beta/openai",
+                "https://my-azure.openai.azure.com/openai",
+                "http://127.0.0.1:11434/v1",
+                "http://localhost:8080/v1",
+                "http://[::1]:8000/v1")) {
+            assertTrue(unconfigured.resolveUserConnection(new LlmSettings.UserOverride("custom", validCustom, "my-model", key), 64, true).byok());
+        }
+        for (var bad : List.of(
+                new LlmSettings.UserOverride("unknown", null, "gpt-4o", key),
+                new LlmSettings.UserOverride("gemini", "https://evil.example/v1", "gemini-2.5-flash", key),
+                new LlmSettings.UserOverride("custom", "http://example.com/v1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://user" + ":pass@example.com/v1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/v1?x=1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/v1#frag", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/../v1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/a//v1", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/%761", "m", key),
+                new LlmSettings.UserOverride("custom", "https://example.com/other", "m", key),
+                new LlmSettings.UserOverride("openai", null, "bad model", key),
+                new LlmSettings.UserOverride("openai", null, "gpt-4o", "bad key"),
+                new LlmSettings.UserOverride("openai", null, "gpt-4o", ""))) {
+            var err = assertThrows(ApiFailure.class, () -> unconfigured.resolveUserConnection(bad, 64, true));
+            assertEquals(422, err.status());
+            assertEquals("VALIDATION_ERROR", err.code());
+        }
     }
 }

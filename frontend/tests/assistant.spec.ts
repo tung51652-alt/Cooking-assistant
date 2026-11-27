@@ -109,13 +109,39 @@ for (const code of ['ASSISTANT_NOT_CONFIGURED', 'ASSISTANT_PROVIDER_UNAVAILABLE'
     await page.route('**/api/assistant/sessions/*/actions', route => {
       const body = route.request().postDataJSON(); action(state, body.action, body.operation_id); return route.fulfill(json({ session: state }));
     });
-    await open(page); await question(page).fill('Giữ câu hỏi này'); await question(page).press('Enter');
-    await expect(page.getByRole('alert')).toBeVisible(); await expect(question(page)).toHaveValue('Giữ câu hỏi này');
+    await open(page);
+    await question(page).scrollIntoViewIfNeeded();
+    await question(page).fill('Giữ câu hỏi này'); await question(page).press('Enter');
+    const inlineAlert = page.locator('.assistant-conversation').getByRole('alert');
+    await expect(inlineAlert).toBeVisible();
+    await expect(inlineAlert).toBeInViewport();
+    await expect(question(page)).toHaveValue('Giữ câu hỏi này');
     await expect(page.getByRole('button', { name: 'Thử lại yêu cầu' })).toHaveCount(0);
+    if (code === 'ASSISTANT_PROVIDER_UNAVAILABLE') await expect(page.getByRole('button', { name: 'Gửi lại câu hỏi' })).toBeVisible();
+    else await expect(page.getByRole('button', { name: 'Gửi lại câu hỏi' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
     await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
   });
 }
+
+test('provider unavailable offers resend with a fresh operation ID and clears draft on success', async ({ page }) => {
+  const state = await restored(page);
+  const bodies: { text: string; operation_id: string }[] = [];
+  await page.route('**/api/assistant/sessions/*/messages', async route => {
+    const body = route.request().postDataJSON(); bodies.push(body);
+    if (bodies.length === 1) return route.fulfill(json({ code: 'ASSISTANT_PROVIDER_UNAVAILABLE' }, 503));
+    message(state, body.text);
+    return route.fulfill(json({ session: state }));
+  });
+  await open(page); await question(page).fill('Hỏi lại sau 503'); await question(page).press('Enter');
+  await expect(page.getByRole('button', { name: 'Gửi lại câu hỏi' })).toBeVisible();
+  await page.getByRole('button', { name: 'Gửi lại câu hỏi' }).click();
+  await expect(page.getByRole('log')).toContainText('200 g');
+  await expect(question(page)).toHaveValue('');
+  expect(bodies).toHaveLength(2);
+  expect(bodies[1].text).toBe('Hỏi lại sau 503');
+  expect(bodies[1].operation_id).not.toBe(bodies[0].operation_id);
+});
 
 test('version conflict refreshes server state and preserves unsent text', async ({ page }) => {
   const state = await restored(page);
@@ -211,6 +237,8 @@ test('recipe entry resumes an active session and starts fresh after finishing or
   await expect(page.getByRole('heading', { name: recipe.title })).toBeVisible(); const original = current.id;
   expect(creates[0].corpus_version).toBe('test-corpus'); expect(creates[0].recipe_id).toBe(recipe.id);
   await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
+  await expect(page.getByRole('heading', { name: 'Công thức', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
   await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
   await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
   await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
@@ -220,6 +248,7 @@ test('recipe entry resumes an active session and starts fresh after finishing or
   await page.getByRole('button', { name: 'Kết thúc nấu', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Đã kết thúc phiên nấu' })).toBeVisible();
   await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
+  await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
   await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
   await expect(page.getByRole('button', { name: 'Bắt đầu nấu', exact: true })).toBeEnabled();
   expect(current.id).not.toBe(original);
@@ -227,10 +256,177 @@ test('recipe entry resumes an active session and starts fresh after finishing or
   expect(creates[1].operation_id).not.toBe(creates[0].operation_id);
 
   await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
-  await page.getByRole('button', { name: '← Danh sách công thức' }).click();
+  await expect(page.getByRole('heading', { name: 'Công thức', exact: true })).toBeVisible();
   await page.getByRole('button', { name: `Xem công thức ${other.title}` }).click();
   await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
   await expect(page.getByRole('heading', { name: other.title })).toBeVisible(); expect(current.id).not.toBe(original);
   expect(current.messages).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('LLM settings modal validates inputs, tests hello, saves to localStorage, sends BYOK headers and clears', async ({ page }, testInfo) => {
+  const state = await restored(page);
+  const sentHeaders: Record<string, string>[] = [];
+  await page.route('**/api/assistant/llm/test', async route => {
+    const body = route.request().postDataJSON();
+    expect(body).toEqual({
+      provider: 'openai',
+      base_url: 'https://api.openai.com/v1',
+      model: 'gpt-4o-mini',
+      api_key: 'sk-test-valid-12345',
+    });
+    await route.fulfill(json({ ok: true, provider: 'openai', model: 'gpt-4o-mini', reply: 'Hello! Tôi sẵn sàng hỗ trợ bạn nấu ăn.', latency_ms: 88 }));
+  });
+  await page.route('**/api/assistant/sessions/*/messages', async route => {
+    sentHeaders.push(route.request().headers());
+    const body = route.request().postDataJSON();
+    if (sentHeaders.length === 1) {
+      await route.fulfill(json({ code: 'ASSISTANT_NOT_CONFIGURED' }, 503));
+      return;
+    }
+    message(state, body.text);
+    await route.fulfill(json({ session: state }));
+  });
+
+  await open(page);
+  await expect(page.locator('.llm-status-badge')).toHaveCount(0);
+  await expect(page.locator('.llm-nav-btn')).toHaveText('Cài đặt trợ lý');
+
+  await page.locator('.llm-nav-btn').click();
+  const defaultDialog = page.getByRole('dialog', { name: 'Cài đặt trợ lý' });
+  await expect(defaultDialog).toBeVisible();
+  await expect(defaultDialog).not.toContainText('BYOK');
+  await expect(defaultDialog).not.toContainText('LLM');
+  await expect(defaultDialog.getByRole('radio', { name: /Mặc định hệ thống/ })).toHaveAttribute('aria-checked', 'true');
+  await expect(defaultDialog).toContainText('Hỏi đáp hoạt động khi máy chủ đã được cấu hình');
+  await expect(defaultDialog).toContainText('vẫn có thể xem các bước nấu');
+  await expect(defaultDialog).toContainText('liên hệ người quản lý hệ thống');
+  await expect(defaultDialog.getByRole('button', { name: 'Lưu', exact: true })).toBeVisible();
+  await expect(defaultDialog.getByRole('textbox', { name: /^Khóa API/ })).toHaveCount(0);
+  await defaultDialog.getByRole('radio', { name: /Dùng khóa API riêng/ }).click();
+  await expect(defaultDialog.getByRole('textbox', { name: /^Khóa API/ })).toBeVisible();
+  await expect(defaultDialog).not.toContainText('HTTPS header');
+  await expect(defaultDialog.getByRole('button', { name: /Cài đặt nâng cao/ })).toHaveAttribute('aria-expanded', 'false');
+  await expect(defaultDialog.getByLabel('Base URL (OpenAI-compatible)')).toHaveCount(0);
+  await defaultDialog.getByRole('button', { name: 'Quay về mặc định' }).click();
+  await expect(defaultDialog.getByRole('textbox', { name: /^Khóa API/ })).toHaveCount(0);
+  await defaultDialog.getByRole('button', { name: 'Đóng', exact: true }).click();
+  await expect(defaultDialog).toHaveCount(0);
+
+  await question(page).fill('Mấy phút sôi?');
+  await question(page).press('Enter');
+  const notConfiguredAlert = page.getByRole('alert');
+  await expect(notConfiguredAlert).toContainText('Máy chủ chưa bật tính năng hỏi đáp');
+  await expect(notConfiguredAlert).toContainText('vẫn có thể xem các bước nấu');
+  await expect(notConfiguredAlert).toContainText('Dùng khóa API riêng');
+  await expect(notConfiguredAlert).toContainText('liên hệ người quản lý hệ thống');
+  await notConfiguredAlert.getByRole('button', { name: 'Dùng khóa API riêng', exact: true }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Cài đặt trợ lý' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('radio', { name: /Dùng khóa API riêng/ })).toHaveAttribute('aria-checked', 'true');
+  await expect(dialog.getByLabel('Base URL (OpenAI-compatible)')).toHaveCount(0);
+
+  await dialog.getByRole('radio', { name: /Nhà cung cấp tùy chỉnh/ }).click();
+  await expect(dialog.getByRole('button', { name: /Cài đặt nâng cao/ })).toHaveAttribute('aria-expanded', 'true');
+  await expect(dialog.getByLabel('Base URL (OpenAI-compatible)')).toBeEditable();
+  await dialog.getByLabel('Base URL (OpenAI-compatible)').fill('http://evil.example/api');
+  await expect(dialog).toContainText('HTTPS');
+
+  await dialog.getByRole('radio', { name: /OpenAI\s/ }).first().click();
+  await expect(dialog.getByRole('button', { name: /Cài đặt nâng cao/ })).toHaveAttribute('aria-expanded', 'false');
+  await expect(dialog.getByLabel('Base URL (OpenAI-compatible)')).toHaveCount(0);
+  await dialog.getByRole('button', { name: /Cài đặt nâng cao/ }).click();
+  await expect(dialog.getByRole('button', { name: /Cài đặt nâng cao/ })).toHaveAttribute('aria-expanded', 'true');
+  await expect(dialog.getByLabel('Base URL (OpenAI-compatible)')).toHaveValue('https://api.openai.com/v1');
+  await expect(dialog).toContainText('HTTPS header');
+
+  const keyInput = dialog.getByRole('textbox', { name: /^Khóa API/ });
+  await keyInput.fill('bad key');
+  await expect(dialog).toContainText('không được chứa khoảng trắng');
+  await keyInput.fill('sk-test-valid-12345');
+  await expect(dialog).toContainText('Định dạng API key hợp lệ');
+
+  await dialog.getByRole('button', { name: 'Hiện khóa API' }).click();
+  await expect(keyInput).toHaveAttribute('type', 'text');
+  await dialog.getByRole('button', { name: 'Ẩn khóa API' }).click();
+  await expect(keyInput).toHaveAttribute('type', 'password');
+
+  await dialog.getByRole('textbox', { name: 'Tên Model' }).fill('bad model!');
+  await expect(dialog).toContainText('tối đa 200 ký tự');
+  await dialog.getByRole('button', { name: 'gpt-4o-mini' }).click();
+  await expect(dialog).toContainText('Tên model hợp lệ.');
+
+  await dialog.getByRole('button', { name: 'Kiểm tra kết nối' }).click();
+  await expect(dialog).toContainText('Kết nối thành công');
+  await expect(dialog).toContainText('Hello! Tôi sẵn sàng hỗ trợ bạn nấu ăn.');
+  if (process.env.COOKLENS_SCREENSHOT_DIR && testInfo.project.name === 'desktop') {
+    await page.screenshot({ path: `${process.env.COOKLENS_SCREENSHOT_DIR}/llm-settings-hello-ok.png` });
+  }
+
+  await dialog.getByRole('button', { name: 'Lưu cài đặt' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('.llm-status-badge')).toContainText('Khóa riêng: OpenAI · gpt-4o-mini');
+
+  await page.getByRole('button', { name: 'Gửi câu hỏi' }).click();
+  await expect(page.getByRole('log')).toContainText('Theo công thức');
+  expect(sentHeaders[1]['x-llm-provider']).toBe('openai');
+  expect(sentHeaders[1]['x-llm-base-url']).toBe('https://api.openai.com/v1');
+  expect(sentHeaders[1]['x-llm-model']).toBe('gpt-4o-mini');
+  expect(sentHeaders[1]['x-llm-api-key']).toBe('sk-test-valid-12345');
+
+  await page.locator('.llm-nav-btn').click();
+  await page.getByRole('button', { name: 'Quay về mặc định' }).click();
+  await expect(page.locator('.llm-status-badge')).toHaveCount(0);
+  await question(page).fill('Câu hỏi mặc định');
+  await question(page).press('Enter');
+  await expect(page.getByRole('log')).toContainText('Câu hỏi mặc định');
+  expect(sentHeaders[2]['x-llm-api-key']).toBeUndefined();
+});
+
+test('LLM settings modal moves focus inside on open, traps Tab and Shift+Tab, and restores focus on Escape', async ({ page }) => {
+  await page.goto('/');
+  const opener = page.locator('.llm-nav-btn');
+  await opener.focus();
+  await page.keyboard.press('Enter');
+
+  const dialog = page.getByRole('dialog', { name: 'Cài đặt trợ lý' });
+  await expect(dialog).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const panel = document.querySelector('.llm-modal');
+    return !!panel && panel.contains(document.activeElement);
+  })).toBe(true);
+
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press('Tab');
+    const inside = await page.evaluate(() => !!document.querySelector('.llm-modal')?.contains(document.activeElement));
+    expect(inside).toBe(true);
+  }
+
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press('Shift+Tab');
+    const inside = await page.evaluate(() => !!document.querySelector('.llm-modal')?.contains(document.activeElement));
+    expect(inside).toBe(true);
+  }
+
+  await page.locator('.llm-modal').focus();
+  await page.keyboard.press('Shift+Tab');
+  const stayedInsideAfterPanelFocus = await page.evaluate(() => {
+    const panel = document.querySelector('.llm-modal');
+    const active = document.activeElement;
+    return !!panel && panel.contains(active) && active !== panel;
+  });
+  expect(stayedInsideAfterPanelFocus).toBe(true);
+
+  await dialog.getByRole('radio', { name: /Dùng khóa API riêng/ }).click();
+  await dialog.getByRole('button', { name: /Cài đặt nâng cao/ }).click();
+  for (let i = 0; i < 22; i++) {
+    await page.keyboard.press('Tab');
+    const inside = await page.evaluate(() => !!document.querySelector('.llm-modal')?.contains(document.activeElement));
+    expect(inside).toBe(true);
+  }
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
 });
