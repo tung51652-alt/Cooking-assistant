@@ -17,7 +17,7 @@ from .model import load_model
 from .schemas import PredictionResponse
 
 logger = logging.getLogger(__name__)
-CONFIDENCE_THRESHOLD = 0.5
+CONFIDENCE_THRESHOLD = 0.65
 
 
 def create_app() -> FastAPI:
@@ -93,7 +93,7 @@ def create_app() -> FastAPI:
                 raise VisionError(
                     422,
                     'LOW_CONFIDENCE_PREDICTION',
-                    'Ảnh có vấn đề hoặc không nhận diện được món ăn Việt phù hợp (độ tin cậy dưới 50%). Vui lòng chọn ảnh món ăn rõ nét hơn.',
+                    'Chưa xác định được món từ ảnh này. Hãy chọn ảnh khác hoặc chọn món theo tên.',
                 )
             return {'model_version': runtime.model.model_version,
                     'taxonomy_version': runtime.model.taxonomy_version, 'predictions': predictions}

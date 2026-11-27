@@ -6,6 +6,8 @@ import type {
 
 export type { LlmProviderPreset, LlmUserConfig, LlmTestResult };
 
+export const MIN_VISION_CONFIDENCE = 0.65;
+
 export class ApiError extends Error {
   readonly status?: number;
   readonly code?: string;
@@ -118,7 +120,7 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
         const error: unknown = await response.json().catch(() => null);
         const visionErrors: Record<string, string> = {
           IMAGE_BLURRY: 'Ảnh bị mờ, không đủ rõ nét để nhận diện món ăn. Vui lòng chụp hoặc chọn ảnh rõ nét hơn.',
-          LOW_CONFIDENCE_PREDICTION: 'Ảnh có vấn đề hoặc không nhận diện được món ăn Việt phù hợp (độ tin cậy dưới 50%). Vui lòng chọn ảnh món ăn rõ nét hơn.',
+          LOW_CONFIDENCE_PREDICTION: 'Chưa xác định được món từ ảnh này. Hãy chọn ảnh khác hoặc chọn món theo tên.',
         };
         if (record(error) && error.api_version === '1.0.0' && uuid(error.request_id)
           && response.headers.get('X-Request-ID') === error.request_id && typeof error.code === 'string'

@@ -151,7 +151,7 @@ test('testLlmConfig posts config and validates response shape', async t => {
 });
 
 test('vision predict maps IMAGE_BLURRY and LOW_CONFIDENCE_PREDICTION to Vietnamese messages and preserves code', async t => {
-  for (const [code, pattern] of [['IMAGE_BLURRY', /Ảnh bị mờ/], ['LOW_CONFIDENCE_PREDICTION', /dưới 50%/]]) {
+  for (const [code, pattern] of [['IMAGE_BLURRY', /Ảnh bị mờ/], ['LOW_CONFIDENCE_PREDICTION', /Chưa xác định được món/]]) {
     t.mock.method(globalThis, 'fetch', async () => response({ code, message: 'raw' }, 422));
     await assert.rejects(api.predict(new FormData(), new AbortController().signal), error => error.code === code && error.status === 422 && pattern.test(error.message));
   }

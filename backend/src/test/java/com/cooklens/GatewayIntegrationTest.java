@@ -217,15 +217,15 @@ class GatewayIntegrationTest {
                 if(current.equals("version")) ((com.fasterxml.jackson.databind.node.ObjectNode)p).put("model_version","wrong");
                 if(current.equals("low-confidence-score")) {
                     var preds=(com.fasterxml.jackson.databind.node.ArrayNode)p.path("predictions");
-                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(0)).put("confidence",0.49);
-                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(1)).put("confidence",0.30);
-                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(2)).put("confidence",0.21);
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(0)).put("confidence",0.631);
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(1)).put("confidence",0.23);
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(2)).put("confidence",0.12);
                 }
                 if(current.equals("threshold-confidence")) {
                     var preds=(com.fasterxml.jackson.databind.node.ArrayNode)p.path("predictions");
-                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(0)).put("confidence",0.50);
-                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(1)).put("confidence",0.30);
-                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(2)).put("confidence",0.20);
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(0)).put("confidence",0.65);
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(1)).put("confidence",0.23);
+                    ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(2)).put("confidence",0.12);
                 }
                 result=p;
             } else if(path.equals("/dishes")) result=new DishesResult(contract.taxonomyVersion,contract.dishes);

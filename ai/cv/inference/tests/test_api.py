@@ -230,7 +230,7 @@ class FoodApiTests(unittest.TestCase):
         self.assertEqual(noise_payload['code'], 'LOW_CONFIDENCE_PREDICTION')
         self.assertEqual(
             noise_payload['message'],
-            'Ảnh có vấn đề hoặc không nhận diện được món ăn Việt phù hợp (độ tin cậy dưới 50%). Vui lòng chọn ảnh món ăn rõ nét hơn.',
+            'Chưa xác định được món từ ảnh này. Hãy chọn ảnh khác hoặc chọn món theo tên.',
         )
         UUID(noise_payload['request_id'])
         self.assertEqual(noise_response.headers['x-request-id'], noise_payload['request_id'])

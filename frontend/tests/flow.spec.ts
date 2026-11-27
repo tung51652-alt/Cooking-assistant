@@ -356,7 +356,7 @@ test('changing the confirmed dish discards a late recipe response', async ({ pag
 });
 
 test('blurry and low-confidence vision errors hide dish suggestions and offer re-upload', async ({ page }) => {
-  for (const [code, text] of [['IMAGE_BLURRY', 'Ảnh bị mờ'], ['LOW_CONFIDENCE_PREDICTION', 'dưới 50%']] as const) {
+  for (const [code, text] of [['IMAGE_BLURRY', 'Ảnh bị mờ'], ['LOW_CONFIDENCE_PREDICTION', 'Chưa xác định được món']] as const) {
     await page.route('**/api/vision/predict', route => route.fulfill({ status: 422, ...json({ code }) }));
     await upload(page);
     await page.locator('#predictBtn').scrollIntoViewIfNeeded();
@@ -380,17 +380,17 @@ test('blurry and low-confidence vision errors hide dish suggestions and offer re
   }
 });
 
-test('defensive UI guard hides suggestions and confirmation when top-1 confidence is below 50%', async ({ page }, testInfo) => {
+test('defensive UI guard hides suggestions and confirmation when top-1 confidence is below 65%', async ({ page }, testInfo) => {
   const lowPredictions = [
-    { rank: 1, class_id: 28, normalized_dish: 'pho', display_name: 'Phở', confidence: 0.42 },
-    { rank: 2, class_id: 14, normalized_dish: 'bun_bo_hue', display_name: 'Bún bò Huế', confidence: 0.31 },
-    { rank: 3, class_id: 3, normalized_dish: 'banh_canh', display_name: 'Bánh canh', confidence: 0.12 },
+    { rank: 1, class_id: 28, normalized_dish: 'pho', display_name: 'Phở', confidence: 0.631 },
+    { rank: 2, class_id: 14, normalized_dish: 'bun_bo_hue', display_name: 'Bún bò Huế', confidence: 0.24 },
+    { rank: 3, class_id: 3, normalized_dish: 'banh_canh', display_name: 'Bánh canh', confidence: 0.10 },
   ];
   await page.route('**/api/vision/predict', route => route.fulfill(json({ predictions: lowPredictions })));
   await upload(page);
   await page.locator('#predictBtn').click();
   await expect(page).toHaveURL(/recognition\.html$/);
-  await expect(page.getByRole('alert')).toContainText('dưới ngưỡng 50%');
+  await expect(page.getByRole('alert')).toContainText('Chưa xác định được món');
   await expect(page.getByRole('radio')).toHaveCount(0);
   await expect(page.locator('#confirmButton')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Sửa món trong danh mục' })).toHaveCount(0);
@@ -479,7 +479,7 @@ test('low-confidence recognition keeps defensive guard while allowing manual dis
   await upload(page);
   await page.locator('#predictBtn').click();
   await expect(page).toHaveURL(/recognition\.html$/);
-  await expect(page.getByRole('alert')).toContainText('dưới ngưỡng 50%');
+  await expect(page.getByRole('alert')).toContainText('Chưa xác định được món');
   await expect(page.getByRole('radio')).toHaveCount(0);
   await expect(page.locator('#confirmButton')).toHaveCount(0);
 
