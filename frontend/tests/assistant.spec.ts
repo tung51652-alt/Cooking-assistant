@@ -205,7 +205,7 @@ test('chat quota disables questions while leaving cooking controls available', a
   await expect(page.getByRole('button', { name: 'Bắt đầu nấu', exact: true })).toBeEnabled();
 });
 
-test('recipe entry creates the chosen snapshot, then selecting another recipe creates an isolated session', async ({ page }) => {
+test('recipe entry resumes an active session and starts fresh after finishing or switching recipes', async ({ page }) => {
   const other = { ...recipe, id: 'test_pho_other', title: 'Phở khác · fixture trợ lý' };
   const recipes = [recipe, other]; const creates: Record<string, string>[] = [];
   let current = initial(); const sessions = new Map<string, Session>();
@@ -224,6 +224,12 @@ test('recipe entry creates the chosen snapshot, then selecting another recipe cr
     return route.fulfill(json({ session: current }));
   });
   await page.route('**/api/assistant/sessions/*', route => route.fulfill(json({ session: current })));
+  await page.route('**/api/assistant/sessions/*/actions', route => {
+    const body = route.request().postDataJSON();
+    expect(body.expected_version).toBe(current.version);
+    action(current, body.action, body.operation_id);
+    return route.fulfill(json({ session: current }));
+  });
   await page.goto('/');
   await page.locator('#imageInput').setInputFiles({ name: 'fixture.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNQTPf6DwADUQHSSaoLLQAAAABJRU5ErkJggg==', 'base64') });
   await page.locator('#predictBtn').click(); await page.getByRole('radio').first().check(); await page.locator('#confirmButton').click();
@@ -231,6 +237,25 @@ test('recipe entry creates the chosen snapshot, then selecting another recipe cr
   await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
   await expect(page.getByRole('heading', { name: recipe.title })).toBeVisible(); const original = current.id;
   expect(creates[0].corpus_version).toBe('test-corpus'); expect(creates[0].recipe_id).toBe(recipe.id);
+  await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
+  await expect(page.getByRole('heading', { name: 'Công thức', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
+  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
+  await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
+  await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
+  expect(current.id).toBe(original);
+  expect(creates).toHaveLength(1);
+
+  await page.getByRole('button', { name: 'Kết thúc nấu', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Đã kết thúc phiên nấu' })).toBeVisible();
+  await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
+  await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
+  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
+  await expect(page.getByRole('button', { name: 'Bắt đầu nấu', exact: true })).toBeEnabled();
+  expect(current.id).not.toBe(original);
+  expect(creates.map(body => body.recipe_id)).toEqual([recipe.id, recipe.id]);
+  expect(creates[1].operation_id).not.toBe(creates[0].operation_id);
+
   await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
   await expect(page.getByRole('heading', { name: 'Công thức', exact: true })).toBeVisible();
   await page.getByRole('button', { name: `Xem công thức ${other.title}` }).click();

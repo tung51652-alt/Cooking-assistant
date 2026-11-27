@@ -18,6 +18,7 @@ import httpx
 from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr, field_validator
 from starlette.exceptions import HTTPException
 
+from ai.rag.api.preview import recipe_preview
 from ai.rag.embeddings.local import Encoder
 from ai.rag.ingestion.bundle import Bundle
 from ai.rag.retrieval.store import Store
@@ -140,7 +141,7 @@ def create_app(bundle=None, encoder=None, store=None):
             raise Failure(503, "DEPENDENCY_NOT_READY", "Dữ liệu công thức chưa sẵn sàng.") from None
         recipes = []
         for rank, (recipe, score) in enumerate(ranked, 1):
-            preview = " ".join(step["text"] for step in recipe["instructions"])[:240]
+            preview = recipe_preview(" ".join(step["text"] for step in recipe["instructions"]))
             recipes.append({**{k: recipe[k] for k in ("id", "title", "normalized_dish", "language", "cuisine", "servings",
                                                      "prep_time_minutes", "cook_time_minutes", "source")},
                             "preview": preview, "rank": rank, "retrieval_score": score})
