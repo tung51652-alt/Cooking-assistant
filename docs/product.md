@@ -22,7 +22,7 @@ rồi hỏi đáp và nấu theo từng bước với trợ lý.
 | Expo Go | Chụp/chọn ảnh và cùng luồng với web qua API dùng chung |
 | Nhận diện | EfficientNet-B2, 30 lớp món Việt, trả Top-3 kèm confidence |
 | Công thức | Corpus `cooklens-recipes-v3`: 90 công thức cho 30 món, gồm 42 từ Wikibooks, 37 từ nguồn tiếng Việt khác và 11 công thức có nhãn AI |
-| Trợ lý | Hỏi đáp theo công thức đã chọn qua Gemini; năm nút bước nấu chạy bằng logic ứng dụng |
+| Trợ lý | Hỏi đáp theo công thức đã chọn qua Gemini hoặc key riêng của người dùng trên web; nút bước nấu chạy bằng logic ứng dụng |
 | Triển khai | Một Docker Compose; model, corpus và vector nằm trong image |
 
 Bản phát hành `2.0.0` dùng corpus v1 với 33 công thức và luồng công thức → trợ lý tách màn hình.
