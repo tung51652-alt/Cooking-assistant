@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public final class OpenAiChatProvider implements ChatProvider {
+    private static final long ATTEMPT_TIMEOUT_MS = 4_000;
     private static final long RETRY_BACKOFF_MS = 300;
     private static final long MIN_RETRY_WINDOW_MS = 500;
     private static final Set<String> ALLOWED_FINISH_REASONS = Set.of("stop", "length");
@@ -76,7 +77,7 @@ public final class OpenAiChatProvider implements ChatProvider {
             }
             if (config.model().equals(LlmSettings.NVIDIA_SUPER_MODEL))
                 body.put("reasoning_effort", "none");
-            if (config.model().equals(LlmSettings.GEMINI_MODEL))
+            if (LlmSettings.GEMINI_MODELS.contains(config.model()))
                 body.put("reasoning_effort", "minimal");
             var messages = body.putArray("messages");
             for (var message : prompt.messages())
@@ -101,11 +102,22 @@ public final class OpenAiChatProvider implements ChatProvider {
         byte[] payload = payload(prompt, config);
         long deadlineNanos = System.nanoTime() + config.timeout().toNanos();
         ByokTransport.Response received = null;
+        boolean retriedAfterTimeout = false;
         for (int attempt = 0; attempt < 2; attempt++) {
             long remainingMs = TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime());
             if (remainingMs <= 0) throw timeout();
             try {
-                received = sendAttempt(config, payload, remainingMs);
+                received = sendAttempt(config, payload, Math.min(remainingMs, ATTEMPT_TIMEOUT_MS));
+            } catch (Failure failure) {
+                if (failure.code().equals("ASSISTANT_PROVIDER_TIMEOUT")
+                        && attempt == 0
+                        && pauseForRetry(deadlineNanos)) {
+                    // The cancelled request may still be billed upstream. Keep the reservation
+                    // instead of settling this operation from only the second attempt's usage.
+                    retriedAfterTimeout = true;
+                    continue;
+                }
+                throw failure;
             } catch (ConnectException e) {
                 if (attempt == 0 && pauseForRetry(deadlineNanos)) continue;
                 throw unavailable(Usage.unknown());
@@ -113,7 +125,7 @@ public final class OpenAiChatProvider implements ChatProvider {
             if (received.statusCode() == 200) break;
             LoggerFactory.getLogger(OpenAiChatProvider.class)
                     .warn("Assistant provider HTTP status {}", received.statusCode());
-            // Retry only transient 502/503 responses once within the remaining request deadline.
+            // All retries share the original deadline; never retry auth, quota or invalid replies.
             if ((received.statusCode() == 502 || received.statusCode() == 503)
                     && attempt == 0
                     && pauseForRetry(deadlineNanos)) continue;
@@ -174,9 +186,16 @@ public final class OpenAiChatProvider implements ChatProvider {
                     || message.hasNonNull("refusal")
                     || (usage.outputTokens() != null && usage.outputTokens() > outputLimit))
                 throw unavailable(usage);
-            return new Completion(content.textValue(), "openai", reportedModel, usage);
+            return new Completion(
+                    content.textValue(),
+                    "openai",
+                    reportedModel,
+                    retriedAfterTimeout ? Usage.unknown() : usage);
+        } catch (Failure failure) {
+            if (retriedAfterTimeout) throw unavailable(Usage.unknown());
+            throw failure;
         } catch (java.io.IOException | IllegalArgumentException e) {
-            throw unavailable(usage);
+            throw unavailable(retriedAfterTimeout ? Usage.unknown() : usage);
         }
     }
 

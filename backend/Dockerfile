@@ -1,25 +1,19 @@
 FROM maven:3.9.11-eclipse-temurin-21 AS build
 WORKDIR /src
 COPY backend/pom.xml backend/pom.xml
-# Reuse downloads and back off on repository throttling; -U rechecks cached misses.
-RUN --mount=type=cache,target=/root/.m2,sharing=locked \
-    delay=20; for attempt in 1 2 3 4 5; do \
-      mvn -B -q -U -f backend/pom.xml dependency:go-offline && break; \
-      if [ "$attempt" -eq 5 ]; then exit 1; fi; \
-      echo "Maven dependency download failed; retrying in ${delay}s"; \
-      sleep "$delay"; delay=$((delay * 2)); \
-    done
 COPY backend/src/main backend/src/main
 COPY data/processed/30vnfoods-label-map.json data/processed/30vnfoods-label-map.json
 COPY deploy/artifacts/manifest.json deploy/artifacts/manifest.json
-RUN --mount=type=cache,target=/root/.m2,sharing=locked \
+# Resolve only the plugins/dependencies used by package. go-offline also resolves
+# reporting plugins that are not needed in the runtime image.
+RUN --mount=type=cache,id=cooklens-backend-package,target=/root/.m2,sharing=locked \
     delay=20; for attempt in 1 2 3 4 5; do \
       mvn -B -q -U -f backend/pom.xml -Dmaven.test.skip=true package && break; \
       if [ "$attempt" -eq 5 ]; then exit 1; fi; \
       echo "Maven package failed; retrying in ${delay}s"; \
       sleep "$delay"; delay=$((delay * 2)); \
     done
-RUN --mount=type=cache,target=/root/.m2,sharing=locked \
+RUN --mount=type=cache,id=cooklens-backend-package,target=/root/.m2,sharing=locked \
     mkdir -p /src/sqlite && cd /src/sqlite && \
     jar xf /root/.m2/repository/org/xerial/sqlite-jdbc/3.51.0.0/sqlite-jdbc-3.51.0.0.jar "org/sqlite/native/Linux/$(uname -m)/libsqlitejdbc.so" && \
     cp "org/sqlite/native/Linux/$(uname -m)/libsqlitejdbc.so" /src/libsqlitejdbc.so

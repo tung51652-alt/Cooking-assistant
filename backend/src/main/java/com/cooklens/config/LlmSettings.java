@@ -11,7 +11,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public final class LlmSettings {
-    public static final String GEMINI_MODEL = "gemini-3.1-flash-lite";
+    public static final String GEMINI_MODEL = "gemini-3.5-flash-lite";
+    public static final String GEMINI_LEGACY_MODEL = "gemini-3.1-flash-lite";
+    public static final Set<String> GEMINI_MODELS = Set.of(GEMINI_MODEL, GEMINI_LEGACY_MODEL);
     public static final String GEMINI_BASE =
             "https://generativelanguage.googleapis.com/v1beta/openai";
     public static final String OPENAI_BASE = "https://api.openai.com/v1";
@@ -120,7 +122,7 @@ public final class LlmSettings {
                     case "custom" -> validateCustomBaseUrl(user.baseUrl());
                     default -> throw ApiFailure.invalid();
                 };
-        int seconds = safeBounded(timeout, 1, 20, 20);
+        int seconds = safeBounded(timeout, 1, 20, 8);
         int maxOutput =
                 maxOutputOverride != null ? maxOutputOverride : safeBounded(output, 1, 512, 512);
         int maxInput = safeBounded(input, 1, 6000, 6000);

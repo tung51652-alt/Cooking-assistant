@@ -84,7 +84,7 @@ def example_environment(metadata):
     return ('HOST_BIND=127.0.0.1\nHOST_PORT=8080\nLLM_PROVIDER=openai\n'
             f'LLM_BASE_URL={endpoints[assistant["provider"]]}\n'
             f'LLM_MODEL={assistant["model_selector"]}\nLLM_API_KEY=\n'
-            'LLM_TIMEOUT_SECONDS=20\nLLM_MAX_INPUT_TOKENS=6000\nLLM_MAX_OUTPUT_TOKENS=512\n')
+            'LLM_TIMEOUT_SECONDS=8\nLLM_MAX_INPUT_TOKENS=6000\nLLM_MAX_OUTPUT_TOKENS=512\n')
 
 
 def promote(root, source_sha):

@@ -18,7 +18,14 @@ class ChatPricingTest {
                                 LlmSettings.GEMINI_BASE + "/chat/completions",
                                 LlmSettings.GEMINI_MODEL),
                         null);
-        assertEquals(new ChatPricing.Quote(262912, 250000, 1500000), quote);
+        assertEquals(new ChatPricing.Quote(631706, 300000, 2500000), quote);
+        assertEquals(
+                new ChatPricing.Quote(525824, 250000, 1500000),
+                pricing.quote(
+                        config(
+                                LlmSettings.GEMINI_BASE + "/chat/completions",
+                                LlmSettings.GEMINI_LEGACY_MODEL),
+                        null));
         assertTrue(quote.reservedMicros() > 6000L * 250000 / 1000000 + 512L * 1500000 / 1000000);
         assertThrows(
                 ApiFailure.class,

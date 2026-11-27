@@ -371,6 +371,118 @@ class OpenAiChatProviderTest {
     }
 
     @Test
+    void retriesStalledRequestOnceAndRecoversWithoutUnderstatingUsage() throws Exception {
+        verifyStalledAttempts(8, true);
+    }
+
+    @Test
+    void capsEachAttemptEvenWithLegacyDeadlineAndHonorsShorterTotalDeadline() throws Exception {
+        verifyStalledAttempts(20, false);
+        verifyStalledAttempts(5, false);
+    }
+
+    private void verifyStalledAttempts(int totalSeconds, boolean recover) throws Exception {
+        var slowServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        var slowExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        slowServer.setExecutor(slowExecutor);
+        var attempts = new AtomicInteger();
+        slowServer.createContext(
+                "/",
+                exchange -> {
+                    try (exchange) {
+                        exchange.getRequestBody().readAllBytes();
+                        int attempt = attempts.incrementAndGet();
+                        if (!recover || attempt == 1) Thread.sleep(10_000);
+                        byte[] body = good().toString().getBytes(StandardCharsets.UTF_8);
+                        exchange.getResponseHeaders().set("Content-Type", "application/json");
+                        exchange.sendResponseHeaders(200, body.length);
+                        exchange.getResponseBody().write(body);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } catch (java.io.IOException ignored) {
+                        // Cancellation closes the connection before the stalled response arrives.
+                    }
+                });
+        slowServer.start();
+        try {
+            var settings =
+                    new LlmSettings(
+                            "openai",
+                            "http://127.0.0.1:" + slowServer.getAddress().getPort() + "/v1",
+                            LlmSettings.NVIDIA_MODEL,
+                            key,
+                            Integer.toString(totalSeconds),
+                            "512",
+                            "6000");
+            var provider = new OpenAiChatProvider(settings, mapper);
+            long start = System.nanoTime();
+            if (recover) {
+                var result = provider.complete(prompt());
+                assertEquals(
+                        good().path("choices").get(0).path("message").path("content").asText(),
+                        result.text());
+                assertEquals(Usage.unknown(), result.usage());
+            } else {
+                failure(504, "ASSISTANT_PROVIDER_TIMEOUT", () -> provider.complete(prompt()));
+            }
+            long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+            assertEquals(2, attempts.get());
+            assertTrue(elapsedMs >= 4_000, "First attempt must actually time out");
+            assertTrue(
+                    elapsedMs < Math.min(totalSeconds * 1_000L, 8_300L) + 1_000, "Shared deadline");
+        } finally {
+            slowServer.stop(0);
+            slowExecutor.shutdownNow();
+        }
+    }
+
+    @Test
+    void byokTimeoutRetryUsesSamePayloadAndKeepsUnknownUsageEvenForInvalidReply() {
+        for (boolean valid : List.of(true, false)) {
+            var attempts = new AtomicInteger();
+            var config =
+                    new LlmSettings.Connection(
+                            java.net.URI.create("https://example.com/v1/chat/completions"),
+                            LlmSettings.NVIDIA_MODEL,
+                            key,
+                            java.time.Duration.ofSeconds(8),
+                            512,
+                            6000,
+                            true);
+            var provider =
+                    new OpenAiChatProvider(
+                            settings(),
+                            mapper,
+                            (connection, body, timeoutMs) -> {
+                                assertSame(config, connection);
+                                assertTrue(timeoutMs > 0 && timeoutMs <= 4_000);
+                                assertEquals(
+                                        LlmSettings.NVIDIA_MODEL,
+                                        assertDoesNotThrow(() -> mapper.readTree(body))
+                                                .path("model")
+                                                .asText());
+                                if (attempts.incrementAndGet() == 1)
+                                    throw new Failure(
+                                            504, "ASSISTANT_PROVIDER_TIMEOUT", Usage.unknown());
+                                var reply = good();
+                                if (!valid) reply.put("model", "unexpected-model");
+                                return new ByokTransport.Response(
+                                        200,
+                                        "application/json",
+                                        reply.toString().getBytes(StandardCharsets.UTF_8));
+                            });
+            if (valid) assertEquals(Usage.unknown(), provider.complete(prompt(), config).usage());
+            else {
+                var failure =
+                        assertThrows(Failure.class, () -> provider.complete(prompt(), config));
+                assertEquals("ASSISTANT_PROVIDER_UNAVAILABLE", failure.code());
+                assertEquals(Usage.unknown(), failure.usage());
+            }
+            assertEquals(2, attempts.get());
+        }
+    }
+
+    @Test
     void skipsRetryWhenRemainingDeadlineWindowIsTooShort() throws Exception {
         var slowServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         var slowExecutor = Executors.newVirtualThreadPerTaskExecutor();
