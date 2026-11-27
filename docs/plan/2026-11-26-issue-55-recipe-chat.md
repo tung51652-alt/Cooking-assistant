@@ -35,6 +35,12 @@ Bản HTML duyệt trên máy local là mẫu giao diện cho web desktop, web m
 
 ## Nghiệm thu
 
+- Dùng một màn hình Trợ lý cho luồng xác nhận món từ ảnh, chọn món trong danh mục và mở lại phiên đã lưu.
+  Giữ đường dẫn trang danh mục và trang nhận diện cho liên kết cũ.
+  Chỉ hiện Nhận diện khi người dùng đang đi qua bước xác nhận từ ảnh.
+- Kiểm tra bấm lại Trợ lý, lọc kết quả, mở hoặc đóng chi tiết công thức và tiếp tục phiên.
+  Khi lọc, giữ công thức đang dùng và câu hỏi đang gõ cho đến khi người dùng đổi công thức.
+
 - [ ] Trên web desktop và web mobile, thử Bún đậu mắm tôm có một công thức, Phở có nhiều công thức, tìm rỗng, lỗi tra cứu, mở rồi đóng chi tiết, đổi công thức, tải lại để khôi phục phiên và khung nhập khi bàn phím mở.
 - [ ] Trên Expo Android và iOS, thử chọn ảnh, chuyển sang hội thoại, mở bảng công thức, nút Back, chuyển bước nấu, đóng mở lại app và kết thúc phiên.
   Ghi riêng kết quả máy ảo và thiết bị thật đã dùng.

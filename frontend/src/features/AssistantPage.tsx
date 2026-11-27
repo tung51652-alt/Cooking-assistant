@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowUp, Key } from '@phosphor-icons/react';
 import type { AssistantAction, AssistantSession, CreateSession, LlmUserConfig, RecipeDocument, SessionActionRequest, SessionMessageRequest } from '../types';
 import * as api from '../lib/api';
-import { LLM_PRESETS } from '../lib/llmConfig';
-import { Source } from './RecipePage';
+import { RecipeContent } from './RecipeContent';
 
 const STORAGE = 'cooklens.assistant.session';
 const RESEND_CODES = new Set(['ASSISTANT_PROVIDER_UNAVAILABLE', 'ASSISTANT_PROVIDER_TIMEOUT', 'ASSISTANT_RATE_LIMITED']);
@@ -18,12 +17,11 @@ const CONFIG_ERROR_CODES = new Set([
   'VALIDATION_ERROR',
 ]);
 
-export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, onRecipes, embedded = false }: {
+export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, onRecipes }: {
   document: RecipeDocument | null;
   llmConfig: LlmUserConfig | null;
   onOpenLlmSettings: (mode?: 'default' | 'custom') => void;
   onRecipes: () => void;
-  embedded?: boolean;
 }) {
   const [session, setSession] = useState<AssistantSession | null>(null);
   const sessionRef = useRef<AssistantSession | null>(null);
@@ -103,18 +101,18 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
   function load() {
     const previous = saved();
     if (document && (!previous || previous.recipeId !== document.recipe.id))
-      return embedded ? undefined : perform(createBody(document, creation.current));
+      return;
     if (!previous) return;
     return run(async signal => {
       try {
         const restored = await api.getSession(previous.id, signal);
         if (restored.recipe.id !== previous.recipeId) throw new api.ApiError('Phiên trả về không khớp công thức đã chọn.');
         if (document && (restored.corpus_version !== document.corpus_version || restored.recipe_version !== document.recipe.updated_at || restored.status === 'finished'))
-          return embedded ? null : api.createSession((createBody(document, creation.current) as Extract<Pending, { kind: 'create' }>).body, signal);
+          return null;
         return restored;
       } catch (failure) {
         if (document && failure instanceof api.ApiError && (failure.status === 404 || failure.status === 410))
-          return embedded ? null : api.createSession((createBody(document, creation.current) as Extract<Pending, { kind: 'create' }>).body, signal);
+          return null;
         throw failure;
       }
     });
@@ -139,7 +137,7 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
   async function ensureSession() {
     if (active.current || unavailable || retry) return null;
     if (sessionRef.current) return sessionRef.current;
-    return embedded && document ? perform(createBody(document, creation.current)) : null;
+    return document ? perform(createBody(document, creation.current)) : null;
   }
   async function act(action: AssistantAction) {
     const current = await ensureSession();
@@ -154,7 +152,7 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
     void perform({ kind: 'message', id: current.id, body: { text, expected_version: current.version, operation_id: crypto.randomUUID() } });
   }
   const step = session?.recipe.instructions.find(item => item.step === session.current_step);
-  const closed = (!session && !embedded) || session?.status === 'finished' || unavailable;
+  const closed = (!session && !document) || session?.status === 'finished' || unavailable;
   const quota = (session?.messages.length || 0) >= 60;
   const canResend = !retry && !closed && !quota && !!draft.trim() && !!errorCode && RESEND_CODES.has(errorCode);
   const inlineChatError = !!session && (errorTarget === 'message' || retry?.kind === 'message');
@@ -174,29 +172,13 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
     <button className="text-btn" disabled={busy} onClick={refresh}>Kiểm tra phiên</button>
     {retry && <button className="text-btn" disabled={busy} onClick={() => { setRetry(null); setDraft(''); refresh(); }}>Bỏ câu hỏi đang chờ</button>}
   </div></div>;
-  return <section className={embedded ? 'assistant-page assistant-embedded' : 'section assistant-page'} aria-label="Hỏi CookLens">
-    {!embedded && <div className="section-title"><h1 id="assistant-title">Trợ lý nấu ăn</h1><p>Hỏi về công thức đã chọn và tự điều khiển từng bước nấu.</p></div>}
-    {(!embedded || session) && <div className="assistant-toolbar">
-      <div className="assistant-toolbar-links">
-        {!embedded && <button className="text-btn" onClick={onRecipes}>← Chọn công thức khác</button>}
-        {session && <button className="text-btn" disabled={busy} onClick={newSession}>Tạo phiên mới</button>}
-      </div>
-      {!embedded && <div className="assistant-llm-status">
-        {llmConfig && (
-          <span className="llm-status-badge is-custom">
-            {`Khóa riêng: ${LLM_PRESETS[llmConfig.provider].shortLabel} · ${llmConfig.model}`}
-          </span>
-        )}
-        <button type="button" className="text-btn" onClick={() => onOpenLlmSettings()}>
-          <Key size={15} aria-hidden="true" /> Cài đặt trợ lý
-        </button>
-      </div>}
-    </div>}
+  return <section className="assistant-page" aria-label="Hỏi CookLens">
     {storageWarning && <p className="assistant-notice" role="status">Trình duyệt chưa lưu được phiên. Bạn vẫn có thể nấu, nhưng có thể cần chọn lại công thức khi tải lại trang.</p>}
     {!inlineChatError && errorBanner}
     {busy && <p role="status" className="assistant-notice">{session ? 'Đang xử lý yêu cầu…' : 'Đang mở phiên nấu…'}</p>}
-    {!embedded && !session && !busy && <div className="empty-state"><h2>{unavailable ? 'Phiên không còn khả dụng' : 'Chưa có phiên nấu'}</h2><p>Chọn một công thức để mở trợ lý. Phiên gần nhất sẽ được khôi phục khi còn hiệu lực.</p><button className="primary-btn" onClick={onRecipes}>Chọn công thức</button></div>}
-    {(session || embedded) && <div className="assistant-grid">
+    {!document && !session && !busy && <div className="empty-state"><h2>{unavailable ? 'Phiên không còn khả dụng' : 'Chưa có phiên nấu'}</h2><p>Chọn một công thức để mở trợ lý. Phiên gần nhất sẽ được khôi phục khi còn hiệu lực.</p><button className="primary-btn" onClick={onRecipes}>Chọn món</button></div>}
+    {(session || document) && <div className="assistant-grid">
+      {!document && session && <button className="text-btn" onClick={onRecipes}>Đổi món</button>}
       {session ? <aside className="assistant-cooking recipe-card" aria-labelledby="cooking-title">
         <p className="assistant-eyebrow">Công thức đang nấu</p><h2 id="cooking-title">{session.recipe.title}</h2>
         <p className="assistant-step-count">Bước {session.current_step}/{session.total_steps}</p>
@@ -209,27 +191,27 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
             <button className="text-btn" disabled={busy || closed || !!retry} onClick={() => act('finish')}>{labels.finish}</button>
           </>}
         </div>
-        <details className="assistant-original"><summary>Xem công thức gốc</summary><h3>Nguyên liệu</h3><ul>{session.recipe.ingredients.map((item, i) => <li key={i}>{item.name}: {item.quantity === null ? 'Chưa có định lượng' : `${new Intl.NumberFormat('vi-VN').format(item.quantity)} ${item.unit || ''}`}{item.note && ` — ${item.note}`}</li>)}</ul><h3>Các bước thực hiện</h3><ol>{session.recipe.instructions.map(item => <li key={item.step}>{item.text}</li>)}</ol><Source source={session.recipe.source} /></details>
+        {!document && <details className="assistant-original"><summary>Xem công thức {session.recipe.title}</summary>
+          <RecipeContent detail={session.recipe} />
+        </details>}
+        {session.status === 'finished' && <button className="secondary-btn" disabled={busy} onClick={newSession}>Nấu lại</button>}
       </aside> : <div className="assistant-start">
         {['Cần chuẩn bị gì?', 'Bắt đầu từ đâu?'].map(question => <button key={question} type="button" className="recipe-chat-prompt"
           disabled={busy || !!retry || unavailable} onClick={() => { setDraft(question); input.current?.focus(); }}>{question}</button>)}
         <button className="secondary-btn" onClick={() => void act('start')} disabled={busy || !!retry || unavailable}>Bắt đầu nấu</button>
       </div>}
       <div className="assistant-conversation recipe-card">
-        {!embedded && <><h2>Hỏi CookLens</h2><p className="muted">“Theo công thức” là nội dung từ công thức gốc; “Gợi ý thêm” là thông tin tham khảo.</p></>}
-        <div ref={log} className="assistant-messages" role="log" tabIndex={0} aria-label="Hội thoại nấu ăn" aria-live="polite" aria-relevant="additions text" aria-busy={busy} hidden={embedded && !session?.messages.length}>
+        <div ref={log} className="assistant-messages" role="log" tabIndex={0} aria-label="Hội thoại nấu ăn" aria-live="polite" aria-relevant="additions text" aria-busy={busy} hidden={!session?.messages.length}>
           {!session?.messages.length && <p className="assistant-empty-chat">Bạn có thể hỏi về nguyên liệu, cách làm hoặc bước đang nấu.</p>}
           {session?.messages.map((message, i) => <article key={i} className={`assistant-message assistant-message-${message.role}`} aria-label={message.role === 'user' ? 'Câu hỏi của bạn' : 'Câu trả lời của CookLens'}><strong>{message.role === 'user' ? 'Bạn' : 'CookLens'}</strong><p>{message.text}</p></article>)}
         </div>
         {quota && <p className="assistant-notice">Phiên đã đạt giới hạn 30 lượt hỏi. Bạn vẫn có thể dùng các nút bước nấu.</p>}
         {inlineChatError && errorBanner}
         <form className="assistant-form" onSubmit={event => { event.preventDefault(); send(); }}>
-          <label htmlFor="assistant-question">Câu hỏi về công thức</label><textarea id="assistant-question" ref={input} value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000} rows={embedded ? 1 : 3} disabled={busy || closed || quota || !!retry} placeholder={embedded ? 'Hỏi về công thức…' : 'Ví dụ: Bước này cần lưu ý điều gì?'} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send(); } }} />
-          <div className="assistant-compose-footer"><small>Enter để gửi · Shift + Enter để xuống dòng</small>
-            <button className="primary-btn assistant-send" aria-label="Gửi câu hỏi" disabled={busy || closed || quota || !!retry || !draft.trim()}>
-              {embedded ? <ArrowUp size={20} aria-hidden="true" /> : 'Gửi câu hỏi'}
-            </button>
-          </div>
+          <label htmlFor="assistant-question">Câu hỏi về công thức</label><textarea id="assistant-question" ref={input} value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000} rows={1} disabled={busy || closed || quota || !!retry} placeholder="Hỏi về công thức…" onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send(); } }} />
+          <button className="primary-btn assistant-send" aria-label="Gửi câu hỏi" disabled={busy || closed || quota || !!retry || !draft.trim()}>
+            <ArrowUp size={20} aria-hidden="true" />
+          </button>
         </form>
       </div>
     </div>}

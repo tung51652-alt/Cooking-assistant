@@ -3,10 +3,11 @@ import { ArrowLeft, BookOpen, CaretRight, ImageSquare, Sparkle, X } from '@phosp
 import type { Dish, LlmUserConfig, RecipeDocument, RecipeSummary, SelectedImage } from '../types';
 import { getRecipeDocument } from '../lib/api';
 import AssistantPage from './AssistantPage';
-import { RecipeContent, Source } from './RecipePage';
+import { RecipeContent, Source } from './RecipeContent';
+import { loadRecipeSelection, saveRecipeSelection } from '../lib/recipeContext';
 
 type Props = {
-  dish: Dish;
+  dish: Dish | null;
   image: SelectedImage | null;
   recipes: RecipeSummary[] | null;
   searching: boolean;
@@ -35,25 +36,42 @@ function useRecipe(id: string | undefined, dish: string) {
   return { result: result?.id === id ? result : undefined, retry: () => setAttempt(value => value + 1) };
 }
 
-export default function RecipeConversation({ dish, image, recipes, searching, searchError, llmConfig, onSearch, onLlmSettings, onChangeDish, onNewPhoto }: Props) {
+export default function RecipeConversation(props: Props) {
+  const { dish, llmConfig, onLlmSettings, onChangeDish, onNewPhoto } = props;
+  return <section className="recipe-conversation" aria-labelledby="recipe-chat-heading">
+    <header className="recipe-chat-header">
+      <div>{dish && <button className="text-btn" onClick={onChangeDish}><ArrowLeft size={16} aria-hidden="true" /> Đổi món</button>}
+        <h1 id="recipe-chat-heading">Trợ lý nấu ăn</h1></div>
+      <button className="secondary-btn" onClick={onNewPhoto}><ImageSquare size={19} aria-hidden="true" /> Ảnh mới</button>
+    </header>
+    {dish ? <DishConversation {...props} dish={dish} /> : <AssistantPage document={null} llmConfig={llmConfig}
+      onOpenLlmSettings={onLlmSettings} onRecipes={onChangeDish} />}
+  </section>;
+}
+
+function DishConversation({ dish, image, recipes, searching, searchError, llmConfig, onSearch, onLlmSettings, onChangeDish }: Props & { dish: Dish }) {
   const [selected, setSelected] = useState<RecipeDocument | null>(null);
-  const [savedRecipeId, setSavedRecipeId] = useState<string | undefined>(() => {
-    const id = history.state?.recipeId;
-    return typeof id === 'string' ? id : undefined;
-  });
+  const [savedRecipeId, setSavedRecipeId] = useState(() => loadRecipeSelection(dish.normalized_dish));
   const [previewId, setPreviewId] = useState<string>();
   const [query, setQuery] = useState('');
   const dialog = useRef<HTMLDialogElement>(null);
-  const shownSelection = recipes?.some(recipe => recipe.id === selected?.recipe.id) ? selected : null;
-  const autoId = recipes?.find(recipe => recipe.id === savedRecipeId)?.id
+  const legacyRecipeId = history.state?.recipeId;
+  const autoId = savedRecipeId ?? recipes?.find(recipe => recipe.id === legacyRecipeId)?.id
     ?? (recipes?.length === 1 ? recipes[0].id : undefined);
-  const single = useRecipe(shownSelection ? undefined : autoId, dish.normalized_dish);
-  const active = shownSelection ?? single.result?.value;
+  const single = useRecipe(selected ? undefined : autoId, dish.normalized_dish);
+  const active = selected ?? single.result?.value;
+  useEffect(() => {
+    const value = single.result?.value;
+    if (value) {
+      setSelected(value);
+      saveRecipeSelection(dish.normalized_dish, value.recipe.id);
+    }
+  }, [dish.normalized_dish, single.result?.value]);
   const previewUsesActive = previewId === (active?.recipe.id ?? autoId);
   const preview = useRecipe(previewUsesActive ? undefined : previewId, dish.normalized_dish);
   const shown = previewUsesActive ? active : preview.result?.value;
   const previewError = previewUsesActive ? single.result?.error : preview.result?.error;
-  const inspected = recipes?.find(recipe => recipe.id === previewId);
+  const inspectedTitle = recipes?.find(recipe => recipe.id === previewId)?.title ?? shown?.recipe.title;
 
   function open(id: string) {
     setPreviewId(id);
@@ -63,16 +81,11 @@ export default function RecipeConversation({ dish, image, recipes, searching, se
   function choose(document: RecipeDocument) {
     setSelected(document);
     setSavedRecipeId(document.recipe.id);
-    history.replaceState({ ...history.state, recipeId: document.recipe.id }, '');
+    saveRecipeSelection(dish.normalized_dish, document.recipe.id);
     dialog.current?.close();
   }
 
-  return <section className="recipe-conversation" aria-labelledby="recipe-chat-heading">
-    <header className="recipe-chat-header">
-      <div><button className="text-btn" onClick={onChangeDish}><ArrowLeft size={16} aria-hidden="true" /> Đổi món</button>
-        <h1 id="recipe-chat-heading">Trợ lý nấu ăn</h1></div>
-      <button className="secondary-btn" onClick={onNewPhoto}><ImageSquare size={19} aria-hidden="true" /> Ảnh mới</button>
-    </header>
+  return <>
     <div className="recipe-chat-layout">
       <div className="recipe-chat-thread">
         <div className="recipe-chat-sent" aria-label={`Món đã xác nhận: ${dish.display_name}`}>
@@ -90,7 +103,7 @@ export default function RecipeConversation({ dish, image, recipes, searching, se
               ? <p>Bạn có thể xem cách làm hoặc hỏi về một công thức ngay tại đây.</p>
               : <button className="secondary-btn" onClick={() => onSearch(query)}>Tìm lại công thức</button>}
             {recipes && !searching && <div className="recipe-chat-cards">
-              {recipes.map(recipe => <article className="recipe-list-item recipe-chat-card" key={recipe.id}>
+              {recipes.map(recipe => <article className="recipe-chat-card" key={recipe.id}>
                 <button type="button" className="recipe-chat-card-button" onClick={() => open(recipe.id)} aria-label={`Xem công thức ${recipe.title}`}>
                   <span className="recipe-chat-mark"><BookOpen aria-hidden="true" /></span>
                   <span><strong>{recipe.title}</strong><small>{recipe.source.name} · <span className="recipe-chat-license">{recipe.source.license}</span>{active?.recipe.id === recipe.id ? ' · Đang dùng để hỏi' : ''}</small></span>
@@ -110,10 +123,12 @@ export default function RecipeConversation({ dish, image, recipes, searching, se
         </div>
         {single.result?.error && <div className="error-message" role="alert"><p>{single.result.error}</p>
           <button className="secondary-btn" onClick={single.retry}>Thử tải lại công thức</button></div>}
+        {active && !recipes?.some(recipe => recipe.id === active.recipe.id) && <button className="text-btn"
+          onClick={() => open(active.recipe.id)}>Xem công thức {active.recipe.title}</button>}
         {active ? <AssistantPage key={`${active.recipe.id}:${active.corpus_version}:${active.recipe.updated_at}`}
-          document={active} embedded llmConfig={llmConfig} onOpenLlmSettings={onLlmSettings} onRecipes={onChangeDish} />
+          document={active} llmConfig={llmConfig} onOpenLlmSettings={onLlmSettings} onRecipes={onChangeDish} />
           : !!recipes?.length && <p className="recipe-chat-selection" role="status">
-            {autoId && !single.result?.error ? 'Đang tải công thức để mở ô hỏi…' : 'Mở một công thức và chọn “Hỏi về công thức này” để bắt đầu.'}
+            {autoId && !single.result?.error ? 'Đang tải công thức để mở ô hỏi…' : 'Mở một công thức và chọn “Chọn công thức này” để bắt đầu.'}
           </p>}
       </div>
       <aside className="recipe-chat-context" aria-label="Món ăn đang xem">
@@ -126,15 +141,15 @@ export default function RecipeConversation({ dish, image, recipes, searching, se
     </div>
     <dialog ref={dialog} className="recipe-chat-dialog" aria-labelledby="chat-recipe-title" onClose={() => setPreviewId(undefined)}>
       <div className="recipe-chat-dialog-heading">
-        <h2 id="chat-recipe-title">{inspected?.title ?? 'Chi tiết công thức'}</h2>
+        <h2 id="chat-recipe-title">{inspectedTitle ?? 'Chi tiết công thức'}</h2>
         <button className="modal-close-btn" onClick={() => dialog.current?.close()} aria-label="Đóng công thức"><X aria-hidden="true" /></button>
       </div>
       <div className="recipe-chat-dialog-body">
-        {shown ? <><button className="primary-btn" onClick={() => choose(shown)}>Hỏi về công thức này</button>
+        {shown ? <>{active?.recipe.id !== shown.recipe.id && <button className="primary-btn" onClick={() => choose(shown)}>Chọn công thức này</button>}
           <RecipeContent detail={shown.recipe} /></>
           : previewError ? <div role="alert"><p>{previewError}</p><button className="secondary-btn" onClick={previewUsesActive ? single.retry : preview.retry}>Thử lại</button></div>
             : <p role="status">Đang tải công thức…</p>}
       </div>
     </dialog>
-  </section>;
+  </>;
 }

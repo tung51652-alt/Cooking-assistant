@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 import { ActivityIndicator, AppState, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import type { RecipeDocument, RecipeSource } from '../../../packages/cooklens-api/types';
+import type { RecipeDocument } from '../../../packages/cooklens-api/types';
 import { messageLimit, type createCookingSessionController } from './session-controller';
 
 const progress = {
@@ -11,12 +11,11 @@ const progress = {
   refresh: 'Đang tải trạng thái mới nhất…',
 };
 
-export function CookingSessionScreen({ controller, Button, Source, onStartOver, startOverLabel, scrollToChat, document }: {
+export function CookingSessionScreen({ controller, Button, onChooseDish, onOpenRecipe, scrollToChat, document }: {
   controller: ReturnType<typeof createCookingSessionController>;
   Button: React.ComponentType<{ title: string; onPress: () => void; disabled?: boolean; secondary?: boolean }>;
-  Source: React.ComponentType<{ source: RecipeSource }>;
-  onStartOver: () => void;
-  startOverLabel: string;
+  onChooseDish: () => void;
+  onOpenRecipe: (document: RecipeDocument) => void;
   scrollToChat: () => void;
   document?: RecipeDocument | null;
 }) {
@@ -88,12 +87,13 @@ export function CookingSessionScreen({ controller, Button, Source, onStartOver, 
       </>}
       {session.status !== 'finished' && <Button title="Kết thúc phiên" secondary disabled={!canAct}
         onPress={() => { void controller.act('finish'); }} />}
-      {!document && <Source source={session.recipe.source} />}
+      {!document && <Button title={`Xem công thức ${session.recipe.title}`} secondary
+        onPress={() => onOpenRecipe({ recipe: session.recipe, corpus_version: session.corpus_version })} />}
     </View>}
     {!chatFeedback && feedback}
-    {!busy && (session?.status === 'finished'
-      || error?.code === 'SESSION_NOT_FOUND' || error?.code === 'SESSION_EXPIRED')
-      && <Button title={startOverLabel} onPress={onStartOver} />}
+    {!busy && session?.status === 'finished' && <Button title="Nấu lại"
+      onPress={() => { void controller.openRecipe(document ?? { recipe: session.recipe, corpus_version: session.corpus_version }); }} />}
+    {!busy && !document && <Button title="Chọn món" secondary onPress={onChooseDish} />}
     {storageWarning && <Text accessibilityLiveRegion="polite" style={styles.body}>{storageWarning}</Text>}
     {session && (messageCount > 0 || chatFeedback) && <View style={styles.transcript}>
       {session.messages.map((message, index) => <View key={index} style={styles.message}>

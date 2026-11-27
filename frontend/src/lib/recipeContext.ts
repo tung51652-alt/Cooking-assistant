@@ -24,3 +24,19 @@ export function saveConfirmedDish(dish: Dish | null) {
     else sessionStorage.removeItem(STORAGE);
   } catch { /* The current in-memory flow still works when storage is blocked. */ }
 }
+
+const SELECTION = 'cooklens.recipes.selected';
+
+export function loadRecipeSelection(dish: string): string | undefined {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(SELECTION) ?? 'null');
+    if (value?.dish === dish && typeof value.id === 'string' && /^[a-z0-9][a-z0-9_-]{0,79}$/.test(value.id)) return value.id;
+  } catch { /* Selection still works without storage. */ }
+}
+
+export function saveRecipeSelection(dish?: string, id?: string) {
+  try {
+    if (dish && id) sessionStorage.setItem(SELECTION, JSON.stringify({ dish, id }));
+    else sessionStorage.removeItem(SELECTION);
+  } catch { /* Selection still works without storage. */ }
+}

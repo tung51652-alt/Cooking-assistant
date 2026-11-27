@@ -44,60 +44,52 @@ async function confirmedRecipes(page: Page, list = [summary], recipe = detail) {
   await expect(page.getByRole('button', { name: `Xem công thức ${list[0].title}` })).toBeVisible();
 }
 
-test('opening and closing recipe detail resets scroll below the sticky header', async ({ page }) => {
-  const list = [1, 2, 3].map(rank => ({ ...summary, id: `test_pho_${rank}`,
-    title: `Phở kiểm thử ${rank}`, rank, retrieval_score: 1 - rank / 10, preview: summary.preview.repeat(3) }));
-  const recipe = { ...detail, id: list[2].id, title: list[2].title,
-    instructions: Array.from({ length: 30 }, (_, index) => ({ ...detail.instructions[0], step: index + 1 })) };
-  await confirmedRecipes(page, list, recipe);
-  await page.getByRole('link', { name: 'Công thức', exact: true }).click();
-  await page.getByRole('button', { name: `Xem công thức ${list[2].title}` }).scrollIntoViewIfNeeded();
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
-  await page.getByRole('button', { name: `Xem công thức ${list[2].title}` }).click();
-  await expect(page.locator('h1')).toHaveText(recipe.title);
-  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
-  expect(await page.locator('h1').evaluate(el => el.getBoundingClientRect().top >= document.querySelector('header')!.getBoundingClientRect().bottom)).toBe(true);
-  await page.locator('#recipeSteps li').last().scrollIntoViewIfNeeded();
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
-  // Keep the back control in place so clicking it does not itself scroll to the top.
-  await page.getByRole('button', { name: '← Danh sách công thức' }).evaluate(el => {
-    (el as HTMLElement).style.position = 'fixed'; (el as HTMLElement).style.bottom = '10px';
-  });
-  await page.getByRole('button', { name: '← Danh sách công thức' }).click();
-  await expect(page.locator('h1')).toHaveText('Công thức');
-  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+test('recipe detail opens in a scrollable dialog and restores focus when closed', async ({ page }) => {
+  const recipe = { ...detail, instructions: Array.from({ length: 30 }, (_, index) => ({
+    ...detail.instructions[0], step: index + 1,
+  })) };
+  await confirmedRecipes(page, [summary], recipe);
+  const open = page.getByRole('button', { name: `Xem công thức ${recipe.title}` });
+  await open.click();
+  const dialog = page.getByRole('dialog', { name: recipe.title });
+  await dialog.locator('#recipeSteps li').last().scrollIntoViewIfNeeded();
+  await expect.poll(() => dialog.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+  await dialog.getByRole('button', { name: 'Đóng công thức' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(open).toBeFocused();
 });
 
-test('confirmed dish survives recipe and assistant reloads and clears with a new image', async ({ page }) => {
+test('assistant keeps its active recipe and draft when opened again or filtered', async ({ page }) => {
   await confirmedRecipes(page);
   await expect(page.getByRole('heading', { name: 'Trợ lý nấu ăn' })).toBeVisible();
-  await page.getByRole('button', { name: `Xem công thức ${summary.title}` }).click();
-  const dialog = page.getByRole('dialog', { name: summary.title });
-  await expect(dialog.locator('#ingredients')).toBeVisible();
-  await dialog.getByRole('button', { name: 'Đóng công thức' }).click();
-  await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeFocused();
+  const question = page.getByRole('textbox', { name: 'Câu hỏi về công thức' });
+  await question.fill('Cần chuẩn bị gì cho món này?');
+  await page.getByRole('link', { name: 'Trợ lý', exact: true }).click();
+  await expect(question).toHaveValue('Cần chuẩn bị gì cho món này?');
+
+  await page.route('**/api/recipes/search', route => route.fulfill(json({ recipes: [] })));
+  await page.locator('.recipe-chat-filter summary').click();
+  await page.getByLabel('Ưu tiên nguyên liệu hoặc cách nấu (không bắt buộc)').fill('Không có kết quả');
+  await page.getByRole('button', { name: 'Tìm công thức', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Chưa có công thức phù hợp' })).toBeVisible();
+  await expect(question).toHaveValue('Cần chuẩn bị gì cho món này?');
+  await page.getByRole('button', { name: `Xem công thức ${summary.title}`, exact: true }).click();
+  await expect(page.getByRole('dialog').locator('#ingredients')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Chọn công thức này' })).toHaveCount(0);
+
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Trợ lý nấu ăn' })).toBeVisible();
-  await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeVisible();
-  await page.getByRole('link', { name: 'Công thức', exact: true }).click();
-  await page.reload();
-  await expect(page.getByText('Món đã xác nhận:')).toContainText('Phở');
-  await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeVisible();
+  await expect(question).toBeVisible();
+  await page.getByRole('button', { name: 'Ảnh mới', exact: true }).click();
+  await page.locator('#imageInput').setInputFiles(png);
   await page.getByRole('link', { name: 'Trợ lý', exact: true }).click();
-  await page.reload();
-  await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
-  await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeVisible();
-  await page.getByRole('link', { name: 'Trang chủ', exact: true }).click();
-  await page.locator('#imageInput').setInputFiles({ ...png, name: 'anh-moi.png' });
-  await expect(page.locator('#previewImage')).toBeVisible();
-  await page.goto('/recipe.html');
-  await expect(page.getByRole('heading', { name: 'Bạn muốn nấu món gì?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Chưa có phiên nấu' })).toBeVisible();
 });
 
 test('invalid or unavailable recipe storage leaves the normal selection flow usable', async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem('cooklens.recipes.confirmed-dish', '{invalid'));
   await page.goto('/recipe.html');
-  await expect(page.getByRole('heading', { name: 'Bạn muốn nấu món gì?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Chọn món', exact: true })).toBeVisible();
   await page.addInitScript(() => Object.defineProperty(window, 'sessionStorage', {
     get() { throw new DOMException('Storage blocked', 'SecurityError'); },
   }));
@@ -137,10 +129,10 @@ test('upload, manual Top-3 selection, search, detail and image reset', async ({ 
   await detailDialog.getByRole('button', { name: 'Đóng công thức' }).click();
   await page.getByRole('link', { name: 'Trang chủ', exact: true }).click();
   await page.getByRole('button', { name: 'Xóa ảnh' }).click();
-  await page.getByRole('link', { name: 'Nhận diện', exact: true }).click();
+  await page.goto('/recognition.html');
   await expect(page.getByText('Chưa có kết quả nhận diện', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Công thức', exact: true }).click();
-  await expect(page.getByText('Bạn muốn nấu món gì?', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Chọn món', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Chọn món', exact: true })).toBeVisible();
 });
 
 test('corpus bun dau renders extracted quantities and verified servings', async ({ page }) => {
@@ -207,7 +199,7 @@ test('replacing an image cancels a pending prediction and clears stale data', as
   await routeFinished;
   await expect(page.getByText('anh-moi.png', { exact: true })).toBeVisible();
   await expect(page.locator('#predictBtn')).toBeEnabled();
-  await page.getByRole('link', { name: 'Nhận diện', exact: true }).click();
+  await page.goto('/recognition.html');
   await expect(page.getByRole('radio')).toHaveCount(0);
   await expect(page.getByText('Chưa có kết quả nhận diện', { exact: true })).toBeVisible();
 });
@@ -249,13 +241,14 @@ test('responsive navigation, direct entry and no chatbot or external assets', as
   page.on('request', request => { if (!request.url().startsWith('blob:') && new URL(request.url()).origin !== new URL(baseURL!).origin) external.push(request.url()); });
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Chụp món ngon. Tìm cách nấu.', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Nhận diện', exact: true })).toHaveCount(0);
   await expect(page.getByRole('link', { name: /Chat|Hỏi CookLens|Chế độ nấu/ })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await captureBaseline(page, `upload-${testInfo.project.name}`);
   await page.goto('/recognition.html');
   await expect(page.getByRole('heading', { name: 'Chưa có kết quả nhận diện' })).toBeVisible();
   await page.goto('/recipe.html');
-  await expect(page.getByRole('heading', { name: 'Bạn muốn nấu món gì?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Chọn món', exact: true })).toBeVisible();
   expect(errors).toEqual([]);
   expect(external).toEqual([]);
 });
@@ -313,11 +306,11 @@ test('navigation cancels a late prediction instead of changing the current page'
   });
   await upload(page);
   await page.locator('#predictBtn').click(); await ready;
-  await page.getByRole('link', { name: 'Công thức', exact: true }).click();
+  await page.getByRole('link', { name: 'Chọn món', exact: true }).click();
   release();
-  await expect(page.getByRole('heading', { name: 'Bạn muốn nấu món gì?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Chọn món', exact: true })).toBeVisible();
   await expect(page).toHaveURL(/recipe\.html$/);
-  await page.getByRole('link', { name: 'Nhận diện', exact: true }).click();
+  await page.goto('/recognition.html');
   await expect(page.getByRole('heading', { name: 'Chưa có kết quả nhận diện' })).toBeVisible();
 });
 
@@ -355,7 +348,7 @@ test('changing the confirmed dish discards a late recipe response', async ({ pag
   });
   await upload(page); await page.locator('#predictBtn').click();
   await page.getByRole('radio').first().check(); await page.locator('#confirmButton').click(); await ready;
-  await page.getByRole('link', { name: 'Nhận diện', exact: true }).click();
+  await page.getByRole('button', { name: 'Đổi món', exact: true }).click();
   await page.getByRole('radio').nth(1).check(); await page.locator('#confirmButton').click();
   await expect(page.getByRole('button', { name: `Xem công thức ${other.title}` })).toBeVisible();
   release();
@@ -409,7 +402,7 @@ test('defensive UI guard hides suggestions and confirmation when top-1 confidenc
   await expect(page).toHaveURL(/index\.html$/);
 });
 
-test('choose dish directly from 30-dish catalog without an image, filter accent-insensitively, and confirm to recipes', async ({ page }) => {
+test('choose dish directly from 30-dish catalog without an image, filter accent-insensitively, and confirm to assistant', async ({ page }) => {
   const searchBodies: object[] = [];
   const bunSummary = { ...summary, id: 'test_bun', title: 'Bún bò Huế · fixture kiểm thử', normalized_dish: 'bun_bo_hue' };
   await page.route('**/api/dishes', route => route.fulfill(json({ dishes: taxonomy })));
@@ -422,12 +415,10 @@ test('choose dish directly from 30-dish catalog without an image, filter accent-
   await page.route('**/api/recipes/test_pho', route => route.fulfill(json({ recipe: detail })));
 
   await page.goto('/');
-  await page.getByRole('link', { name: 'Công thức', exact: true }).click();
+  await page.getByRole('link', { name: 'Chọn món', exact: true }).click();
   await expect(page).toHaveURL(/recipe\.html$/);
-  await expect(page.getByRole('heading', { name: 'Bạn muốn nấu món gì?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Chọn món', exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Chọn món ăn' }).click();
-  await expect(page).toHaveURL(/recipe\.html$/);
   await expect(page.getByText('Chưa có kết quả nhận diện')).toHaveCount(0);
 
   const catalogGroup = page.getByRole('group', { name: 'Danh mục 30 món Việt' });
@@ -457,14 +448,15 @@ test('choose dish directly from 30-dish catalog without an image, filter accent-
   await expect(page.getByRole('button', { name: 'Xác nhận món' })).toBeEnabled();
   await page.getByRole('button', { name: 'Xác nhận món' }).click();
 
-  await expect(page.getByRole('heading', { name: summary.title })).toBeVisible();
+  await expect(page).toHaveURL(/assistant\.html$/);
+  await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeVisible();
   expect(searchBodies).toEqual([{ confirmed_dish: 'pho', top_k: 3 }]);
 
   await page.getByRole('button', { name: 'Đổi món' }).click();
   await page.getByLabel('Tìm món ăn theo tên').fill('bun bo hue');
   await catalogGroup.getByRole('button', { name: 'Bún bò Huế', exact: true }).click();
   await page.getByRole('button', { name: 'Xác nhận món' }).click();
-  await expect(page.getByRole('heading', { name: bunSummary.title })).toBeVisible();
+  await expect(page.getByRole('button', { name: `Xem công thức ${bunSummary.title}` })).toBeVisible();
   expect(searchBodies).toEqual([
     { confirmed_dish: 'pho', top_k: 3 },
     { confirmed_dish: 'bun_bo_hue', top_k: 3 },
@@ -521,7 +513,7 @@ test('blurry and low-confidence upload errors allow continuing via the 30-dish c
     await page.getByLabel('Tìm món ăn theo tên').fill('pho');
     await page.getByRole('group', { name: 'Danh mục 30 món Việt' }).getByRole('button', { name: 'Phở', exact: true }).click();
     await page.getByRole('button', { name: 'Xác nhận món' }).click();
-    await expect(page.getByRole('heading', { name: summary.title })).toBeVisible();
+    await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeVisible();
   }
 });
 
@@ -539,8 +531,8 @@ test('recognition page without an image allows choosing a dish directly from the
   await page.getByLabel('Tìm món ăn theo tên').fill('banh duc');
   await page.getByRole('group', { name: 'Danh mục 30 món Việt' }).getByRole('button', { name: 'Bánh đúc', exact: true }).click();
   await page.getByRole('button', { name: 'Xác nhận món' }).click();
-  await expect(page).toHaveURL(/recipe\.html$/);
-  await expect(page.getByRole('heading', { name: banhDucSummary.title })).toBeVisible();
+  await expect(page).toHaveURL(/assistant\.html$/);
+  await expect(page.getByRole('button', { name: `Xem công thức ${banhDucSummary.title}` })).toBeVisible();
 });
 
 test('navigating from a scrolled upload page to recognition starts below the sticky header', async ({ page }) => {
