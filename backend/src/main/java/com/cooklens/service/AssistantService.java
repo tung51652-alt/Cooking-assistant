@@ -60,11 +60,16 @@ public class AssistantService {
         try {
             var tree=input.readTree(body);
             if (tree == null || !tree.isObject()) throw ApiFailure.invalid();
-            var strings=type == CreateSession.class ? List.of("recipe_id", "corpus_version", "operation_id")
-                    : type == SessionAction.class ? List.of("action", "operation_id") : List.of("text", "operation_id");
-            for (var field : strings) if (!tree.path(field).isTextual()) throw ApiFailure.invalid();
-            if (type != CreateSession.class && (!tree.path("expected_version").isIntegralNumber()
-                    || !tree.path("expected_version").canConvertToLong())) throw ApiFailure.invalid();
+            if (type == LlmTestRequest.class) {
+                for (var field : List.of("provider", "model", "api_key")) if (!tree.path(field).isTextual()) throw ApiFailure.invalid();
+                if (tree.hasNonNull("base_url") && !tree.get("base_url").isTextual()) throw ApiFailure.invalid();
+            } else {
+                var strings=type == CreateSession.class ? List.of("recipe_id", "corpus_version", "operation_id")
+                        : type == SessionAction.class ? List.of("action", "operation_id") : List.of("text", "operation_id");
+                for (var field : strings) if (!tree.path(field).isTextual()) throw ApiFailure.invalid();
+                if (type != CreateSession.class && (!tree.path("expected_version").isIntegralNumber()
+                        || !tree.path("expected_version").canConvertToLong())) throw ApiFailure.invalid();
+            }
             T value = input.treeToValue(tree, type);
             if (value == null || !validator.validate(value).isEmpty()) throw ApiFailure.invalid();
             return value;
@@ -171,20 +176,43 @@ public class AssistantService {
             else SessionOperations.completedCommand(c,sessionId,operation,value,request.expectedVersion(),now);
             return load(c,sessionId);
     }
+    public LlmTestResponse testLlm(LlmTestRequest request, String requestId) {
+        if (provider==null || llm==null) throw new ApiFailure(503,"ASSISTANT_NOT_CONFIGURED");
+        var override=new LlmSettings.UserOverride(request.provider(),request.baseUrl(),request.model(),request.apiKey());
+        String normalizedProvider=llm.normalizeUserProvider(override,true);
+        LlmSettings.Connection config=llm.resolveUserConnection(override,64,true);
+        var prompt=new ChatProvider.Prompt(List.of(
+                new ChatProvider.Message(ChatProvider.Role.system,"Reply briefly in plain text."),
+                new ChatProvider.Message(ChatProvider.Role.user,"hello")));
+        long start=System.nanoTime();
+        ChatProvider.Completion completion;
+        try { completion=provider.complete(prompt,config); }
+        catch (ApiFailure failure) { throw failure; }
+        catch (RuntimeException error) { throw new ApiFailure(503,"ASSISTANT_PROVIDER_UNAVAILABLE"); }
+        long latencyMs=Math.max(0L,java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-start));
+        return new LlmTestResponse(contract.apiVersion,requestId,true,normalizedProvider,completion.model(),completion.text(),latencyMs);
+    }
     public SessionResponse message(String id, SessionMessage request, String requestId) {
-        return message(id,request,requestId,new AssistantTiming());
+        return message(id,request,requestId,new AssistantTiming(),null);
     }
     public SessionResponse message(String id, SessionMessage request, String requestId, AssistantTiming timing) {
+        return message(id,request,requestId,timing,null);
+    }
+    public SessionResponse message(String id, SessionMessage request, String requestId, AssistantTiming timing, LlmSettings.UserOverride userLlm) {
         String operation=uuid(request.operationId());
         String sessionId=uuid(id);
         Action command=CookingCommands.parse(request.text());
         if (command!=null) return timing.measure(AssistantTiming.Stage.prepare,() -> response(store.transact(c -> applyAction(c,sessionId,operation,
                 new SessionAction(command,request.expectedVersion(),operation),"message_action",request.text())),requestId));
-        var prepared=timing.measure(AssistantTiming.Stage.prepare,() -> prepareMessage(sessionId,request,true));
+        var prepared=timing.measure(AssistantTiming.Stage.prepare,() -> prepareMessage(sessionId,request,true,userLlm));
         if (prepared.replay()) return response(prepared.session(),requestId);
         ChatProvider.Completion result;
-        try { result=timing.measure(AssistantTiming.Stage.provider,() -> provider.complete(prepared.prompt())); }
-        catch (RuntimeException error) {
+        try {
+            result=timing.measure(AssistantTiming.Stage.provider,() ->
+                    prepared.config()!=null && prepared.config().byok()
+                            ? provider.complete(prepared.prompt(),prepared.config())
+                            : provider.complete(prepared.prompt()));
+        } catch (RuntimeException error) {
             ApiFailure failure=error instanceof ApiFailure known ? known : new ApiFailure(503,"ASSISTANT_PROVIDER_UNAVAILABLE");
             var usage=error instanceof ChatProvider.Failure known ? known.usage() : ChatProvider.Usage.unknown();
             timing.measure(AssistantTiming.Stage.persist,() -> {
@@ -211,20 +239,20 @@ public class AssistantService {
     private void settleMessage(String session, SessionMessage request, ChatProvider.Usage usage, String outcome) {
         store.transact(c -> { admission.settle(c,session,uuid(request.operationId()),usage,outcome); return null; });
     }
-    record PreparedMessage(Session session, boolean replay, ChatProvider.Prompt prompt) {}
+    record PreparedMessage(Session session, boolean replay, ChatProvider.Prompt prompt, LlmSettings.Connection config) {}
     record StoredReply(String text, String provider, String model, Long inputTokens, Long outputTokens) {}
-    private record MessageOutcome(Session session, boolean replay, ApiFailure failure, ChatProvider.Prompt prompt) {
-        MessageOutcome(Session session, boolean replay, ApiFailure failure) { this(session,replay,failure,null); }
+    private record MessageOutcome(Session session, boolean replay, ApiFailure failure, ChatProvider.Prompt prompt, LlmSettings.Connection config) {
+        MessageOutcome(Session session, boolean replay, ApiFailure failure) { this(session,replay,failure,null,null); }
         PreparedMessage checked() {
             if (failure != null) throw failure;
-            return new PreparedMessage(session,replay,prompt);
+            return new PreparedMessage(session,replay,prompt,config);
         }
     }
     // Called by the provider orchestration only after configuration/context/admission checks.
     PreparedMessage prepareMessage(String id, SessionMessage request) {
-        return prepareMessage(id,request,false);
+        return prepareMessage(id,request,false,null);
     }
-    private PreparedMessage prepareMessage(String id, SessionMessage request, boolean providerCall) {
+    private PreparedMessage prepareMessage(String id, SessionMessage request, boolean providerCall, LlmSettings.UserOverride userLlm) {
         String sessionId=uuid(id), operation=uuid(request.operationId());
         return store.transact(c -> {
             var session=load(c,sessionId);
@@ -238,13 +266,20 @@ public class AssistantService {
                 return new MessageOutcome(session,false,new ApiFailure(409,"ASSISTANT_REQUEST_IN_PROGRESS"));
             long now=System.currentTimeMillis();
             ChatProvider.Prompt prompt=null;
+            LlmSettings.Connection config=null;
             if (providerCall) {
-                if (provider==null) throw new ApiFailure(503,"ASSISTANT_NOT_CONFIGURED");
-                provider.requireConfigured();
-                var config=llm.requireConfigured();
-                prompt=context.build(session,request.text());
-                provider.validate(prompt);
-                admission.reserve(c,sessionId,operation,config.model(),pricing.quote(config,prompt),now);
+                if (provider==null || llm==null || context==null || pricing==null) throw new ApiFailure(503,"ASSISTANT_NOT_CONFIGURED");
+                boolean byok=userLlm!=null && userLlm.hasApiKey();
+                if (byok) {
+                    config=llm.resolveUserConnection(userLlm,null,false);
+                } else {
+                    provider.requireConfigured();
+                    config=llm.requireConfigured();
+                }
+                prompt=context.build(session,request.text(),config.maxInputTokens());
+                if (byok) provider.validate(prompt,config);
+                else provider.validate(prompt);
+                admission.reserve(c,sessionId,operation,config.model(),pricing.quote(config,prompt),now,byok);
             }
             try (var insert=c.prepareStatement("""
                     INSERT INTO session_operations(session_id,operation_id,kind,fingerprint,expected_version,created_at,deadline,status)
@@ -254,7 +289,7 @@ public class AssistantService {
                 insert.setString(3,SessionOperations.fingerprint("message",request.text(),request.expectedVersion()));
                 insert.setLong(4,request.expectedVersion()); insert.setLong(5,now); insert.setLong(6,now+25000); insert.executeUpdate();
             }
-            return new MessageOutcome(session,false,null,prompt);
+            return new MessageOutcome(session,false,null,prompt,config);
         }).checked();
     }
     PreparedMessage completeMessage(String id, SessionMessage request, StoredReply reply) {

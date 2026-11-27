@@ -19,7 +19,7 @@ export function CookingSessionScreen({ controller, Button, Source, onStartOver, 
   startOverLabel: string;
   scrollToChat: () => void;
 }) {
-  const { session, busy, error, storageWarning, canAct, canSend, draft, canDiscardMessage, refreshRequired } = useSyncExternalStore(
+  const { session, busy, error, storageWarning, canAct, canSend, draft, canDiscardMessage, canResend, refreshRequired } = useSyncExternalStore(
     controller.subscribe, controller.getSnapshot,
   );
   const input = useRef<React.ComponentRef<typeof TextInput>>(null);
@@ -63,6 +63,10 @@ export function CookingSessionScreen({ controller, Button, Source, onStartOver, 
       <Text style={styles.body}>{error.message}</Text>
       {error.retryable && <Button title={refreshRequired ? 'Kiểm tra phiên' : 'Thử lại yêu cầu'} disabled={!!busy}
         onPress={() => { void controller.retry(); }} />}
+      {canResend && <Button title="Gửi lại câu hỏi" disabled={!!busy} onPress={() => {
+        Keyboard.dismiss();
+        void controller.sendMessage();
+      }} />}
       {canDiscardMessage && <Button title="Tiếp tục mà không gửi lại" secondary onPress={controller.discardPendingMessage} />}
     </View>}
   </>;

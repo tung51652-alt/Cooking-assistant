@@ -67,6 +67,39 @@ class CorpusTests(unittest.TestCase):
         ingredient.update(quantity=None, unit=None, note="Theo khẩu vị; nguồn không định lượng.")
         validate([recipe], self.taxonomy)
 
+    def test_bun_dau_amounts_and_verified_servings(self):
+        recipe = next(r for r in self.recipes if r['id'] == 'wb_bun_dau_mam_tom')
+        ingredients = {i['name']: i for i in recipe['ingredients']}
+        for name, amount, unit in [('Bún lá', 1.2, 'kg'), ('Mắm tôm', 1, 'bát')]:
+            self.assertEqual((ingredients[name]['quantity'], ingredients[name]['unit']), (amount, unit))
+        self.assertEqual(recipe['servings'], 4)
+        # The source's two hours is elapsed time, not cooking time.
+        self.assertIsNone(recipe['prep_time_minutes'])
+        self.assertIsNone(recipe['cook_time_minutes'])
+
+    def test_grouped_amounts_and_ranges_keep_their_meaning(self):
+        recipe = next(r for r in self.recipes if r['id'] == 'wb_bun_mam')
+        items = {i['name']: i for i in recipe['ingredients']}
+        for name, amount, unit in [('Sả', 2, 'cây'), ('Ớt', 2, 'quả'),
+                                   ('Muối', 1, 'muỗng cà phê'), ('Dầu ăn', 5, 'ml')]:
+            self.assertEqual((items[name]['quantity'], items[name]['unit']), (amount, unit))
+        recipe = next(r for r in self.recipes if r['id'] == 'wb_hu_tieu_nam_vang')
+        shrimp = next(i for i in recipe['ingredients'] if i['name'] == 'Tôm')
+        self.assertIsNone(shrimp['quantity'])
+        self.assertIn('200–300 g', shrimp['note'])
+
+    def test_reject_embedded_amounts_and_inconsistent_units(self):
+        for name in ['1,2 kilogram bún lá', 'Bánh canh : 400 g', '1½ cup đậu xanh']:
+            recipe = copy.deepcopy(self.recipes[0])
+            recipe['ingredients'][0]['name'] = name
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'ingredient amount'):
+                validate([recipe], self.taxonomy)
+        for unit in ['tbsp', 'tsp', 'cup', 'pound']:
+            recipe = copy.deepcopy(self.recipes[0])
+            recipe['ingredients'][0]['unit'] = unit
+            with self.subTest(unit=unit), self.assertRaisesRegex(ValueError, 'canonical Vietnamese'):
+                validate([recipe], self.taxonomy)
+
 
 if __name__ == "__main__":
     unittest.main()

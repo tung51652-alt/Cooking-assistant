@@ -1,4 +1,10 @@
-import type { Dish, Prediction, RecipeDetail, RecipeDocument, RecipeSummary, RecipeSource, AssistantSession, CreateSession, SessionActionRequest, SessionMessageRequest } from './types';
+import type {
+  Dish, Prediction, RecipeDetail, RecipeDocument, RecipeSummary, RecipeSource,
+  AssistantSession, CreateSession, SessionActionRequest, SessionMessageRequest,
+  LlmProviderPreset, LlmUserConfig, LlmTestResult,
+} from './types';
+
+export type { LlmProviderPreset, LlmUserConfig, LlmTestResult };
 
 export class ApiError extends Error {
   readonly status?: number;
@@ -87,7 +93,7 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
           INVALID_SESSION_ACTION: 'Thao tác không phù hợp với trạng thái phiên.',
           SESSION_FINISHED: 'Phiên nấu ăn đã kết thúc. Hãy tạo phiên mới.',
           SESSION_HISTORY_LIMIT: 'Phiên đã đạt giới hạn thao tác. Hãy tạo phiên mới.',
-          ASSISTANT_NOT_CONFIGURED: 'Hỏi đáp chưa được cấu hình. Bạn vẫn có thể điều khiển bước nấu.',
+          ASSISTANT_NOT_CONFIGURED: 'Tính năng hỏi đáp trên máy chủ chưa được cấu hình. Bạn vẫn có thể xem các bước nấu, hoặc chọn Dùng khóa API riêng hay liên hệ người quản lý hệ thống.',
           ASSISTANT_STORAGE_UNAVAILABLE: 'Kho lưu phiên chưa sẵn sàng. Vui lòng thử lại sau.',
           ASSISTANT_REQUEST_IN_PROGRESS: 'Trợ lý đang trả lời. Hãy đợi rồi tải lại phiên.',
           SESSION_MESSAGE_LIMIT: 'Phiên đã đạt giới hạn hỏi đáp. Bạn vẫn có thể điều khiển bước nấu.',
@@ -99,11 +105,25 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
           ASSISTANT_RATE_LIMITED: 'Trợ lý đang giới hạn lượt hỏi. Vui lòng thử lại sau.',
           ASSISTANT_BUDGET_EXCEEDED: 'Trợ lý đã hết ngân sách. Bạn vẫn có thể điều khiển bước nấu.',
           ASSISTANT_CONTEXT_TOO_LARGE: 'Ngữ cảnh hỏi đáp quá dài. Hãy rút ngắn câu hỏi hoặc chọn công thức khác.',
+          ASSISTANT_MODEL_INVALID: 'Model không hợp lệ hoặc không được nhà cung cấp hỗ trợ.',
+          VALIDATION_ERROR: 'Thông tin cấu hình hoặc yêu cầu chưa hợp lệ. Vui lòng kiểm tra lại.',
         };
         if (record(error) && error.api_version === '1.0.0' && uuid(error.request_id)
           && response.headers.get('X-Request-ID') === error.request_id && typeof error.code === 'string'
           && Object.hasOwn(assistantErrors, error.code)) {
           throw new ApiError(assistantErrors[error.code], response.status, error.code);
+        }
+      }
+      if (path === '/vision/predict') {
+        const error: unknown = await response.json().catch(() => null);
+        const visionErrors: Record<string, string> = {
+          IMAGE_BLURRY: 'Ảnh bị mờ, không đủ rõ nét để nhận diện món ăn. Vui lòng chụp hoặc chọn ảnh rõ nét hơn.',
+          LOW_CONFIDENCE_PREDICTION: 'Ảnh có vấn đề hoặc không nhận diện được món ăn Việt phù hợp (độ tin cậy dưới 50%). Vui lòng chọn ảnh món ăn rõ nét hơn.',
+        };
+        if (record(error) && error.api_version === '1.0.0' && uuid(error.request_id)
+          && response.headers.get('X-Request-ID') === error.request_id && typeof error.code === 'string'
+          && Object.hasOwn(visionErrors, error.code)) {
+          throw new ApiError(visionErrors[error.code], response.status, error.code);
         }
       }
       throw new ApiError(messages[response.status] || 'Chưa xử lý được yêu cầu. Vui lòng thử lại sau.', response.status);
@@ -227,13 +247,44 @@ async function sessionAction(id: string, body: SessionActionRequest, signal: Abo
   return session(await request(`/assistant/sessions/${encodeURIComponent(id)}/actions`, signal,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }), id, payload.expected_version + 1);
 }
-async function sessionMessage(id: string, body: SessionMessageRequest, signal: AbortSignal): Promise<AssistantSession> {
+async function sessionMessage(id: string, body: SessionMessageRequest, signal: AbortSignal, llmConfig?: LlmUserConfig | null): Promise<AssistantSession> {
   id = canonicalUuid(id);
   const payload = { ...body, operation_id: canonicalUuid(body.operation_id) };
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (llmConfig && llmConfig.api_key.trim()) {
+    headers['X-LLM-Provider'] = llmConfig.provider;
+    if (llmConfig.base_url?.trim()) headers['X-LLM-Base-Url'] = llmConfig.base_url.trim();
+    headers['X-LLM-Model'] = llmConfig.model.trim();
+    headers['X-LLM-Api-Key'] = llmConfig.api_key;
+  }
   return session(await request(`/assistant/sessions/${encodeURIComponent(id)}/messages`, signal,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, 25_000), id, payload.expected_version + 1);
+    { method: 'POST', headers, body: JSON.stringify(payload) }, 25_000), id, payload.expected_version + 1);
 }
-return { predict, getDishes, searchRecipes, getRecipe, getRecipeDocument, createSession, getSession, sessionAction, sessionMessage };
+async function testLlmConfig(config: LlmUserConfig, signal: AbortSignal): Promise<LlmTestResult> {
+  const payload: Record<string, string> = {
+    provider: config.provider,
+    model: config.model.trim(),
+    api_key: config.api_key,
+  };
+  if (config.base_url?.trim()) payload.base_url = config.base_url.trim();
+  const data = await request('/assistant/llm/test', signal, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }, 25_000);
+  if (data.ok !== true || !text(data.provider) || !text(data.model)
+    || typeof data.reply !== 'string' || !finite(data.latency_ms) || data.latency_ms < 0) {
+    malformed();
+  }
+  return {
+    ok: data.ok,
+    provider: data.provider,
+    model: data.model,
+    reply: data.reply,
+    latency_ms: data.latency_ms,
+  };
+}
+return { predict, getDishes, searchRecipes, getRecipe, getRecipeDocument, createSession, getSession, sessionAction, sessionMessage, testLlmConfig };
 }
 
 export function normalizeBaseUrl(value: string): string {

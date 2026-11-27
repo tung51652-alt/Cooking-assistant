@@ -1,5 +1,6 @@
 package com.cooklens.controller;
 
+import com.cooklens.config.LlmSettings;
 import com.cooklens.config.RequestGuard;
 import com.cooklens.dto.ApiModels.ErrorResponse;
 import com.cooklens.dto.AssistantModels.*;
@@ -30,6 +31,14 @@ import org.springframework.web.bind.annotation.*;
 public class AssistantController {
     private final AssistantService service;
     public AssistantController(AssistantService service) { this.service=service; }
+    @PostMapping(value="/llm/test", consumes="application/json")
+    @Operation(operationId="testLlmConfig", summary="Kiểm tra cấu hình LLM theo người dùng bằng tin nhắn hello",
+            requestBody=@io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required=true, content=@Content(mediaType="application/json", schema=@Schema(implementation=LlmTestRequest.class))))
+    @ApiResponse(responseCode="200", description="OK", content=@Content(schema=@Schema(implementation=LlmTestResponse.class)))
+    public LlmTestResponse testLlm(@RequestBody byte[] body, HttpServletRequest request) {
+        return service.testLlm(service.parse(body,LlmTestRequest.class),RequestGuard.id(request));
+    }
     @PostMapping(value="/sessions", consumes="application/json")
     @Operation(operationId="createSession", summary="Tạo phiên từ công thức có version", requestBody=@io.swagger.v3.oas.annotations.parameters.RequestBody(
             required=true, content=@Content(mediaType="application/json", schema=@Schema(implementation=CreateSession.class))))
@@ -56,8 +65,12 @@ public class AssistantController {
     @ApiResponse(responseCode="200", description="OK", headers=@Header(name="Server-Timing",description="Request-local prepare/provider/persist/total durations in milliseconds; provider includes network and parsing."),
             content=@Content(schema=@Schema(implementation=SessionResponse.class)))
     public SessionResponse message(@PathVariable String id, @RequestBody byte[] body, HttpServletRequest request, HttpServletResponse response) {
+        String apiKey=request.getHeader("X-LLM-Api-Key");
+        LlmSettings.UserOverride userLlm=apiKey!=null ? new LlmSettings.UserOverride(
+                request.getHeader("X-LLM-Provider"),request.getHeader("X-LLM-Base-Url"),
+                request.getHeader("X-LLM-Model"),apiKey) : null;
         var timing=new AssistantTiming();
-        try { return service.message(id,service.parse(body,SessionMessage.class),RequestGuard.id(request),timing); }
+        try { return service.message(id,service.parse(body,SessionMessage.class),RequestGuard.id(request),timing,userLlm); }
         finally { response.setHeader("Server-Timing",timing.header()); }
     }
 }

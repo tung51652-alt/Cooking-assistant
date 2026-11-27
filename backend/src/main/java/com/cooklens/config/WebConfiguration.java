@@ -23,7 +23,8 @@ public class WebConfiguration implements WebMvcConfigurer {
             for (String origin : allowlist) if (origin.contains("*") || !origin.matches("https?://[^/]+"))
                 throw new IllegalArgumentException("CORS requires explicit HTTP origins");
             registry.addMapping("/api/**").allowedOrigins(allowlist).allowedMethods("GET", "POST", "OPTIONS")
-                    .allowedHeaders("Content-Type", "X-Request-ID").exposedHeaders("X-Request-ID").allowCredentials(false).maxAge(600);
+                    .allowedHeaders("Content-Type", "X-Request-ID", "X-LLM-Provider", "X-LLM-Base-Url", "X-LLM-Model", "X-LLM-Api-Key")
+                    .exposedHeaders("X-Request-ID").allowCredentials(false).maxAge(600);
         }
     }
     @Bean OpenAPI publicOpenApi(RuntimeContract contract) {

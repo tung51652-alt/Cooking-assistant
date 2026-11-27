@@ -11,6 +11,12 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[2]
 ID = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}")
+INGREDIENT_AMOUNT = re.compile(
+    r"(?:\d+(?:[.,/]\d+)?[½¼¾]?|[½¼¾])\s*"
+    r"(?:kilogram|gram|gr|kg|g|ml|lít|cup|tbsp|tsp|muỗng canh|muỗng cà phê|"
+    r"thìa canh|thìa cà phê|bát|chén|hộp|bó|con|quả|trái|cái|bịch|cây|nhánh|xấp)\b",
+    re.IGNORECASE,
+)
 RECIPE_FIELDS = set("id title normalized_dish language cuisine servings prep_time_minutes cook_time_minutes ingredients instructions tags source created_at updated_at".split())
 
 
@@ -59,12 +65,16 @@ def validate(recipes, taxonomy):
         for item in recipe["ingredients"]:
             require(type(item) is dict and set(item) == set("name normalized_name quantity unit optional note".split()), "ingredient fields")
             text(item["name"])
+            require(not INGREDIENT_AMOUNT.search(item["name"]),
+                    "ingredient amount belongs in quantity/unit or note")
             require(isinstance(item["normalized_name"], str) and re.fullmatch(r"[a-z0-9]+(?:_[a-z0-9]+)*", item["normalized_name"]), "invalid ingredient key")
             positive(item["quantity"])
             require(type(item["optional"]) is bool, "optional must be boolean")
             for key in ("unit", "note"):
                 if item[key] is not None:
                     text(item[key])
+            require(item["unit"] not in {"tbsp", "tsp", "cup", "pound", "gram", "gr", "kilogram", "l", "trái"},
+                    "ingredient unit must use canonical Vietnamese notation")
         require(isinstance(recipe["instructions"], list) and recipe["instructions"], "missing instructions")
         for step, item in enumerate(recipe["instructions"], 1):
             require(type(item) is dict and set(item) == {"step", "text", "duration_minutes"}, "instruction fields")
@@ -98,10 +108,10 @@ def validate(recipes, taxonomy):
 
 
 def load(root=ROOT):
-    recipes = json.loads((root / "data/recipes/corpus.json").read_text())
-    taxonomy = json.loads((root / "data/processed/30vnfoods-label-map.json").read_text())
+    recipes = json.loads((root / "data/recipes/corpus.json").read_text(encoding="utf-8"))
+    taxonomy = json.loads((root / "data/processed/30vnfoods-label-map.json").read_text(encoding="utf-8"))
     coverage = validate(recipes, taxonomy)
-    manifest = json.loads((root / "data/recipes/manifest.json").read_text())
+    manifest = json.loads((root / "data/recipes/manifest.json").read_text(encoding="utf-8"))
     require(manifest["coverage"] == coverage, "stale coverage manifest")
     require(manifest["recipe_count"] == len(recipes), "stale recipe count")
     require(manifest["covered_dishes"] == sum(bool(n) for n in coverage.values()), "stale dish count")

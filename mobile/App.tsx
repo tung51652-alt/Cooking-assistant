@@ -6,12 +6,13 @@ import { randomUUID } from 'expo-crypto';
 import { File, UploadType } from 'expo-file-system';
 import { useFonts } from 'expo-font';
 import * as SecureStore from 'expo-secure-store';
-import { createApi, normalizeBaseUrl, recipeSourceHref, type NativeFileUploader } from '../packages/cooklens-api';
+import { ApiError, createApi, normalizeBaseUrl, recipeSourceHref, type NativeFileUploader } from '../packages/cooklens-api';
 import type { Dish, Prediction, RecipeDocument, RecipeSummary, RecipeSource } from '../packages/cooklens-api/types';
 import { chooseImage, discardImage, uploadBody, type UploadImage } from './src/image';
 import { CookingSessionScreen } from './src/assistant/CookingSessionScreen';
 import { createCookingSessionController } from './src/assistant/session-controller';
 import { createSessionPointerStore } from './src/assistant/session-pointer';
+import { filterDishes } from './src/dishes';
 
 type Page = 'upload' | 'recognition' | 'recipes' | 'detail' | 'cooking';
 const configuredUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
@@ -74,6 +75,7 @@ function CookLens() {
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [visionIssue, setVisionIssue] = useState(false);
   const retry = useRef<(() => void) | null>(null);
   const flight = useRef<AbortController | null>(null);
   const generation = useRef(0);
@@ -81,18 +83,28 @@ function CookLens() {
   const imageRef = useRef<UploadImage | null>(null);
   const mounted = useRef(true);
   const scroll = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const scrollY = useRef(0);
+  const savedScroll = useRef<Partial<Record<Page, number>>>({});
+  const scrollTarget = useRef<number | null>(null);
   const scrollToChat = useCallback(() => scroll.current?.scrollToEnd({ animated: true }), []);
 
+  function transitionTo(next: Page, direction: 'forward' | 'back') {
+    savedScroll.current[page] = scrollY.current;
+    scrollTarget.current = direction === 'back' ? (savedScroll.current[next] ?? 0) : 0;
+    setPage(next);
+  }
   function cancel() { generation.current++; flight.current?.abort(); flight.current = null; setBusy(null); }
-  function navigate(next: Page) { cancel(); setError(''); retry.current = null; setPage(next); scroll.current?.scrollTo({ y: 0 }); }
+  function navigate(next: Page, direction: 'forward' | 'back' = 'forward') {
+    cancel(); setError(''); setVisionIssue(false); retry.current = null; transitionTo(next, direction);
+  }
   function back() {
     photoGeneration.current++;
     if (page === 'cooking') {
       cooking?.leave();
-      navigate(cookingBackTo.current);
+      navigate(cookingBackTo.current, 'back');
       return;
     }
-    navigate(page === 'detail' ? 'recipes' : page === 'recipes' ? 'recognition' : 'upload');
+    navigate(page === 'detail' ? 'recipes' : page === 'recipes' ? 'recognition' : 'upload', 'back');
   }
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -111,18 +123,33 @@ function CookLens() {
     return () => { mounted.current = false; photoGeneration.current++; generation.current++;
       flight.current?.abort(); subscription.remove(); discardImage(imageRef.current); };
   }, []);
+  useEffect(() => {
+    if (scrollTarget.current === null) return;
+    const target = scrollTarget.current;
+    scrollTarget.current = null;
+    const frame = requestAnimationFrame(() => {
+      scrollY.current = target;
+      scroll.current?.scrollTo({ y: target, animated: false });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [page]);
 
   async function perform<T>(label: string, work: (signal: AbortSignal) => Promise<T>, done: (data: T) => void) {
     cancel();
     const current = generation.current;
     const controller = new AbortController(); flight.current = controller;
-    setBusy(label); setError('');
+    setBusy(label); setError(''); setVisionIssue(false);
     retry.current = () => { void perform(label, work, done); };
     try {
       const value = await work(controller.signal);
       if (mounted.current && current === generation.current && !controller.signal.aborted) done(value);
     } catch (caught) {
       if (mounted.current && current === generation.current && !controller.signal.aborted) {
+        const code = caught instanceof ApiError ? caught.code : undefined;
+        if (code === 'IMAGE_BLURRY' || code === 'LOW_CONFIDENCE_PREDICTION') {
+          retry.current = null;
+          setVisionIssue(true);
+        }
         setError(caught instanceof Error ? caught.message : 'Chưa xử lý được yêu cầu. Vui lòng thử lại.');
       }
     } finally {
@@ -130,25 +157,33 @@ function CookLens() {
     }
   }
 
-  async function pick(camera: boolean) {
-    cancel(); setError(''); retry.current = null;
+  async function pick(camera: boolean, preserveOnCancel = false) {
+    cancel();
+    if (!preserveOnCancel) {
+      setError(''); setVisionIssue(false); retry.current = null;
+    }
     const current = ++photoGeneration.current; setBusy('Đang chuẩn bị ảnh…');
     try {
       const chosen = await chooseImage(camera);
       if (!mounted.current || current !== photoGeneration.current) { discardImage(chosen); return; }
       if (chosen) {
         discardImage(imageRef.current); imageRef.current = chosen; setImage(chosen);
+        setError(''); setVisionIssue(false); retry.current = null;
         setPredictions([]); setSelected(null); setConfirmed(null); setRecipes(null); setDetail(null);
-        setManual(false); setFilter(''); setQuery(''); setPage('upload');
+        setManual(false); setFilter(''); setQuery(''); transitionTo('upload', 'forward');
       }
     } catch (caught) {
-      if (mounted.current && current === photoGeneration.current) setError(caught instanceof Error ? caught.message : 'Không đọc được ảnh đã chọn.');
+      if (mounted.current && current === photoGeneration.current) {
+        setVisionIssue(false);
+        retry.current = null;
+        setError(caught instanceof Error ? caught.message : 'Không đọc được ảnh đã chọn.');
+      }
     } finally { if (mounted.current && current === photoGeneration.current) setBusy(null); }
   }
   function recognize() {
     if (!image || !api) return;
     void perform('Đang nhận diện món…', signal => api!.predict(uploadBody(image), signal), value => {
-      setPredictions(value); setSelected(null); setManual(false); setPage('recognition');
+      setPredictions(value); setSelected(null); setManual(false); transitionTo('recognition', 'forward');
     });
   }
   function chooseDish(dish: Dish) {
@@ -160,26 +195,27 @@ function CookLens() {
   }
   function search(dish: Dish, preference: string) {
     if (!api) return;
-    setConfirmed(dish); setRecipes(null); setDetail(null); setPage('recipes');
+    setConfirmed(dish); setRecipes(null); setDetail(null); transitionTo('recipes', 'forward');
     void perform('Đang tìm công thức…', signal => api!.searchRecipes(dish.normalized_dish, signal, preference), setRecipes);
   }
   function openRecipe(recipe: RecipeSummary) {
     if (!api || !confirmed) return;
-    setDetail(null); setPage('detail');
+    setDetail(null); transitionTo('detail', 'forward');
     void perform('Đang mở công thức…', signal => api!.getRecipeDocument(recipe.id, confirmed.normalized_dish, signal), setDetail);
   }
 
   function openCooking(documentToCook?: RecipeDocument) {
     if (!cooking) return;
     cookingBackTo.current = documentToCook ? 'detail' : 'upload';
-    navigate('cooking');
+    navigate('cooking', 'forward');
     if (documentToCook) void cooking.openRecipe(documentToCook);
     else void cooking.resume();
   }
 
   return <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
     <StatusBar barStyle="dark-content" />
-    <ScrollView ref={scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
+    <ScrollView ref={scroll} onScroll={event => { scrollY.current = event.nativeEvent.contentOffset.y; }}
+      scrollEventThrottle={16} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
       <View style={styles.header}><Text accessibilityRole="header" style={styles.brand}>CookLens<Text style={{ color: '#c44b1b' }}> ✦</Text></Text>
         <Text style={styles.small}>Từ một bức ảnh đến bữa cơm Việt</Text></View>
       {page !== 'upload' && <Button title="← Quay lại" secondary onPress={back} />}
@@ -189,37 +225,62 @@ function CookLens() {
         <Text style={styles.body}>Chụp hoặc chọn ảnh một món ăn Việt. Xem ba gợi ý, xác nhận món rồi khám phá công thức.</Text>
         {image ? <Image accessibilityLabel="Ảnh món ăn đã chọn" source={{ uri: image.uri }} style={styles.preview} resizeMode="contain" />
           : <View style={styles.placeholder}><Text style={styles.placeholderIcon}>✦</Text><Text style={styles.label}>Bắt đầu từ một món ngon</Text><Text style={styles.small}>Một món rõ nét, ánh sáng đầy đủ</Text></View>}
-        <View style={styles.row}><Button title="Chụp ảnh" onPress={() => { void pick(true); }} disabled={!!busy} secondary />
-          <Button title="Chọn từ thư viện" onPress={() => { void pick(false); }} disabled={!!busy} secondary /></View>
-        {image && <Button title="Nhận diện món" onPress={recognize} disabled={!!busy || !api} />}
+        {!!error && <View accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}><Text style={styles.body}>{error}</Text>
+          {visionIssue && <View style={styles.row}>
+            <Button title="Chọn ảnh khác" onPress={() => { void pick(false, true); }} disabled={!!busy} />
+            <Button title="Chụp ảnh mới" secondary onPress={() => { void pick(true, true); }} disabled={!!busy} />
+          </View>}
+          {!!retry.current && <Button title="Thử lại" onPress={() => retry.current?.()} disabled={!!busy} />}</View>}
+        <View style={styles.row}><Button title="Chụp ảnh" onPress={() => { void pick(true, true); }} disabled={!!busy} secondary />
+          <Button title="Chọn từ thư viện" onPress={() => { void pick(false, true); }} disabled={!!busy} secondary /></View>
+        {image && <Button title="Nhận diện món" onPress={recognize} disabled={!!busy || !api || visionIssue} />}
         {cooking && <Button title="Tiếp tục phiên nấu" secondary disabled={!!busy} onPress={() => openCooking()} />}
         <Text style={styles.small}>Ảnh được chuyển sang JPEG, tối đa 10 MiB và 25 triệu pixel. Ảnh và lựa chọn không được lưu thành lịch sử.</Text>
       </>}
-      {page === 'recognition' && <>
-        {image && <Image source={{ uri: image.uri }} style={styles.thumbnail} accessibilityLabel="Ảnh đang nhận diện" resizeMode="contain" />}
-        <Text style={styles.body}>Chọn một dự đoán hoặc sửa món trong danh mục. Confidence là điểm model; bạn là người xác nhận.</Text>
-        <View accessibilityRole="radiogroup" style={{ gap: 12 }}>
-          {predictions.map(prediction => <Pressable key={prediction.class_id} accessibilityRole="radio"
-            accessibilityState={{ checked: selected?.class_id === prediction.class_id }} onPress={() => chooseDish(prediction)}
-            style={[styles.card, selected?.class_id === prediction.class_id && styles.selected]}>
-            <Text style={styles.label}>{prediction.rank}. {prediction.display_name}</Text>
-            <Text style={styles.small}>{(prediction.confidence * 100).toFixed(1)}% confidence</Text>
-          </Pressable>)}
-        </View>
-        <Button title="Sửa món trong danh mục" secondary onPress={showCatalog} />
-        {manual && <View style={styles.card}><Text style={styles.label}>Danh mục món ăn</Text>
-          <TextInput accessibilityLabel="Lọc tên món" value={filter} onChangeText={setFilter} placeholder="Tìm tên món…" style={styles.input} />
-          {dishes.filter(dish => dish.display_name.toLocaleLowerCase('vi').includes(filter.toLocaleLowerCase('vi'))).map(dish =>
-            <Pressable key={dish.class_id} accessibilityRole="radio" accessibilityState={{ checked: selected?.class_id === dish.class_id }}
-              style={[styles.dish, selected?.class_id === dish.class_id && styles.selected]} onPress={() => chooseDish(dish)}>
-              <Text style={styles.body}>{dish.display_name}</Text></Pressable>)}
-        </View>}
-        <Button title={selected ? `Xác nhận ${selected.display_name}` : 'Chọn món để tiếp tục'} disabled={!selected || !!busy || !api}
-          onPress={() => { if (selected) search(selected, ''); }} />
-      </>}
+      {page === 'recognition' && (() => {
+        const lowConfidence = predictions.length > 0 && predictions[0].confidence < 0.5;
+        return <>
+          {image && <Image source={{ uri: image.uri }} style={styles.thumbnail} accessibilityLabel="Ảnh đang nhận diện" resizeMode="contain" />}
+          {lowConfidence ? <View accessibilityRole="alert" style={styles.error}>
+            <Text style={styles.label}>Ảnh có vấn đề hoặc không nhận diện được món ăn</Text>
+            <Text style={styles.body}>Độ tin cậy cao nhất chỉ đạt {(predictions[0].confidence * 100).toFixed(1)}% (dưới ngưỡng 50%). Vui lòng chụp hoặc chọn ảnh món ăn rõ nét hơn.</Text>
+            <View style={styles.row}>
+              <Button title="Chọn ảnh khác" onPress={() => { void pick(false, false); }} disabled={!!busy} />
+              <Button title="Chụp ảnh mới" secondary onPress={() => { void pick(true, false); }} disabled={!!busy} />
+            </View>
+          </View> : <>
+            <Text style={styles.body}>Chọn một dự đoán hoặc sửa món trong danh mục. Confidence là điểm model; bạn là người xác nhận.</Text>
+            <View accessibilityRole="radiogroup" style={{ gap: 12 }}>
+              {predictions.map(prediction => <Pressable key={prediction.class_id} accessibilityRole="radio"
+                accessibilityState={{ checked: selected?.class_id === prediction.class_id }} onPress={() => chooseDish(prediction)}
+                style={[styles.card, selected?.class_id === prediction.class_id && styles.selected]}>
+                <Text style={styles.label}>{prediction.rank}. {prediction.display_name}</Text>
+                <Text style={styles.small}>{(prediction.confidence * 100).toFixed(1)}% confidence</Text>
+              </Pressable>)}
+            </View>
+            <Button title="Sửa món trong danh mục" secondary onPress={showCatalog} />
+            {manual && (() => {
+              const filteredDishes = filterDishes(dishes, filter);
+              return <View style={styles.card}><Text style={styles.label}>Danh mục món ăn</Text>
+                <TextInput accessibilityLabel="Lọc tên món" value={filter} onChangeText={setFilter} placeholder="Tìm tên món…" style={styles.input} />
+                {filteredDishes.map(dish =>
+                  <Pressable key={dish.class_id} accessibilityRole="radio" accessibilityState={{ checked: selected?.class_id === dish.class_id }}
+                    style={[styles.dish, selected?.class_id === dish.class_id && styles.selected]} onPress={() => chooseDish(dish)}>
+                    <Text style={styles.body}>{dish.display_name}</Text></Pressable>)}
+                {!busy && dishes.length > 0 && filteredDishes.length === 0 && <View style={{ gap: 10 }}>
+                  <Text style={styles.body}>Không tìm thấy món phù hợp</Text>
+                  <Button title="Xóa bộ lọc" secondary onPress={() => setFilter('')} />
+                </View>}
+              </View>;
+            })()}
+            <Button title={selected ? `Xác nhận ${selected.display_name}` : 'Chọn món để tiếp tục'} disabled={!selected || !!busy || !api}
+              onPress={() => { if (selected) search(selected, ''); }} />
+          </>}
+        </>;
+      })()}
       {(page === 'recipes' || page === 'detail') && confirmed && <>
         <Text style={styles.label}>Món đã xác nhận: {confirmed.display_name}</Text>
-        <Button title="Đổi món" secondary onPress={() => { navigate('recognition'); setConfirmed(null); setRecipes(null); setDetail(null); }} />
+        <Button title="Đổi món" secondary onPress={() => { navigate('recognition', 'back'); setConfirmed(null); setRecipes(null); setDetail(null); }} />
       </>}
       {page === 'recipes' && <>
         <Text style={styles.body}>Ưu tiên nguyên liệu hoặc cách nấu (không bắt buộc)</Text>
@@ -253,7 +314,8 @@ function CookLens() {
         startOverLabel={cookingBackTo.current === 'detail' ? 'Tạo phiên mới' : 'Tìm công thức'} scrollToChat={scrollToChat} />}
       {!!busy && <View accessibilityLiveRegion="polite" style={styles.loading}><ActivityIndicator color="#b84415" /><Text style={styles.body}>{busy}</Text></View>}
       {!!busy && !!flight.current && <Button title="Hủy tác vụ" secondary onPress={() => { cancel(); setError(''); retry.current = null; }} />}
-      {!!error && <View accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}><Text style={styles.body}>{error}</Text>
+      {page !== 'upload' && !!error && <View accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}><Text style={styles.body}>{error}</Text>
+        {visionIssue && <Button title="Chọn ảnh khác" onPress={() => { void pick(false, false); }} disabled={!!busy} />}
         {!!retry.current && <Button title="Thử lại" onPress={() => retry.current?.()} disabled={!!busy} />}</View>}
       <View style={styles.footer}><Text style={styles.small}>Hỗ trợ 30 món Việt. Ảnh ngoài danh mục hoặc nhiều món có thể cho kết quả sai. Công thức lấy từ corpus có nguồn; một số công thức được AI biên soạn và có ghi nguồn rõ ràng.</Text></View>
     </ScrollView>

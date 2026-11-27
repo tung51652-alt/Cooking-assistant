@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Clock, Users, MagnifyingGlass } from '@phosphor-icons/react';
 import { recipeSourceHref } from '../../../packages/cooklens-api';
 import type { Dish, RecipeDetail, RecipeSource, RecipeSummary } from '../types';
+import DishCatalogPicker from './DishCatalogPicker';
 
 export function Source({ source }: { source: RecipeSource }) {
   const href = recipeSourceHref(source.url);
@@ -16,25 +17,64 @@ const minutes = (value: number | null) => value === null ? 'Chưa có thông tin
 
 interface Props {
   dish: Dish | null;
+  dishes: Dish[] | null;
+  catalogOpen: boolean;
+  dishesBusy: boolean;
   recipes: RecipeSummary[] | null;
   detail: RecipeDetail | null;
   busy: 'search' | 'detail' | null;
   onOpen: (recipe: RecipeSummary) => void;
   onBack: () => void;
   onSearch: (query?: string) => void;
-  onChooseDish: () => void;
+  onOpenCatalog: () => void;
+  onCloseCatalog: () => void;
+  onLoadDishes: () => void;
+  onConfirmDish: (dish: Dish) => void;
+  onUpload: () => void;
   onAssistant: () => void;
 }
 
-export default function RecipePage({ dish, recipes, detail, busy, onOpen, onBack, onSearch, onChooseDish, onAssistant }: Props) {
+export default function RecipePage({
+  dish,
+  dishes,
+  catalogOpen,
+  dishesBusy,
+  recipes,
+  detail,
+  busy,
+  onOpen,
+  onBack,
+  onSearch,
+  onOpenCatalog,
+  onCloseCatalog,
+  onLoadDishes,
+  onConfirmDish,
+  onUpload,
+  onAssistant,
+}: Props) {
   const [query, setQuery] = useState('');
   useEffect(() => setQuery(''), [dish?.normalized_dish]);
   return <section className="section" aria-labelledby="recipe-title">
     <div className="section-title"><h1 id="recipe-title">{detail ? detail.title : 'Công thức'}</h1>
-      <p>{dish ? `Công thức cho món ${dish.display_name} bạn đã chọn.` : 'Xác nhận món ăn để tìm công thức liên quan.'}</p></div>
-    {!dish ? <div className="empty-state"><h2>Bạn muốn nấu món gì?</h2><p>Chọn món từ kết quả nhận diện trước khi tìm công thức.</p><button className="primary-btn" onClick={onChooseDish}>Chọn món ăn</button></div>
+      <p>{dish ? `Công thức cho món ${dish.display_name} bạn đã chọn.` : 'Chọn món ăn trong danh mục 30 món Việt hoặc nhận diện từ ảnh để tìm công thức.'}</p></div>
+    {!dish ? (catalogOpen ? <DishCatalogPicker
+      dishes={dishes}
+      busy={dishesBusy}
+      onConfirm={onConfirmDish}
+      onRetry={onLoadDishes}
+      onClose={onCloseCatalog}
+      onUpload={onUpload}
+    /> : <div className="empty-state"><h2>Bạn muốn nấu món gì?</h2><p>Chọn món trực tiếp từ danh mục 30 món Việt hoặc tải ảnh món ăn để CookLens nhận diện.</p><div className="empty-state-actions"><button type="button" className="primary-btn" onClick={onOpenCatalog}>Chọn món ăn</button><button type="button" className="secondary-btn" onClick={onUpload}>Tải ảnh món ăn</button></div></div>)
       : <>
-        <div className="recipe-toolbar"><span>Món đã xác nhận: <strong>{dish.display_name}</strong></span><button className="text-btn" onClick={onChooseDish}>Đổi món</button></div>
+        <div className="recipe-toolbar"><span>Món đã xác nhận: <strong>{dish.display_name}</strong></span><button type="button" className="text-btn" onClick={catalogOpen ? onCloseCatalog : onOpenCatalog}>{catalogOpen ? 'Đóng danh mục' : 'Đổi món'}</button></div>
+        {catalogOpen && <DishCatalogPicker
+          dishes={dishes}
+          busy={dishesBusy}
+          initialDish={dish}
+          onConfirm={onConfirmDish}
+          onRetry={onLoadDishes}
+          onClose={onCloseCatalog}
+        />}
         {!detail && <form className="recipe-query" onSubmit={event => { event.preventDefault(); onSearch(query); }}>
           <label htmlFor="recipeQuery">Ưu tiên nguyên liệu hoặc cách nấu (không bắt buộc)
             <input id="recipeQuery" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} placeholder="Ví dụ: thịt bò, ninh xương…" /></label>
