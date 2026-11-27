@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 import { ActivityIndicator, AppState, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { RecipeDocument, RecipeSource } from '../../../packages/cooklens-api/types';
-import { appendTranscription } from '../../../packages/cooklens-api';
-import { useVoiceInput } from './use-voice-input';
 import { messageLimit, type createCookingSessionController } from './session-controller';
 
 const progress = {
@@ -110,34 +108,20 @@ export function CookingSessionScreen({ controller, Button, Source, onStartOver, 
   </>;
 }
 
-export function CookingComposer({ controller, transcribe, recipeKey, obscured }: {
+export function CookingComposer({ controller }: {
   controller: ReturnType<typeof createCookingSessionController>;
-  transcribe: (body: FormData, signal: AbortSignal) => Promise<string>;
-  recipeKey?: string;
-  obscured: boolean;
 }) {
   const { session, canSend, draft } = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
-  const voice = useVoiceInput({
-    disabled: !canSend || obscured, context: recipeKey ?? session?.id, transcribe,
-    onText: text => controller.setDraft(appendTranscription(controller.getSnapshot().draft, text, messageLimit)),
-  });
   if (session?.status === 'finished') return null;
-  const canSubmit = canSend && !!draft.trim() && voice.stage === 'idle';
-  return <View>
-    {!!voice.feedback && <Text style={styles.voiceFeedback} accessibilityLiveRegion="polite">{voice.feedback}</Text>}
-    <View style={styles.composer}>
-      <TextInput accessibilityLabel="Câu hỏi về công thức" accessibilityState={{ disabled: !canSend }}
-        editable={canSend} multiline maxLength={messageLimit} placeholder="Hỏi về công thức…"
-        placeholderTextColor="#796b61" style={styles.input} value={draft} onChangeText={controller.setDraft} />
-      <Pressable accessibilityRole="button" accessibilityLabel={voice.label} disabled={!canSend}
-        onPress={() => void voice.toggle()} style={[styles.voiceButton, !canSend && styles.disabled]}>
-        <Text style={styles.voiceIcon}>{voice.stage === 'recording' ? '■' : voice.stage === 'idle' ? 'Mic' : '×'}</Text>
-      </Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel="Gửi câu hỏi" disabled={!canSubmit}
-        onPress={() => { Keyboard.dismiss(); void controller.sendMessage(); }} style={[styles.send, !canSubmit && styles.disabled]}>
-        <Text style={styles.sendIcon}>↑</Text>
-      </Pressable>
-    </View>
+  const canSubmit = canSend && !!draft.trim();
+  return <View style={styles.composer}>
+    <TextInput accessibilityLabel="Câu hỏi về công thức" accessibilityState={{ disabled: !canSend }}
+      editable={canSend} multiline maxLength={messageLimit} placeholder="Hỏi về công thức…"
+      placeholderTextColor="#796b61" style={styles.input} value={draft} onChangeText={controller.setDraft} />
+    <Pressable accessibilityRole="button" accessibilityLabel="Gửi câu hỏi" disabled={!canSubmit}
+      onPress={() => { Keyboard.dismiss(); void controller.sendMessage(); }} style={[styles.send, !canSubmit && styles.disabled]}>
+      <Text style={styles.sendIcon}>↑</Text>
+    </Pressable>
   </View>;
 }
 
@@ -154,9 +138,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fffdf8', borderWidth: 1, borderColor: '#e5d8c5', borderRadius: 24, padding: 7 },
   input: { flex: 1, minHeight: 44, maxHeight: 108, paddingHorizontal: 8, paddingVertical: 9,
     color: '#403025', fontFamily: 'Jakarta', fontSize: 16 },
-  voiceFeedback: { paddingHorizontal: 18, fontSize: 13, fontFamily: 'Jakarta', color: '#713b1f' },
-  voiceButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: '#f8ecdf' },
-  voiceIcon: { color: '#853714', fontFamily: 'JakartaSemi', fontSize: 13 },
   send: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: '#b84415' },
   sendIcon: { color: '#fffdf8', fontSize: 22 },
   disabled: { opacity: .45 },

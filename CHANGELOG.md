@@ -16,8 +16,6 @@ Nó phản ánh kết quả đang có trong repository, không thay thế issue,
 ### Added
 
 - Sau khi xác nhận món từ ảnh, mở hội thoại CookLens để xem công thức, hỏi cách làm hoặc bắt đầu nấu trên web và Expo. [#55](https://github.com/tung51652-alt/Cooking-assistant/issues/55)
-- Thêm chế độ thử nhập câu hỏi bằng giọng nói tiếng Việt với `whisper.cpp`.
-  Chữ nhận được nằm trong bản nháp để sửa trước khi gửi. [#55](https://github.com/tung51652-alt/Cooking-assistant/issues/55)
 
 ### Fixed
 

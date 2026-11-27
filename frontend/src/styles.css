@@ -452,14 +452,12 @@ footer { border-top: 1px solid var(--line); background: #f3e6d3; }
 .recipe-chat-prompt { padding: 5px 12px; background: transparent; border: 1px solid var(--line); color: inherit; }
 .recipe-chat-prompt:hover { background: #f9e3d3; }
 .assistant-embedded .assistant-conversation { border: 0; padding: 4px 0 0; background: transparent; min-width: 0; }
-.assistant-embedded .assistant-form { display: grid; grid-template-columns: minmax(0, 1fr) 44px 44px; gap: 6px; align-items: center; background: var(--card); border-radius: 23px; border: 1px solid var(--line); padding: 8px; }
+.assistant-embedded .assistant-form { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 6px; align-items: center; background: var(--card); border-radius: 23px; border: 1px solid var(--line); padding: 8px; }
 .assistant-embedded .assistant-form > label { position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; }
-.assistant-embedded .assistant-compose-footer, .assistant-embedded .assistant-compose-actions { display: contents; }
+.assistant-embedded .assistant-compose-footer { display: contents; }
 .assistant-embedded .assistant-compose-footer > small { display: none; }
 .assistant-embedded .assistant-form textarea { grid-column: 1; border: 0; padding: 10px 8px; background: transparent; min-height: 44px; max-height: 108px; resize: none; field-sizing: content; }
-.assistant-embedded .voice-button { grid-column: 2; }
-.assistant-embedded .assistant-send { grid-column: 3; width: 44px; min-height: 44px; padding: 0; border-radius: 50%; }
-.assistant-embedded .voice-notice { grid-column: 1 / -1; padding-inline: 8px; }
+.assistant-embedded .assistant-send { grid-column: 2; width: 44px; min-height: 44px; padding: 0; border-radius: 50%; }
 .assistant-embedded .assistant-form textarea:focus-visible { outline-offset: 1px; }
 .assistant-embedded .assistant-message-user { align-self: flex-end; max-width: min(88%, 640px); background: #f9e3d3; border-radius: 20px 20px 6px 20px; }
 .assistant-embedded .assistant-message-assistant { align-self: flex-start; background: transparent; border: 0; }
@@ -480,11 +478,6 @@ footer { border-top: 1px solid var(--line); background: #f3e6d3; }
   .assistant-embedded .assistant-form { position: sticky; bottom: env(safe-area-inset-bottom); z-index: 1; box-shadow: 0 2px 16px rgba(77,35,3,.09); }
 }
 @media (max-width: 355px) { .recipe-chat-card-action > span { display: none; } }
-.assistant-compose-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.voice-button { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 50%; color: #a83d0d; background: #f8ecdf; }
-.voice-button:disabled { opacity: .5; }
-.voice-button.voice-recording { background: #a83d0d; color: #fff; }
-.voice-notice { font-size: 12px; color: var(--muted); margin: 0; order: 3; flex-basis: 100%; }
 @media (max-width: 767px) {
   body:has(.conversation-main) .navbar { min-height: 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 7px 0; }
   body:has(.conversation-main) .navbar-actions { width: auto; grid-row: 1; grid-column: 2; }

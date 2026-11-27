@@ -4,8 +4,6 @@ import type { AssistantAction, AssistantSession, CreateSession, LlmUserConfig, R
 import * as api from '../lib/api';
 import { LLM_PRESETS } from '../lib/llmConfig';
 import { Source } from './RecipePage';
-import VoiceInput from './VoiceInput';
-import { appendTranscription } from '../../../packages/cooklens-api';
 
 const STORAGE = 'cooklens.assistant.session';
 const RESEND_CODES = new Set(['ASSISTANT_PROVIDER_UNAVAILABLE', 'ASSISTANT_PROVIDER_TIMEOUT', 'ASSISTANT_RATE_LIMITED']);
@@ -37,7 +35,6 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
   const [storageWarning, setStorageWarning] = useState(false);
   const [retry, setRetry] = useState<Pending | null>(null);
   const [draft, setDraft] = useState('');
-  const [voiceBusy, setVoiceBusy] = useState(false);
   const active = useRef<AbortController | null>(null);
   const generation = useRef(0);
   const creation = useRef(crypto.randomUUID());
@@ -151,7 +148,7 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
   }
   async function send() {
     const text = draft.trim();
-    if (!text || voiceBusy) return;
+    if (!text) return;
     const current = await ensureSession();
     if (!current || sessionRef.current !== current || active.current || current.status === 'finished') return;
     void perform({ kind: 'message', id: current.id, body: { text, expected_version: current.version, operation_id: crypto.randomUUID() } });
@@ -229,13 +226,9 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
         <form className="assistant-form" onSubmit={event => { event.preventDefault(); send(); }}>
           <label htmlFor="assistant-question">Câu hỏi về công thức</label><textarea id="assistant-question" ref={input} value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000} rows={embedded ? 1 : 3} disabled={busy || closed || quota || !!retry} placeholder={embedded ? 'Hỏi về công thức…' : 'Ví dụ: Bước này cần lưu ý điều gì?'} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send(); } }} />
           <div className="assistant-compose-footer"><small>Enter để gửi · Shift + Enter để xuống dòng</small>
-            <div className="assistant-compose-actions">
-              <VoiceInput disabled={busy || !!closed || quota || !!retry} onBusy={setVoiceBusy}
-                onText={text => setDraft(value => appendTranscription(value, text))} />
-              <button className="primary-btn assistant-send" aria-label="Gửi câu hỏi" disabled={busy || closed || quota || !!retry || voiceBusy || !draft.trim()}>
-                {embedded ? <ArrowUp size={20} aria-hidden="true" /> : 'Gửi câu hỏi'}
-              </button>
-            </div>
+            <button className="primary-btn assistant-send" aria-label="Gửi câu hỏi" disabled={busy || closed || quota || !!retry || !draft.trim()}>
+              {embedded ? <ArrowUp size={20} aria-hidden="true" /> : 'Gửi câu hỏi'}
+            </button>
           </div>
         </form>
       </div>

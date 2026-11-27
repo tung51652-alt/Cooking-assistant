@@ -41,7 +41,6 @@ class GatewayIntegrationTest {
     @DynamicPropertySource static void properties(DynamicPropertyRegistry p) {
         String base="http://127.0.0.1:"+upstream.getAddress().getPort();
         p.add("cooklens.vision-url", () -> base+"/"); p.add("cooklens.recipes-url", () -> base);
-        p.add("cooklens.voice-url", () -> base);
         p.add("cooklens.cors-origins", () -> "http://localhost:5173");
     }
     @Autowired ObjectMapper mapper;
@@ -63,13 +62,10 @@ class GatewayIntegrationTest {
         return send(request("/api/recipes/search").header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(body)).build());
     }
     HttpResponse<String> image(byte[] file, String mime, String extra) throws Exception {
-        return multipart("/api/vision/predict", file, mime, extra);
-    }
-    HttpResponse<String> multipart(String path, byte[] file, String mime, String extra) throws Exception {
         var out=new ByteArrayOutputStream();
         out.write(("--testboundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"image.png\"\r\nContent-Type: "+mime+"\r\n\r\n").getBytes());
         out.write(file); out.write(("\r\n"+extra+"--testboundary--\r\n").getBytes());
-        return send(request(path).header("Content-Type","multipart/form-data; boundary=testboundary")
+        return send(request("/api/vision/predict").header("Content-Type","multipart/form-data; boundary=testboundary")
                 .POST(HttpRequest.BodyPublishers.ofByteArray(out.toByteArray())).build());
     }
     JsonNode body(HttpResponse<String> response) throws Exception { return mapper.readTree(response.body()); }
@@ -92,18 +88,6 @@ class GatewayIntegrationTest {
         var r=image(new byte[]{1,2,3},"image/png",""); assertEquals(200,r.statusCode(),r.body());
         assertEquals(prediction.path("predictions"),body(r).path("predictions"));
         assertEquals(body(r).path("request_id").asText(),receivedId);
-    }
-    @Test void transcriptionIsBoundedAndDoesNotCreateASession() throws Exception {
-        String path = RequestGuard.TRANSCRIPTION_PATH;
-        var transcription = multipart(path, new byte[]{1, 2, 3}, "audio/webm; codecs=opus", "");
-        assertEquals(200, transcription.statusCode(), transcription.body());
-        assertEquals("Cần bao nhiêu đậu phụ?", body(transcription).path("text").asText());
-        assertEquals(receivedId, body(transcription).path("request_id").asText());
-        assertEquals("no-store", transcription.headers().firstValue("Cache-Control").orElseThrow());
-        error(multipart(path, new byte[RequestGuard.MAX_AUDIO_FILE + 1], "audio/wav", ""), 413, "UPLOAD_TOO_LARGE");
-        error(multipart(path, new byte[]{1}, "image/png", ""), 415, "UNSUPPORTED_MEDIA_TYPE");
-        mode = "no-speech";
-        error(multipart(path, new byte[]{1}, "audio/mp4", ""), 422, "NO_SPEECH_DETECTED");
     }
     @Test void searchKeepsConfirmedDishAndNormalizesQuery() throws Exception {
         var r=search("{\"confirmed_dish\":\"pho\",\"query\":\"  phở  \"}");
@@ -195,9 +179,9 @@ class GatewayIntegrationTest {
         error(get("/api/recipes/INVALID"),422,"VALIDATION_ERROR");
         mode="missing"; error(get("/api/recipes/missing"),404,"RECIPE_NOT_FOUND"); mode="normal";
         var spec=body(get("/v3/api-docs")); assertEquals("1.0.0",spec.path("info").path("version").asText());
-        assertEquals(11,spec.path("paths").size());
-        for (String path:List.of("/api/vision/predict","/api/recipes/search","/api/dishes","/api/recipes/{id}","/api/health", RequestGuard.TRANSCRIPTION_PATH)) {
-            var operation=spec.path("paths").path(path).path(path.contains("predict") || path.endsWith("search") || path.equals(RequestGuard.TRANSCRIPTION_PATH) ? "post" : "get");
+        assertEquals(10,spec.path("paths").size());
+        for (String path:List.of("/api/vision/predict","/api/recipes/search","/api/dishes","/api/recipes/{id}","/api/health")) {
+            var operation=spec.path("paths").path(path).path(path.contains("predict") || path.endsWith("search") ? "post" : "get");
             assertTrue(operation.path("responses").has("200"),path);
         }
         var schemas=spec.path("components").path("schemas");
@@ -225,10 +209,6 @@ class GatewayIntegrationTest {
             else if(current.equals("low-confidence-error")) { status=422; result=Map.of("code","LOW_CONFIDENCE_PREDICTION","message","provider-private-detail"); }
             else if(current.equals("busy")) { status=503; result=Map.of("code","SERVICE_BUSY"); }
             else if(current.equals("missing")) { status=404; result=Map.of("code","RECIPE_NOT_FOUND"); }
-            else if(path.equals("/transcribe")) {
-                if (current.equals("no-speech")) { status = 422; result = Map.of("code", "NO_SPEECH_DETECTED"); }
-                else result = Map.of("text", "Cần bao nhiêu đậu phụ?");
-            }
             else if(path.equals("/health/ready")) result=Map.of("status","ready","model_version",current.equals("version")?"wrong":contract.modelVersion,
                     "taxonomy_version",contract.taxonomyVersion,"embedding_version",contract.embeddingVersion,
                     "corpus_version",current.equals("version")?"wrong":contract.corpusVersion);

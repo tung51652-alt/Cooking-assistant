@@ -394,8 +394,7 @@ function CookLens() {
         {!!retry.current && <Button title="Thử lại" onPress={() => retry.current?.()} disabled={!!busy} />}</View>}
       {(page === 'upload' || page === 'recognition') && <View style={styles.footer}><Text style={styles.small}>Hỗ trợ 30 món Việt. Ảnh ngoài danh mục hoặc có nhiều món có thể cho gợi ý sai. Bộ công thức có ghi nguồn, gồm cả các công thức do AI biên soạn.</Text></View>}
     </ScrollView>
-    {cooking && (page === 'cooking' || (page === 'recipes' && document)) && <CookingComposer controller={cooking} transcribe={api!.transcribe} obscured={!!preview}
-      recipeKey={page === 'recipes' && document ? `${document.recipe.id}:${document.corpus_version}:${document.recipe.updated_at}` : undefined} />}
+    {cooking && (page === 'cooking' || (page === 'recipes' && document)) && <CookingComposer controller={cooking} />}
     </KeyboardAvoidingView>
     <Modal visible={!!preview} animationType="slide" transparent onRequestClose={closeRecipe}>
       <View style={styles.sheetBackdrop}>

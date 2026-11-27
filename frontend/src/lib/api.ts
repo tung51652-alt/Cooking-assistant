@@ -2,7 +2,7 @@ import { createApi } from '../../../packages/cooklens-api';
 export { ApiError } from '../../../packages/cooklens-api';
 export type { LlmProviderPreset, LlmUserConfig, LlmTestResult } from '../../../packages/cooklens-api';
 const api = createApi('/api', () => crypto.randomUUID());
-export const { transcribe, getDishes, searchRecipes, getRecipe, getRecipeDocument, createSession, getSession, sessionAction, sessionMessage, testLlmConfig } = api;
+export const { getDishes, searchRecipes, getRecipe, getRecipeDocument, createSession, getSession, sessionAction, sessionMessage, testLlmConfig } = api;
 export function predict(file: File, signal: AbortSignal) {
   const body = new FormData();
   body.append('file', file);

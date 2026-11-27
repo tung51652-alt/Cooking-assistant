@@ -13,14 +13,6 @@ export class ApiError extends Error {
     super(message); this.status = status; this.code = code;
   }
 }
-export const voiceDurationMs = 14_000;
-export const voiceFileLimit = 512 * 1024;
-const transcriptionPath = '/assistant/transcriptions';
-
-export function appendTranscription(draft: string, transcript: string, limit = 2000) {
-  return [draft.trimEnd(), transcript].filter(Boolean).join(' ').slice(0, limit);
-}
-
 export interface NativeUploadPart { uri: string; name?: string; type?: string }
 export type NativeFileUploader = (url: string, file: NativeUploadPart, requestId: string, signal: AbortSignal) => Promise<Response>;
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -70,7 +62,7 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
   headers.set('X-Request-ID', requestId());
   try {
     let response: Response;
-    if ((path === '/vision/predict' || path === transcriptionPath) && nativeFileUploader && init.body instanceof FormData) {
+    if (path === '/vision/predict' && nativeFileUploader && init.body instanceof FormData) {
       const parts = init.body.getAll('file');
       if (parts.length !== 1 || !nativeUploadPart(parts[0])) malformed();
       response = await nativeFileUploader(`${baseUrl}${path}`, parts[0],
@@ -90,14 +82,6 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
         503: 'Dịch vụ chưa sẵn sàng. Bạn có thể thử lại sau.',
         504: 'Dịch vụ phản hồi quá lâu. Vui lòng thử lại.',
       };
-      if (path === transcriptionPath) {
-        messages[400] = 'Không đọc được bản ghi âm.';
-        messages[413] = 'Bản ghi quá dài hoặc quá lớn. Hãy thử nói ngắn hơn.';
-        messages[415] = 'Trình duyệt hoặc thiết bị dùng định dạng ghi âm chưa được hỗ trợ.';
-        messages[422] = 'Chưa nhận được lời nói. Vui lòng thử lại.';
-        messages[503] = 'Nhập giọng nói chưa sẵn sàng. Bạn vẫn có thể gõ.';
-        messages[504] = 'Chuyển giọng nói mất quá lâu. Vui lòng thử lại.';
-      }
       if (path.startsWith('/assistant/')) {
         const error: unknown = await response.json().catch(() => null);
         const assistantErrors: Record<string, string> = {
@@ -123,10 +107,6 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
           ASSISTANT_CONTEXT_TOO_LARGE: 'Ngữ cảnh hỏi đáp quá dài. Hãy rút ngắn câu hỏi hoặc chọn công thức khác.',
           ASSISTANT_MODEL_INVALID: 'Model không hợp lệ hoặc không được nhà cung cấp hỗ trợ.',
           VALIDATION_ERROR: 'Thông tin cấu hình hoặc yêu cầu chưa hợp lệ. Vui lòng kiểm tra lại.',
-          INVALID_AUDIO: 'Không đọc được bản ghi âm.',
-          AUDIO_TOO_LONG: 'Hãy nói trong tối đa 15 giây.',
-          NO_SPEECH_DETECTED: 'Chưa nghe rõ lời nói. Hãy thử lại hoặc gõ câu hỏi.',
-          SERVICE_BUSY: 'Dịch vụ đang bận. Vui lòng thử lại.',
         };
         if (record(error) && error.api_version === '1.0.0' && uuid(error.request_id)
           && response.headers.get('X-Request-ID') === error.request_id && typeof error.code === 'string'
@@ -304,12 +284,7 @@ async function testLlmConfig(config: LlmUserConfig, signal: AbortSignal): Promis
     latency_ms: data.latency_ms,
   };
 }
-async function transcribe(body: FormData, signal: AbortSignal): Promise<string> {
-  const data = await request(transcriptionPath, signal, { method: 'POST', body }, 25_000);
-  if (!text(data.text) || data.text.length > 2000) malformed();
-  return data.text;
-}
-return { transcribe, predict, getDishes, searchRecipes, getRecipe, getRecipeDocument, createSession, getSession, sessionAction, sessionMessage, testLlmConfig };
+return { predict, getDishes, searchRecipes, getRecipe, getRecipeDocument, createSession, getSession, sessionAction, sessionMessage, testLlmConfig };
 }
 
 export function normalizeBaseUrl(value: string): string {

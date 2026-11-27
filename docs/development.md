@@ -48,21 +48,6 @@ Vẫn dùng project `cooklens`, không có Compose hoặc project phát triển 
 Khi build lại cùng tag, thêm `--force-recreate` vào lệnh `up` để thay container.
 Dùng cùng biến image khi chạy `up`/`down`; `down` giữ volume công thức.
 
-## Thử nhập giọng nói từ source
-
-Sau khi build backend và frontend từ source, bật profile `voice` trong cùng Compose.
-Dùng cùng prefix và tag đã chọn khi build bốn image CookLens.
-
-```sh
-COOKLENS_IMAGE_PREFIX=cooklens COOKLENS_IMAGE_TAG=local docker compose --profile voice up -d --build
-```
-
-Profile này build dịch vụ nội bộ nhận giọng nói trên Linux amd64/CPU.
-Lần build đầu tải model đa ngôn ngữ `base-q5_1` và kiểm tra checksum theo metadata của bản nguồn dùng để tải.
-Gateway Java chuyển âm thanh từ web và Expo đến dịch vụ nội bộ, rồi trả chữ để người dùng sửa trước khi gửi.
-Web cần HTTPS hoặc localhost để xin quyền mic.
-Chất lượng nhận tên món và định lượng đang được đánh giá theo [kế hoạch issue #55](plan/2026-11-26-issue-55-recipe-chat-and-voice.md). [whisper.cpp](https://github.com/ggml-org/whisper.cpp) · [Nguồn model](https://huggingface.co/ggerganov/whisper.cpp)
-
 ## Phát triển từng thành phần
 
 - Web: `npm --prefix frontend ci`, sau đó `npm --prefix frontend run dev`.

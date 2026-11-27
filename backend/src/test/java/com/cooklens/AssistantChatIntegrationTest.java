@@ -298,7 +298,7 @@ class AssistantChatIntegrationTest {
 
     @Test void openApiExposesChatRateLimitWithoutChangingExistingRoutes() throws Exception {
         var response=send("/v3/api-docs",null); assertEquals(200,response.statusCode());
-        var schema=JSON.readTree(response.body()); assertEquals(11,schema.path("paths").size());
+        var schema=JSON.readTree(response.body()); assertEquals(10,schema.path("paths").size());
         assertTrue(schema.path("paths").path("/api/assistant/sessions/{id}/messages").path("post").path("responses").has("429"));
         assertTrue(schema.path("paths").path("/api/assistant/llm/test").path("post").path("responses").has("200"));
         Files.writeString(Path.of("target","phase10-openapi.json"),response.body(),StandardCharsets.UTF_8);

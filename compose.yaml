@@ -55,23 +55,12 @@ services:
     cpus: 4
     mem_limit: 1g
 
-  voice:
-    <<: *runtime
-    profiles: [voice]
-    build:
-      context: .
-      dockerfile: ai/speech/Dockerfile
-    image: cooklens-voice:base-q5
-    cpus: 2
-    mem_limit: 768m
-
   backend:
     <<: *runtime
     image: ${COOKLENS_IMAGE_PREFIX:-trantung2006/cooklens}-backend:${COOKLENS_IMAGE_TAG:-2.0.0}
     environment:
       VISION_URL: http://vision:8000
       RECIPES_URL: http://recipes:8001
-      VOICE_URL: http://voice:8002
       ASSISTANT_DB_PATH: /app/data/assistant.sqlite
       LLM_PROVIDER: ${LLM_PROVIDER:-openai}
       LLM_BASE_URL: ${LLM_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai}
