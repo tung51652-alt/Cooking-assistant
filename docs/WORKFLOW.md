@@ -32,6 +32,7 @@ Tổng hợp theo workflow người dùng cung cấp và các quyết định hi
 - Có thể đọc, sửa file và thao tác local dễ hoàn tác trong phạm vi đã giao mà không hỏi lại từng bước.
 - Không tự commit/push khi chưa có yêu cầu rõ ràng của người dùng; để người dùng review diff.
 - Commit message luôn bằng tiếng Anh.
+- Commit và issue/PR đứng tên người dùng; không thêm dòng attribution hoặc nhắc tới công cụ AI.
 - Không tự rewrite lịch sử đã push, force-push, reset phá hủy hoặc dùng `--no-verify`.
   Những thao tác đó cần yêu cầu/chấp thuận rõ ràng; xóa file phải thuộc phạm vi đã được giao.
 - Nếu được yêu cầu commit theo ngày cụ thể, chỉ đặt author date bằng `git commit --date`.
@@ -51,7 +52,7 @@ Tổng hợp theo workflow người dùng cung cấp và các quyết định hi
   Controller dùng DTO/validation, service điều phối, client gọi AI/API với timeout và lỗi rõ ràng.
 - AI: `ai/cv` nhận diện; `ai/rag` xử lý corpus/embedding/retrieval.
   Dùng taxonomy/version chung, không suy nguyên liệu trực tiếp từ ảnh.
-- Trợ lý thuộc [kế hoạch MVP](plan/mvp.md); backend phiên/chat và web đã triển khai, trạng thái nghiệm thu xem trong các phase.
+- Trợ lý chạy trên web và Expo; kiến trúc ở [architecture.md](architecture.md#trợ-lý), trạng thái nghiệm thu ở [acceptance.md](acceptance.md#trợ-lý).
   Backend dùng adapter OpenAI-compatible với Gemini mặc định hoặc NVIDIA trial; SQLite lưu phiên, không tự thêm service chat/database riêng.
 - Web và Expo dùng client/contract chung trong `packages/cooklens-api`.
 - Ứng dụng có một project `cooklens`, một `compose.yaml` ở root và Dockerfile từng phần.
@@ -67,6 +68,7 @@ Tổng hợp theo workflow người dùng cung cấp và các quyết định hi
 - Markdown dùng semantic line breaks: mỗi câu nguồn bắt đầu ở một dòng mới.
   Câu tiếp trong bullet thụt lề theo item, không reflow tùy độ rộng cột.
 - Mỗi chủ đề một file chính; folder chỉ dùng khi có nhiều thành phần như contract hoặc plan.
+- Kế hoạch đã hoàn tất được xóa sau khi kết quả đã ghi vào `acceptance.md`/CHANGELOG; không giữ nhật ký từng bước trong docs.
 - Thông tin chưa chốt để trống; không ghi việc dự kiến thành kết quả đã xong.
 - Trước bàn giao, đọc lại diff/comment/link và bỏ nội dung thừa.
   Báo rõ đã đổi gì, check nào đã chạy và điều gì còn thiếu.

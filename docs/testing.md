@@ -4,119 +4,51 @@
 
 | Lớp | Mục đích |
 | --- | --- |
-| Unit/contract | Taxonomy, schema, validation, client và đóng gói |
-| Browser với API mô phỏng | Lỗi, retry, response đến muộn, escaping và state |
-| Integration bằng image thật | CV → xác nhận món → retrieval → detail, readiness và phục hồi |
-| Evaluation | Accuracy CV, truy xuất, latency và tài nguyên |
+| Unit/contract | Taxonomy, schema, validation, phiên, client và đóng gói |
+| Browser với API mô phỏng | Lỗi, retry, response đến muộn, escaping và state trên desktop/mobile viewport |
+| Integration bằng image thật | Ảnh → xác nhận món → công thức → trợ lý, readiness và phục hồi |
+| Evaluation | Accuracy CV, truy xuất, latency, tài nguyên và chất lượng trợ lý |
 
-Build hoặc smoke pass không thay thế accuracy. Mỗi số đo cần ghi bộ version,
-tập đánh giá, cấu hình máy, cách lấy mẫu và giới hạn diễn giải.
+Build hoặc smoke pass không thay thế accuracy.
+Mỗi số đo ghi bộ version, tập đánh giá, cấu hình máy, cách lấy mẫu và giới hạn diễn giải.
 
 ## Kiểm tra source
+
+Cài dependency theo [development.md](development.md); Playwright cần `npx playwright install chromium` trong `frontend/`.
 
 ```sh
 python3 -m unittest discover -s deploy/tests -q
 python3 -m unittest discover -s data/tests -q
+python3 data/recipes/validate.py --require-full-coverage
 mvn -B -q -f backend/pom.xml test
 npm --prefix frontend run build
 npm --prefix frontend run test:e2e
 node --experimental-strip-types --test packages/cooklens-api/client.test.mjs
+npm --prefix mobile run test:assistant
+npm --prefix mobile run typecheck
 python3 deploy/scripts/check_public_metadata.py
 ```
 
-Kiểm tra lint/format theo từng ngôn ngữ:
-
-```sh
-ruff check ai data deploy
-npm --prefix frontend run lint
-npm --prefix frontend run format:check
-mvn -B -q -f backend/pom.xml spotless:check
-```
-
-Cài dependency/toolchain theo [development.md](development.md).
-Playwright cần Chromium: chạy `npx playwright install chromium` trong `frontend/`.
+Suite web chạy `flow.spec.ts` và `assistant.spec.ts` với API mô phỏng trên desktop và mobile viewport.
+`real-flow.spec.ts` chạy trên stack thật khi đặt `COOKLENS_REAL_API=1` và `COOKLENS_BASE_URL`;
+thêm `COOKLENS_REAL_ASSISTANT=1` khi backend có key, và `COOKLENS_LIGHTBULB_IMAGE` để chạy ca ảnh ngoài danh mục.
 Kiểm tra native theo [mobile README](../mobile/README.md); browser emulation không thay thế thiết bị thật.
-
-Suite web mặc định chạy cả `flow.spec.ts` và `assistant.spec.ts`.
-Trợ lý có 12 tình huống trên mỗi viewport: lifecycle/reload, retry cùng operation, lỗi config/provider/budget, conflict, expiry, escaping, response muộn, sai session, quota và đổi recipe.
-Flow LLM thật trong `real-flow.spec.ts` chỉ bật khi cả `COOKLENS_REAL_API=1` và `COOKLENS_REAL_ASSISTANT=1`, với key ở backend và candidate Phase 10/11.
-Không bật cờ trợ lý cho image public cũ hoặc job chưa được cấp key.
-Kết quả local và các check đã lược bỏ theo yêu cầu người dùng nằm ở [Phase 11](plan/phase-11-web.md#kết-quả-kiểm-tra).
-
-## Kiểm tra AI services cục bộ
-
-Các test của `ai/cv/inference` và `ai/rag` chạy bằng Python 3.12 trong môi trường ảo riêng (xem [development.md](development.md)) và đối chiếu với [vision.yml](../.github/workflows/vision.yml), [recipes.yml](../.github/workflows/recipes.yml).
-
-### Vision (`ai/cv/inference/tests`)
-
-Cần checkpoint đã staging (hoặc đặt biến môi trường `FOOD_MODEL_PATH` trỏ tới file checkpoint khớp manifest; tùy chọn `FOOD_TAXONOMY_PATH`, `TORCH_NUM_THREADS`). Không cần Qdrant hay Docker cho bộ `unittest`:
-
-```sh
-python3 deploy/scripts/fetch_vision_checkpoint.py
-python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 torchvision==0.29.1
-python -m pip install -r ai/cv/inference/requirements-test.txt
-python -m unittest discover -s ai/cv/inference/tests -v
-```
-
-Để kiểm tra thêm image offline read-only sau khi build `cooklens-vision:local`:
-
-```sh
-docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
-python3 deploy/scripts/smoke_vision_container.py --image cooklens-vision:local
-```
-
-### Recipes / RAG (`ai/rag/tests`)
-
-`test_preview.py` và `test_evaluation.py` chạy thuần Python (cần dependency trong `ai/rag/requirements.txt`).
-`test_runtime.py` kiểm tra seed/retrieval thật nên cần **Docker Engine** chạy một Qdrant cục bộ riêng (`qdrant/qdrant:v1.19.2`), embedding model đã staging, vector bundle và các biến môi trường bên dưới:
-
-```sh
-export QDRANT_URL=http://127.0.0.1:6333
-export RECIPES_BUNDLE_DIR=deploy/artifacts/staging/recipes
-export EMBEDDING_MODEL_DIR=deploy/artifacts/staging/embedding
-export HF_HUB_OFFLINE=1
-export TRANSFORMERS_OFFLINE=1
-
-python3 deploy/scripts/fetch_embedding_model.py
-python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
-python -m pip install -r ai/rag/requirements.txt
-python -m ai.rag.ingestion.bundle --model "$EMBEDDING_MODEL_DIR" --output "$RECIPES_BUNDLE_DIR"
-
-docker run -d --name cooklens-recipes-test-qdrant \
-  -p 127.0.0.1:6333:6333 \
-  -e QDRANT__TELEMETRY_DISABLED=true \
-  qdrant/qdrant:v1.19.2
-python -m unittest discover -s ai/rag/tests -v
-docker rm -f cooklens-recipes-test-qdrant
-```
-
-Dùng container Qdrant riêng cho test để tránh ảnh hưởng volume runtime của `docker compose up`, và luôn dọn container sau khi chạy xong.
-Để kiểm tra image `cooklens-recipes:local`:
-
-```sh
-docker build -f ai/rag/Dockerfile -t cooklens-recipes:local .
-python3 deploy/scripts/smoke_recipes_container.py
-```
 
 ## Nghiệm thu bộ image
 
-[Workflow acceptance](../.github/workflows/acceptance.yml) chạy thủ công với manifest và 204 query từ tag `v2.0.0`, cùng phiên bản với các image public đang được kiểm tra.
-Workflow tải test archive, đánh giá CV, chạy 30 luồng ảnh và kiểm tra browser desktop/mobile.
-[Recipes runtime](../.github/workflows/recipes.yml) dùng corpus và query từ source đang được review.
-Sau đó kiểm tra offline/lifecycle/rollback với 100 mẫu warm/API. Artifact ghi vào
-thư mục mới trên runner để tránh dùng nhầm báo cáo cũ.
+[Workflow acceptance](../.github/workflows/acceptance.yml) chạy thủ công với manifest và query từ tag phát hành, cùng phiên bản image đang kiểm tra.
+Workflow đánh giá CV trên 5.004 ảnh `Test` của [split manifest](../data/processed/manifests/30vnfoods_clean_split_manifest.csv),
+chạy 30 luồng ảnh bằng [flow runner](../deploy/scripts/accept_release_flow.py) và kiểm tra browser desktop/mobile.
+Flow runner lấy ảnh đầu mỗi lớp; ảnh bị từ chối vẫn tra công thức qua món chọn thủ công và được tách khỏi accuracy.
+[Recipes runtime](../.github/workflows/recipes.yml) dùng corpus và query từ source đang review.
 
-Chạy runtime trên máy đã có image:
+Runtime/lifecycle trên máy đã có image:
 
 ```sh
 python3 deploy/scripts/smoke_release_stack.py --samples 100 --report /tmp/cooklens-runtime.json
 ```
 
-Hai runner Compose tạo project/volume riêng và thu dọn trong `finally`.
-Runner [CV](../deploy/scripts/evaluate_release_vision.py) dùng đúng 5.004 entry
-`Test` trong [split manifest](../data/processed/manifests/30vnfoods_clean_split_manifest.csv),
-chạy offline trong image vision. Runner [flow](../deploy/scripts/accept_release_flow.py)
-chọn entry đầu mỗi lớp trước inference và tách thành công sửa món khỏi accuracy.
+Các runner Compose tạo project/volume riêng, ép key LLM trống và thu dọn trong `finally`.
 
 ## Tiêu chí đạt
 
@@ -128,101 +60,48 @@ chọn entry đầu mỗi lớp trước inference và tách thành công sửa 
 | API latency | P95 vision ≤10 s, search ≤3 s; ≥100 mẫu warm, concurrency 1 |
 | Runtime | Seed, persistence, lỗi seed, upgrade/rollback, dependency recovery và offline |
 | Client | Xác nhận thủ công; lỗi/rỗng/retry; không hiện response cũ hoặc nguồn không an toàn |
+| Trợ lý — latency | `/messages` p50 ≤2,5 s, p95 ≤6 s, tối đa ≤8 s |
+| Trợ lý — usage | Input trung bình ≤4.000 (p95 ≤6.000) token; output trung bình ≤350 (tối đa 512) token |
+| Trợ lý — chất lượng | 100% ở nhóm an toàn/state/bảo mật; ≥90% hỏi đáp thường; không bịa định lượng hoặc nguồn |
 
-Không yêu cầu thử nấu theo quyết định người dùng ngày 2026-11-22.
-Report retrieval lịch sử còn `acceptance_gate_met=false` vì chưa có external review;
-gate kỹ thuật dùng `technical_gate_met`, không đổi nghĩa flag cũ.
-Kết quả và chỉ số ghi ở [acceptance.md](acceptance.md) sau khi kiểm chứng.
+Thử nấu không là gate theo quyết định ngày 2026-11-22.
+Report retrieval dùng `technical_gate_met`; `acceptance_gate_met` còn cần review ngoài nhóm.
+Kết quả ghi ở [acceptance.md](acceptance.md).
 
-## Trợ lý mới trong kế hoạch MVP
+## Đánh giá trợ lý
 
-Theo [kế hoạch trợ lý](plan/assistant.md), bổ sung contract/state tests và kiểm thử
-web/Expo: hỏi đáp đúng recipe, chuyển bước, phiên tách biệt, khôi phục sau restart,
-gửi trùng và response muộn. Giả lập timeout/429/thiếu key, sau đó kiểm tra một
-provider với API thật và đo latency/usage.
-Baseline 50 request thật đã chạy: state/usage qua, latency fail và quality review còn mở; xem [kết quả](acceptance.md#baseline-api-llm-thật-phase-10).
-
-Source Phase 10 đã có HTTP/provider fault tests và test `AssistantJvmRestartTest` khởi động bốn JVM riêng với cùng SQLite.
-Fixture chỉ nằm trong test source, dùng provider/pricing giả; không được đưa vào image hoặc coi là kết quả API thật.
-Test kiểm tra conversation/replay, pending quá hạn, rate window, budget/warning qua process restart và readiness khi provider lỗi.
-Compose tests dùng CLI parser thật, không cần engine; container smoke vẫn cần Docker Engine chạy Linux.
-Các runner smoke ép key trống; không dùng API thật hoặc quota người chạy cho fault injection.
-Backend smoke kiểm tra schema 3, orphan reservation trên volume qua stop/start bằng helper image recipes không có mạng, UID 10001 và rootfs read-only.
-Offline smoke tạm tháo cả bridge frontend/backend, chạy luồng ảnh/công thức rồi khôi phục trong `finally`.
-Ba smoke container đã chạy qua trên Docker Desktop Linux với source backend/frontend Phase 10, gồm 100 warm samples của luồng ảnh/công thức; API LLM thật có baseline riêng và chưa đạt nghiệm thu.
-Kết quả và giới hạn cụ thể ở [Phase 10](plan/phase-10-llm.md).
-
-### Bộ nghiệm thu API thật Phase 10
-
-[Fixture cố định](../deploy/assistant-evaluation.json) có 26 ca single-turn API thật, 4 ca fault bằng mock và 3 hội thoại 8 lượt, tổng tối đa 50 request chat thật mỗi lần chạy.
-Rubric và sáu tiêu chí review phải được giữ nguyên trong lần đo; sửa fixture thì chạy lại, không ghép câu trả lời của các lần khác nhau.
-Runner mặc định chỉ in kế hoạch, không đọc key hoặc gọi API.
-Chỉ dùng `--execute` sau khi smoke container qua trên image Phase 10 đã build và key được cấu hình riêng ở backend; image mặc định cũ chưa có trợ lý.
+[Fixture cố định](../deploy/assistant-evaluation.json) gồm 30 ca single-turn thuộc sáu nhóm (26 gọi API thật, 4 lỗi kiểm soát bằng mock)
+và 3 hội thoại 8 lượt, tổng 50 request thật mỗi lần chạy.
+Giữ nguyên fixture, rubric và ngưỡng trong một lần đo; sửa fixture thì đo lại, không ghép kết quả nhiều lần chạy.
 
 ```sh
-python3 deploy/scripts/evaluate_assistant.py
-python3 deploy/scripts/evaluate_assistant.py --execute --base-url http://127.0.0.1:8080
+python3 deploy/scripts/evaluate_assistant.py                       # chỉ in kế hoạch
+python3 deploy/scripts/evaluate_assistant.py --execute --base-url http://127.0.0.1:8080 --request-pause-seconds 5
 ```
 
-Mỗi lần tạo thư mục mới trong `backend/target/assistant-evaluation/`, chứa `report.json` và `review.json`; không đưa transcript, SQLite hoặc key vào Git/docs.
-Runner tạo 29 phiên riêng, start ở bước 1, không tự retry POST; lỗi API/contract dừng lần chạy, không tự gửi lại operation chưa rõ kết quả.
-Latency đo toàn HTTP `/messages`, không loại request lỗi khỏi báo cáo; p50/p95 dùng nearest rank, ngưỡng theo [Phase 8](plan/phase-08-foundation.md).
-Với quota tần suất của Gemini, có thể thêm `--request-pause-seconds 5`; khoảng nghỉ giữa request được ghi trong report và nằm ngoài latency HTTP.
-Nếu gặp 429, lần đo dừng và giữ nguyên kết quả; không tự retry hoặc ghép request từ run khác để đủ 50 mẫu.
-State check đối chiếu recipe, bước, history, revision và nguyên cặp message; không dùng keyword để chấm nội dung model.
-Runner thu các duration số từ `Server-Timing`, từ chối header thiếu/sai/trùng hoặc tổng stage vượt total; timing thiếu vẫn unknown và không đổi latency gate.
-Diagnostics tách prepare/persist và provider boundary, không trừ provider time khỏi HTTP latency hoặc suy thành thời gian xử lý nội bộ NVIDIA.
-Transcript giữ recipe snapshot để review, chỉ ghi hash operation cho đối chiếu usage, không ghi session capability hoặc raw error body.
+Runner tạo phiên riêng cho mỗi ca, không retry POST và dừng khi API/contract sai hoặc gặp 429.
+Output nằm trong `backend/target/assistant-evaluation/RUN/` (bị Git ignore); không đưa transcript, SQLite hoặc key vào Git/docs.
+Latency đo toàn HTTP `/messages` theo nearest rank; `Server-Timing` chỉ dùng chẩn đoán.
 
-Đọc từng câu trả lời trong report và đối chiếu snapshot/rubric, điền sáu giá trị `true`/`false` vào `review.json`, ghi lý do khi fail.
-Review phải giữ `report_id` của đúng lần chạy; thiếu/null không được xem là pass.
-Để review nhanh hơn, tạo form local không cần mạng:
+Review từng câu trả lời theo sáu tiêu chí bằng form local:
 
 ```sh
 python3 deploy/scripts/render_assistant_review.py backend/target/assistant-evaluation/RUN/report.json
 ```
 
-Mở `review.html` trong browser, đọc từng câu hỏi/đáp/rubric và recipe snapshot, chọn pass/fail cho sáu tiêu chí.
-Nút pass một câu chỉ là thao tác của người review; form không tự chấm hoặc preselect kết quả, không gọi API và không gửi dữ liệu ra mạng.
-Export chỉ mở khi cả 50 câu có đủ đánh giá và người review xác nhận đã đọc; lưu `review.json` đã export vào cùng thư mục report rồi chạy summarize như bên dưới.
-Ghi chú từ agent nếu có chỉ là gợi ý cần kiểm tra, không thay human review.
-Định lượng/nguồn bịa, safety, security hoặc state sai làm fail; hỏi đáp thường và hội thoại cần tỷ lệ pass ít nhất 90%, các nhóm còn lại cần 100%.
-
-Usage không nằm trong public DTO; sau lần chạy, dừng backend để sao chép SQLite nhất quán rồi khởi động lại.
-Không sao chép một file SQLite đang được ghi hoặc chỉ một phần DB/WAL; giữ bản sao trong thư mục report bị Git ignore.
-Với Compose mặc định, từ root dự án:
+Form không tự chấm và không gửi dữ liệu ra mạng; export `review.json` khi đủ 50 câu.
+Usage lấy từ bản sao SQLite khi backend đã dừng:
 
 ```sh
 docker compose stop backend
 docker compose cp backend:/app/data/assistant.sqlite backend/target/assistant-evaluation/RUN/usage.sqlite
 docker compose start backend
-```
-
-Thay `RUN` bằng thư mục thực tế do runner in ra; luôn khởi động lại backend cả khi copy lỗi.
-`--usage-db` chỉ mở bản sao read-only, đọc model/token/status theo các hash call của lần đo; thiếu/partial usage vẫn unknown, không đổi thành 0 hoặc ước lượng.
-Chạy mock suite bằng lệnh Maven ở trên và dùng Surefire XML mới của đúng source; 4 ca này là bằng chứng fault injection, không phải API thật.
-
-```sh
 python3 deploy/scripts/evaluate_assistant.py --summarize backend/target/assistant-evaluation/RUN/report.json \
   --review backend/target/assistant-evaluation/RUN/review.json \
   --usage-db backend/target/assistant-evaluation/RUN/usage.sqlite \
   --junit backend/target/surefire-reports/TEST-com.cooklens.AssistantChatIntegrationTest.xml
 ```
 
-Summary trả exit 1 khi chưa đạt hoặc còn thiếu bằng chứng; không đánh dấu chất lượng pass chỉ từ HTTP 200.
-`evaluation_passed` chỉ mô tả bộ API/fault/review này; không thay gate Linux runtime, CI, tích hợp web/Expo hoặc tự đóng Phase 10.
-
-### Dùng kết quả cho Phase 13
-
-Chạy cùng fixture trên gateway của gói ứng viên đã pull, từ source của đúng tag.
-Khi gọi `--execute`, truyền `--candidate-identity` với file vừa tạo và đối chiếu trên host đó trước khi ghi số đo.
-Đo live, thu usage và hoàn tất review giống quy trình ở trên. Khi chạy `--summarize`, thêm `--release-summary` với một đường dẫn mới trong thư mục run, `--provider` và `--reported-model` theo cấu hình/model quan sát được.
-Evaluator chỉ ghi summary khi các gate API/fault/quality đã đạt. Summary giữ identity của lần đo, model selector lấy từ usage, model trả về và các số đo tổng hợp.
-Đưa object này vào trường `assistant` của hồ sơ nghiệm thu theo [runbook Phase 13](deployment.md#ứng-viên-phase-13).
-
-Web thật dùng `COOKLENS_REAL_API=1`, `COOKLENS_REAL_ASSISTANT=1` và `COOKLENS_BASE_URL` trỏ origin của gói.
-Kết quả phải có ca trợ lý đã chạy cho cả hai viewport, có hội thoại hai lượt, đổi bước, reload giữ hội thoại và finish.
-Expo Go dùng `EXPO_PUBLIC_API_BASE_URL` trỏ cùng gateway kèm `/api`; ghi kết quả thiết bị thật riêng.
-
-Checklist thực hiện và kiểm thử chi tiết được chia theo [Phase 8–14](plan/mvp.md);
-chốt kỳ vọng/ngưỡng trước khi chạy và chỉ cập nhật kết quả đã kiểm chứng.
+Summary trả exit 1 khi chưa đạt hoặc thiếu bằng chứng; usage thiếu giữ unknown, không coi là 0.
+Khi nghiệm thu một candidate, chạy trên gateway của gói đã pull, thêm `--candidate-identity` lúc `--execute`
+và `--release-summary`, `--provider`, `--reported-model` lúc `--summarize` để lấy object `assistant` cho [hồ sơ phát hành](deployment.md#phát-hành).

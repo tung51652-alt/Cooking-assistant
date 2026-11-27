@@ -15,4 +15,4 @@ Trên Recipes API và Qdrant 1.19.2 cục bộ, corpus v3 đạt Hit@1 93,05%, H
 | Bản nháp 100 công thức trước rà soát món | 275 | 92,00% | 100% |
 | Bản nháp 90 công thức trước khi tích hợp phần chuẩn hóa từ develop | 259 | 93,05% | 100% |
 
-Các query bánh mì nhắc pa-tê và rau mùi được giữ lại để theo dõi lỗi xếp hạng với bánh mì cá mòi. Các công thức phở cuốn, nem chua rán và các món sai nhãn đã được loại cùng những query chỉ tìm các bản ghi đó. [Chi tiết rà soát](../../../docs/plan/2026-11-26-recipe-dataset-expansion.md)
+Các query bánh mì nhắc pa-tê và rau mùi được giữ lại để theo dõi lỗi xếp hạng với bánh mì cá mòi. Các công thức phở cuốn, nem chua rán và các món sai nhãn đã được loại cùng những query chỉ tìm các bản ghi đó. [Chi tiết rà soát](../../../data/recipes/README.md#rà-soát-corpus-v3)

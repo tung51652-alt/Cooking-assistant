@@ -7,8 +7,8 @@ Web responsive và Expo Go dùng chung API.
 ## Chạy nhanh
 
 Cần Docker với Compose ≥2.24.4, chạy Linux containers.
-MVP `2.0.0` dùng Linux amd64/CPU; xem [kết quả và giới hạn nghiệm thu](docs/acceptance.md).
-Các image `2.0.0` gồm 33 công thức. Xem [cách build từ source](docs/development.md) để dùng corpus mới.
+Bản phát hành `2.0.0` dùng Linux amd64/CPU; xem [kết quả và giới hạn nghiệm thu](docs/acceptance.md).
+Image `2.0.0` gồm 33 công thức; corpus 90 công thức có trên `develop` và sẽ vào `2.1.0`. Xem [cách build từ source](docs/development.md).
 
 Từ thư mục gốc dự án:
 
@@ -32,11 +32,11 @@ Mặc định dùng Gemini 3.1 Flash-Lite; ảnh, công thức và điều khi�
 | Service, dữ liệu và API | [Kiến trúc](docs/architecture.md) |
 | Build từ source | [Phát triển](docs/development.md) |
 | Kiểm thử và số đo | [Kiểm thử](docs/testing.md) · [Nghiệm thu](docs/acceptance.md) |
-| Công việc tiếp theo | [Kế hoạch MVP](docs/plan/mvp.md) |
+| Công việc đang mở | [Kế hoạch](docs/plan/README.md) |
 
 CV Top-3 baseline đạt 96,08% trên 5.004 ảnh test; số đo của bộ phát hành ghi trong `candidate.json` và `verification.json` đi cùng gói.
 Model hỗ trợ danh mục 30 món; người dùng luôn xác nhận món trước khi tra công thức.
 
-MVP phát hành theo yêu cầu người dùng với các mục còn mở: Android thật, đủ 50 câu LLM trên cùng candidate và human quality review.
+`2.0.0` phát hành theo yêu cầu người dùng với các mục còn mở: Android thật, đủ 50 câu LLM trên cùng candidate và human quality review.
 Gemini có thể bị rate limit/timeout; trợ lý không tự điều khiển bước hoặc bảo đảm an toàn dị ứng.
-Thiết kế và phạm vi ở [kế hoạch trợ lý](docs/plan/assistant.md).
+Thiết kế trợ lý ở [kiến trúc](docs/architecture.md#trợ-lý).

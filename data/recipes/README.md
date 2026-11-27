@@ -25,10 +25,27 @@ Công thức do AI biên soạn dùng tên nguồn và tag `ai_authored`, giấy
 Định lượng là hướng dẫn cho bếp gia đình. Công thức đang chờ thử nấu và tổng thời gian để `null`.
 Bản ghi nem chua dùng nem Yên Mạc thành phẩm đã lên men, cuốn lá ổi hoặc lá sung và chấm mắm chanh tỏi. Sở Du lịch Ninh Bình ghi lại cách ăn này.
 
-Lần rà soát phân loại đã kiểm tra món hoàn chỉnh, nguyên liệu và cách làm của cả 100 bản ghi trước khi giữ lại 89.
-Kết quả tìm kiếm và trạng thái thử nấu được ghi ở `docs/plan/2026-11-26-recipe-dataset-expansion.md` trong kho mã nguồn.
+## Rà soát corpus v3
 
-Kiểm tra từ thư mục gốc:
+v3 giữ 32 công thức từ v2, thêm 58 công thức có nguồn và bỏ bản nem chua tẩm bột chiên cũ; v2 dùng collection Qdrant riêng để rollback.
+Lần rà soát kiểm tra món hoàn chỉnh, nguyên liệu và cách làm của cả 100 bản ghi trong bản nháp.
+Biến thể vùng miền hoặc chay được giữ khi còn đặc trưng cách làm hoặc cách dọn của món, ví dụ bánh cuốn Cao Bằng, mì Quảng cá lóc, bún đậu chay.
+
+| Bản ghi bị loại | Lý do |
+| --- | --- |
+| `wb_banh_beo_phong_tom_tom_chay` | Bánh phồng tôm thay cho bánh hấp gạo của món |
+| `wb_banh_mi_chien_tom`, `wb_banh_mi_hap_bo_heo_xa`, `wb_banh_mi_nuong_muoi_ot` | Là món ăn vặt chế biến riêng, không phải bánh mì |
+| `vn_banh_mi_xiu_mai_nuoc_sa_te` | Nguồn là canh xíu mại; bản nháp tự thêm bánh mì ăn kèm |
+| `wb_bun_bo_chay` | Thiếu mắm ruốc chay và dầu điều của nguồn |
+| `wb_pho_cuon_bo_xao_gung_toi`, `wb_pho_cuon_bo_bam_nuoc_cham_giam` | Phở cuốn là món khác với nhãn phở nước |
+| `wb_pho_ga_nam_dong_co` | Nguồn dùng bún; bản nháp thay bằng bánh phở |
+| `cooklens_nem_chua_home`, `vi_nem_chua_ran_thit_heo_bi_ao_bot` | Thành phẩm là nem tẩm bột chiên, không phải nem chua lên men |
+
+Kết quả truy xuất ở [đánh giá retrieval](../../ai/rag/evaluation/REVIEW.md). Gói runtime v3, nghiệm thu ngoài nhóm và thử nấu chưa thực hiện.
+
+## Kiểm tra
+
+Từ thư mục gốc:
 
 ```sh
 python3 data/recipes/validate.py --require-full-coverage

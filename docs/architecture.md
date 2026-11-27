@@ -5,7 +5,8 @@
 ```text
 Web → Nginx → Spring Boot /api → Vision EfficientNet-B2
                              → Recipes E5 → Qdrant
-                             → SQLite phiên/ledger → API LLM (chat tùy chọn)
+                             → SQLite phiên/ledger
+                             → API LLM (Gemini, tùy chọn)
 Expo Go ───→ cùng public API
 Recipe init ────────────────→ nạp bundle vào Qdrant
 ```
@@ -13,16 +14,16 @@ Recipe init ────────────────→ nạp bundle và
 | Service | Trách nhiệm | Mã nguồn |
 | --- | --- | --- |
 | `frontend` | Phục vụ web và proxy API cùng origin | [frontend/](../frontend/README.md) |
-| `backend` | Public API, validation, giới hạn request, timeout và điều phối AI | [backend/](../backend/README.md) |
+| `backend` | Public API, validation, giới hạn request, phiên trợ lý và điều phối AI/LLM | [backend/](../backend/README.md) |
 | `vision` | Kiểm tra ảnh, load checkpoint và trả Top-3 | [ai/cv/inference/](../ai/cv/inference/README.md) |
 | `recipes` | Embed query, lọc món, tìm và đọc công thức | [ai/rag/](../ai/rag/README.md) |
 | `qdrant` | Lưu vector và metadata của corpus | [Compose](../compose.yaml) |
 | `recipe-init` | Job một lần: kiểm tra/nạp bundle và kích hoạt index | [Ingestion](../ai/rag/ingestion/) |
 
 Toàn bộ service nằm trong một [compose.yaml](../compose.yaml) ở root, project `cooklens`.
-Mỗi phần có Dockerfile riêng; Compose dùng image có sẵn, không build source lúc khởi động. Web và Expo chỉ gọi gateway;
-AI/Qdrant nằm trong mạng internal của release. Chỉ web publish ra loopback.
-Trong source Phase 10, backend có thêm bridge `llm-egress`, chỉ dùng cho kết nối ra provider; AI/Qdrant không tham gia bridge này.
+Mỗi phần có Dockerfile riêng; Compose dùng image có sẵn, không build source lúc khởi động.
+Chỉ frontend publish cổng, mặc định trên loopback.
+AI/Qdrant nằm trong mạng internal `application`; riêng backend nối thêm bridge `llm-egress` để gọi provider.
 
 ## Model và dữ liệu
 
@@ -38,46 +39,43 @@ Model, taxonomy, corpus và embedding có version riêng; release ghi bộ versi
 
 ## Quy tắc xử lý
 
-1. Vision trả đúng ba class duy nhất, confidence giảm dần; tie-break theo class ID.
-2. Người dùng luôn xác nhận/sửa món trước khi tìm công thức.
-3. Recipes lọc `dish`, `language=vi`, `cuisine=vietnamese` trước vector search.
+1. Vision trả đúng ba class duy nhất, confidence giảm dần, tie-break theo class ID.
+   Điểm cao nhất dưới 65% trả 422 `LOW_CONFIDENCE_PREDICTION`.
+2. Người dùng luôn xác nhận hoặc chọn món trước khi tìm công thức.
+3. Recipes lọc `dish`, `language=vi`, `cuisine=vietnamese` trước vector search, prefix `query: `/`passage: `.
 4. Query chỉ xếp hạng trong món đã xác nhận; không fallback sang món khác hoặc gọi LLM.
 5. Kết quả rỗng, lỗi và dữ liệu thiếu được trả rõ ràng; client không tạo dữ liệu thay thế.
 
-Prefix embedding là `query: ` và `passage: `. Text recipe dựng từ schema đã validate;
-bundle vector tạo trước khi build image. Init kiểm tra version và giữ collection cũ
-để rollback; chỉ chạy một init job mỗi lần.
+Vector bundle tạo trước khi build image.
+`recipe-init` kiểm tra version và giữ collection cũ để rollback; chỉ chạy một init job mỗi lần.
 
-## API và trạng thái
+## API và client
 
-[Contract v1](contracts/mvp-v1.md) quy định envelope, routes, error, timeout và upload.
+[Contract v1](contracts/mvp-v1.md) quy định envelope, routes, lỗi, timeout và upload.
 Spring sinh OpenAPI tại `/v3/api-docs`; client dùng [schema TypeScript sinh tự động](../frontend/src/generated/api.d.ts).
 Web và Expo chia sẻ [client API](../packages/cooklens-api/).
+Món đã xác nhận nằm ở client; đổi ảnh, món hoặc công thức phải hủy và bỏ qua response cũ.
+Client chỉ lưu session ID/recipe ID (web: localStorage, Expo: SecureStore), không lưu ảnh, hội thoại hoặc key.
+Giao diện dùng font/icon local, không tải CDN.
 
-Chưa có PostgreSQL/JPA hoặc LangGraph trong runtime.
-Source backend dùng SQLite schema 3 lưu phiên/snapshot recipe, hội thoại/operation và ledger admission/chi phí; điều khiển bước độc lập LLM.
-Volume `assistant-sessions` chỉ backend ghi, native SQLite library nằm trong image để không phụ thuộc `/tmp` executable.
-State xác nhận nằm ở client;
-đổi ảnh/món hoặc điều hướng phải hủy và bỏ qua response cũ.
-Giao diện dùng font/icon local; không chạy HTML demo hoặc CDN của nguồn thiết kế.
+## Trợ lý
 
-## Trợ lý trong source Phase 10
+Backend gọi LLM qua interface `ChatProvider` với adapter Chat Completions tương thích OpenAI.
+Mặc định là Gemini 3.1 Flash-Lite qua endpoint OpenAI-compatible của Google; NVIDIA trial vẫn dùng được khi cấu hình đúng endpoint/model đã pin.
+Chỉ một provider hoạt động, không tự fallback; chưa có adapter Anthropic.
 
-Chat đi qua backend hiện có → adapter Chat Completions tương thích OpenAI, mặc định Gemini 3.1 Flash-Lite qua endpoint Google; NVIDIA trial vẫn hỗ trợ khi cấu hình rõ endpoint/model.
-Chưa có adapter Anthropic; không thêm SDK hoặc service chat riêng.
-Source đã nối messages với recipe/state/context và admission/accounting; image `2.0.0-rc.2` chưa có phần này.
-Request mới nhận operation/reservation trong transaction ngắn, nhả writer lock rồi gọi provider và chỉ commit cặp reply khi state vẫn phù hợp.
-Provider error/usage thiếu/stale reply không xóa reservation; cooking commands dùng logic ứng dụng, không chạy theo output model.
-Không thêm service chat riêng; giữ một Compose. Cần cấp key server và đường mạng
-ra API LLM; phần nhận diện/tra công thức vẫn hoạt động khi LLM không sẵn sàng.
-Contract và thứ tự triển khai ở [plan/assistant.md](plan/assistant.md).
+- Backend lấy công thức từ corpus và lưu snapshot vào phiên; không nhận recipe/state do client gửi.
+- Context gồm công thức, bước hiện tại và tối đa 6 cặp hỏi đáp gần nhất; dữ liệu người dùng tách khỏi system instruction; không gửi ảnh.
+- Năm lệnh `bắt đầu`, `bước tiếp`, `bước trước`, `nhắc lại`, `kết thúc` chạy bằng logic ứng dụng, không gọi LLM; output model không đổi state.
+- Request nhận operation và reservation chi phí trong transaction ngắn, gọi provider ngoài writer lock, rồi chỉ commit cặp hỏi đáp nếu state chưa đổi.
+- Model trả text thuần; client render bằng text node, không thực thi HTML hoặc link.
 
-## Trợ lý web trong source Phase 11
+| Giới hạn | Giá trị |
+| --- | --- |
+| Phiên | 24 giờ cố định; 100 action; 30 cặp hỏi đáp; 10.000 record |
+| Request | Body 8 KiB; câu hỏi ≤2.000 ký tự; 4 request nghiệp vụ đồng thời/instance |
+| Gọi LLM | 12 lượt/phút/phiên; timeout 20 s (proxy 25 s); output ≤512 token; input ước lượng ≤6.000 token |
+| Ngân sách | Cảnh báo $5, chặn $10 mỗi tháng UTC; tính theo trần giá đã xác minh |
 
-Recipe detail mở `assistant.html` bằng recipe ID/corpus version từ shared API client.
-Backend trả snapshot, history, messages và state; client chỉ render state đã validate, không suy bước từ lời model.
-Reload/nav khôi phục phiên gần nhất; localStorage chỉ chứa session ID/recipe ID, không có ảnh/chat/key.
-Mutex, abort và generation guard chặn double submit/response cũ; retry thủ công giữ nguyên operation ID khi chưa biết kết quả.
-Năm nút nấu độc lập LLM; lỗi provider/config/budget giữ draft, version conflict refresh state, expiry có lối chọn/tạo phiên mới.
-Text model render bằng React text nodes; không thực thi HTML hoặc link từ hội thoại.
-Candidate local đã qua browser flow thật desktop/mobile; human answer review và PR/CI chưa hoàn tất.
+SQLite schema 3 trong volume `assistant-sessions` lưu phiên, hội thoại, operation và ledger chi phí.
+Ledger không bị xóa khi dọn phiên. Chi tiết ở [contract](contracts/mvp-v1.md#phiên-trợ-lý) và [backend README](../backend/README.md).
