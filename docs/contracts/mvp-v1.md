@@ -168,6 +168,10 @@ Shared client chuẩn hóa UUID phiên và operation thành chữ thường trư
 
 Chưa cấu hình key hoặc pricing policy hợp lệ thì không nhận operation/call mới; cooking commands vẫn hoạt động.
 
+`/messages` nhận thêm key của người dùng qua header tùy chọn `X-LLM-Api-Key`, `X-LLM-Provider` (`gemini`, `openai`, `nvidia`, `custom`), `X-LLM-Model` và `X-LLM-Base-Url`.
+Preset dùng đúng base URL đã định; `custom` cần HTTPS (HTTP chỉ cho loopback), không credential/query/fragment và path kết thúc `/v1`, `/openai` hoặc `/v1beta/openai`.
+Header sai trả 422 `VALIDATION_ERROR`; khi có key người dùng, backend không lưu key, không áp ngân sách server, vẫn áp rate limit phiên.
+
 ### State và hội thoại
 
 Giữ các route, body, envelope `api_version: "1.0.0"` và các field Session hiện có.
@@ -195,7 +199,7 @@ State cuối có version 3, hai action với version `[1, 3]`, hai message và b
    Chỉ cho một provider call đang chờ trên mỗi phiên; operation khác gặp pending trả 409 `ASSISTANT_REQUEST_IN_PROGRESS`.
    Cooking actions và GET không bị pending chat chặn; chúng vẫn có thể làm snapshot chat cũ đi.
 2. Gọi provider ngoài transaction SQLite, với deadline tổng 20 s và connect timeout 2 s.
-   Không tự retry upstream, fallback provider hoặc giữ writer lock trong thời gian chờ.
+   Chỉ thử lại một lần khi provider trả 502/503 và còn deadline; không fallback provider hoặc giữ writer lock trong thời gian chờ.
 3. Khi có kết quả: transaction mới validate lại phiên/expiry và expected_version trước khi commit nguyên tử cặp message, kết quả operation, version và updated_at.
    Operation phải vẫn pending và còn deadline; completion đến sau khi operation đã thành lỗi cuối không được mở lại hoặc commit, kể cả version phiên chưa đổi.
    Nếu state đã đổi, trả 409 `SESSION_VERSION_CONFLICT`; nếu hết hạn trả 410; không lưu câu trả lời vào hội thoại.
@@ -257,6 +261,7 @@ Policy giá trả phí phải có đơn giá và giới hạn billing bảo đ�
 | 409 | `ASSISTANT_REQUEST_IN_PROGRESS` | Có provider call đang chờ; đọc lại phiên trước thao tác mới |
 | 409 | `SESSION_MESSAGE_LIMIT` | Đủ 30 cặp hỏi/đáp; action vẫn hoạt động |
 | 422 | `ASSISTANT_CONTEXT_TOO_LARGE` | Context bắt buộc vượt trần input, không gửi provider |
+| 422 | `ASSISTANT_MODEL_INVALID` | Key người dùng: provider trả 400/404 cho model đã chọn |
 | 429 | `ASSISTANT_RATE_LIMITED` | Vượt 12 request chat mới/phút/phiên hoặc provider trả 429 |
 | 503 | `ASSISTANT_PROVIDER_UNSUPPORTED` | Adapter chưa hỗ trợ cấu hình đã chọn |
 | 503 | `ASSISTANT_PROVIDER_AUTH_FAILED` | Provider trả 401/403; không chuyển lỗi này thành lỗi đăng nhập của người dùng |

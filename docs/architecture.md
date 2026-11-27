@@ -55,7 +55,7 @@ Vector bundle tạo trước khi build image.
 Spring sinh OpenAPI tại `/v3/api-docs`; client dùng [schema TypeScript sinh tự động](../frontend/src/generated/api.d.ts).
 Web và Expo chia sẻ [client API](../packages/cooklens-api/).
 Món đã xác nhận nằm ở client; đổi ảnh, món hoặc công thức phải hủy và bỏ qua response cũ.
-Client chỉ lưu session ID/recipe ID (web: localStorage, Expo: SecureStore), không lưu ảnh, hội thoại hoặc key.
+Client lưu session ID/recipe ID (web: localStorage, Expo: SecureStore), không lưu ảnh hoặc hội thoại.
 Giao diện dùng font/icon local, không tải CDN.
 
 ## Trợ lý
@@ -63,6 +63,8 @@ Giao diện dùng font/icon local, không tải CDN.
 Backend gọi LLM qua interface `ChatProvider` với adapter Chat Completions tương thích OpenAI.
 Mặc định là Gemini 3.1 Flash-Lite qua endpoint OpenAI-compatible của Google; NVIDIA trial vẫn dùng được khi cấu hình đúng endpoint/model đã pin.
 Chỉ một provider hoạt động, không tự fallback; chưa có adapter Anthropic.
+Trên web, người dùng có thể nhập key riêng (Gemini, OpenAI, NVIDIA hoặc endpoint tương thích OpenAI) trong Cài đặt trợ lý.
+Key này lưu trong `localStorage` của trình duyệt và gửi kèm từng câu hỏi qua header `X-LLM-*`; backend dùng nó thay cấu hình server, không lưu key và không tính vào ngân sách server.
 
 - Backend lấy công thức từ corpus và lưu snapshot vào phiên; không nhận recipe/state do client gửi.
 - Context gồm công thức, bước hiện tại và tối đa 6 cặp hỏi đáp gần nhất; dữ liệu người dùng tách khỏi system instruction; không gửi ảnh.
