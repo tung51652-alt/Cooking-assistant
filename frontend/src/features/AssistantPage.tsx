@@ -7,7 +7,7 @@ import { Source } from './RecipePage';
 
 const STORAGE = 'cooklens.assistant.session';
 const RESEND_CODES = new Set(['ASSISTANT_PROVIDER_UNAVAILABLE', 'ASSISTANT_PROVIDER_TIMEOUT', 'ASSISTANT_RATE_LIMITED']);
-const labels: Record<AssistantAction, string> = { start: 'Bắt đầu nấu', previous: 'Bước trước', repeat: 'Nhắc lại', next: 'Bước tiếp', finish: 'Kết thúc nấu' };
+const labels = { start: 'Bắt đầu nấu', previous: 'Bước trước', next: 'Bước tiếp', finish: 'Kết thúc nấu' };
 type Pending = { kind: 'create'; body: CreateSession } | { kind: 'action'; id: string; body: SessionActionRequest } | { kind: 'message'; id: string; body: SessionMessageRequest };
 type Saved = { id: string; recipeId: string };
 const CONFIG_ERROR_CODES = new Set([
@@ -107,7 +107,8 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
       try {
         const restored = await api.getSession(previous.id, signal);
         if (restored.recipe.id !== previous.recipeId) throw new api.ApiError('Phiên trả về không khớp công thức đã chọn.');
-        if (document && (restored.corpus_version !== document.corpus_version || restored.recipe_version !== document.recipe.updated_at))
+        if (document && (restored.status === 'finished' || restored.corpus_version !== document.corpus_version
+          || restored.recipe_version !== document.recipe.updated_at))
           return api.createSession((createBody(document, creation.current) as Extract<Pending, { kind: 'create' }>).body, signal);
         return restored;
       } catch (failure) {
@@ -149,8 +150,17 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
   const quota = (session?.messages.length || 0) >= 60;
   const canResend = !retry && !closed && !quota && !!draft.trim() && !!errorCode && RESEND_CODES.has(errorCode);
   const inlineChatError = !!session && (errorTarget === 'message' || retry?.kind === 'message');
-  const errorBanner = (error || retry) && <div className={inlineChatError ? 'error-message error-message-inline' : 'error-message'} role="alert"><div><p>{error || 'Yêu cầu trước chưa được xác nhận. Thử lại cùng yêu cầu hoặc bỏ yêu cầu đang chờ trước khi tiếp tục.'}</p><p>Nội dung chưa gửi vẫn được giữ trong ô hỏi.</p></div><div className="assistant-error-actions">
-    {errorCode && CONFIG_ERROR_CODES.has(errorCode) && <button type="button" className="secondary-btn" onClick={() => onOpenLlmSettings('custom')}><Key size={16} aria-hidden="true" /> Cấu hình API Key LLM</button>}
+  const isNotConfigured = errorCode === 'ASSISTANT_NOT_CONFIGURED';
+  const errorBanner = (error || retry) && <div className={inlineChatError ? 'error-message error-message-inline' : 'error-message'} role="alert"><div className="assistant-error-copy">
+    {isNotConfigured ? <>
+      <p><strong>Máy chủ chưa bật tính năng hỏi đáp.</strong> Bạn vẫn có thể xem các bước nấu và điều khiển từng bước ở khung bên cạnh.</p>
+      <p>Để tiếp tục đặt câu hỏi, bạn có thể chọn <strong>Dùng khóa API riêng</strong> bên dưới hoặc <strong>liên hệ người quản lý hệ thống</strong>. Nội dung chưa gửi vẫn được giữ trong ô hỏi.</p>
+    </> : <>
+      <p>{error || 'Yêu cầu trước chưa được xác nhận. Thử lại cùng yêu cầu hoặc bỏ yêu cầu đang chờ trước khi tiếp tục.'}</p>
+      <p>Nội dung chưa gửi vẫn được giữ trong ô hỏi.</p>
+    </>}
+  </div><div className="assistant-error-actions">
+    {errorCode && CONFIG_ERROR_CODES.has(errorCode) && <button type="button" className="secondary-btn" onClick={() => onOpenLlmSettings('custom')}><Key size={16} aria-hidden="true" /> Dùng khóa API riêng</button>}
     {retry && <button className="secondary-btn" disabled={busy} onClick={() => void perform(retry)}>Thử lại yêu cầu</button>}
     {canResend && <button className="secondary-btn" disabled={busy} onClick={send}>Gửi lại câu hỏi</button>}
     <button className="text-btn" disabled={busy} onClick={refresh}>Kiểm tra phiên</button>
@@ -166,11 +176,11 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
       <div className="assistant-llm-status">
         {llmConfig && (
           <span className="llm-status-badge is-custom">
-            {`BYOK: ${LLM_PRESETS[llmConfig.provider].shortLabel} · ${llmConfig.model}`}
+            {`Khóa riêng: ${LLM_PRESETS[llmConfig.provider].shortLabel} · ${llmConfig.model}`}
           </span>
         )}
         <button type="button" className="text-btn" onClick={() => onOpenLlmSettings()}>
-          <Key size={15} aria-hidden="true" /> Cấu hình API Key
+          <Key size={15} aria-hidden="true" /> Cài đặt trợ lý
         </button>
       </div>
     </div>
@@ -187,7 +197,6 @@ export default function AssistantPage({ document, llmConfig, onOpenLlmSettings, 
         <div className="assistant-controls" aria-label="Điều khiển bước nấu">
           {session.status === 'ready' ? <button className="primary-btn" disabled={busy || unavailable || !!retry} onClick={() => act('start')}>{labels.start}</button> : <>
             <button className="secondary-btn" disabled={busy || closed || !!retry || session.current_step <= 1 || session.history.length >= 99} onClick={() => act('previous')}>{labels.previous}</button>
-            <button className="secondary-btn" disabled={busy || closed || !!retry || session.history.length >= 99} onClick={() => act('repeat')}>{labels.repeat}</button>
             <button className="primary-btn" disabled={busy || closed || !!retry || session.current_step >= session.total_steps || session.history.length >= 99} onClick={() => act('next')}>{labels.next}</button>
             <button className="text-btn" disabled={busy || closed || !!retry} onClick={() => act('finish')}>{labels.finish}</button>
           </>}

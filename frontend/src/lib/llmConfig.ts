@@ -46,12 +46,12 @@ export const LLM_PRESETS: Record<LlmProviderPreset, ProviderPresetMeta> = {
   },
   custom: {
     id: 'custom',
-    label: 'Custom OpenAI-compatible',
-    shortLabel: 'Custom',
+    label: 'Nhà cung cấp tùy chỉnh',
+    shortLabel: 'Tùy chỉnh',
     baseUrl: '',
     defaultModel: '',
     suggestions: [],
-    keyHint: 'Nhập API key của nhà cung cấp tương thích OpenAI',
+    keyHint: 'Nhập khóa API của nhà cung cấp tương thích OpenAI',
   },
 };
 
@@ -115,7 +115,7 @@ export function validateBaseUrl(provider: LlmProviderPreset, baseUrl: string): V
   }
   const trimmed = baseUrl.trim();
   if (!trimmed) {
-    return { valid: false, message: 'Vui lòng nhập Base URL cho nhà cung cấp Custom.' };
+    return { valid: false, message: 'Vui lòng nhập Base URL cho nhà cung cấp tùy chỉnh.' };
   }
   if (trimmed.includes('..') || trimmed.includes('%')) {
     return { valid: false, message: 'Base URL không được chứa ".." hoặc ký tự mã hóa "%".' };

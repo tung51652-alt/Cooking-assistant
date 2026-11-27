@@ -1,12 +1,14 @@
 # CookLens
 
 Nhận diện món Việt từ ảnh, xác nhận món, tra cứu công thức có nguồn và hỏi đáp trong phiên nấu.
-Hiện hỗ trợ 30 món, 33 công thức; web responsive và Expo Go dùng chung API.
+Nhận diện 30 món. Dữ liệu trong source có 90 công thức cho đủ 30 món.
+Web responsive và Expo Go dùng chung API.
 
 ## Chạy nhanh
 
 Cần Docker với Compose ≥2.24.4, chạy Linux containers.
 MVP `2.0.0` dùng Linux amd64/CPU; xem [kết quả và giới hạn nghiệm thu](docs/acceptance.md).
+Các image `2.0.0` gồm 33 công thức. Xem [cách build từ source](docs/development.md) để dùng corpus mới.
 
 Từ thư mục gốc dự án:
 

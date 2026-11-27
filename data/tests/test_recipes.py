@@ -2,7 +2,7 @@
 import copy
 import unittest
 
-from data.recipes.validate import load, validate
+from data.recipes.validate import count_sources, load, validate
 
 
 class CorpusTests(unittest.TestCase):
@@ -28,6 +28,16 @@ class CorpusTests(unittest.TestCase):
                 bad["source"]["name"] = "Wikibooks"
                 with self.assertRaisesRegex(ValueError, "disclose its origin"):
                     validate([bad], self.taxonomy)
+
+    def test_count_sources_keeps_legacy_counts_and_counts_external_recipes(self):
+        wikibooks = next(r for r in self.recipes if r["id"].startswith("wb_"))
+        original = next(r for r in self.recipes if "ai_authored" in r["tags"])
+        self.assertEqual(count_sources([wikibooks, original]), {"wikibooks": 1, "cooklens_ai_authored": 1})
+        external = copy.deepcopy(wikibooks)
+        external["source"]["url"] = "https://example.org/cong-thuc"
+        self.assertEqual(count_sources([wikibooks, original, external]), {
+            "wikibooks": 1, "cooklens_ai_authored": 1, "external_vietnamese": 1,
+        })
 
     def test_reject_invalid_mutations(self):
         changes = [

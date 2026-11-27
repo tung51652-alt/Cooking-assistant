@@ -107,6 +107,20 @@ def validate(recipes, taxonomy):
     return {dish: coverage[dish] for dish in sorted(known)}
 
 
+def count_sources(recipes):
+    # Keep the original keys for manifests that predate Vietnamese external sources.
+    counts = Counter(wikibooks=0, cooklens_ai_authored=0)
+    for recipe in recipes:
+        hostname = urlsplit(recipe["source"]["url"]).hostname
+        if "ai_authored" in recipe["tags"]:
+            counts["cooklens_ai_authored"] += 1
+        elif hostname == "wikibooks.org" or hostname.endswith(".wikibooks.org"):
+            counts["wikibooks"] += 1
+        else:
+            counts["external_vietnamese"] += 1
+    return dict(counts)
+
+
 def load(root=ROOT):
     recipes = json.loads((root / "data/recipes/corpus.json").read_text(encoding="utf-8"))
     taxonomy = json.loads((root / "data/processed/30vnfoods-label-map.json").read_text(encoding="utf-8"))
@@ -117,9 +131,7 @@ def load(root=ROOT):
     require(manifest["covered_dishes"] == sum(bool(n) for n in coverage.values()), "stale dish count")
     require(manifest["taxonomy_version"] == "1.0.0", "incompatible taxonomy")
     if "source_counts" in manifest:
-        generated = sum("ai_authored" in r["tags"] for r in recipes)
-        require(manifest["source_counts"] == {"wikibooks": len(recipes) - generated, "cooklens_ai_authored": generated},
-                "stale source counts")
+        require(manifest["source_counts"] == count_sources(recipes), "stale source counts")
     return recipes, taxonomy, manifest
 
 

@@ -15,8 +15,8 @@ def alias_key(text):
 
 class TaxonomyTests(unittest.TestCase):
     def test_all_classes_keep_checkpoint_order_and_unique_keys(self):
-        taxonomy=json.loads((ROOT/'data/processed/30vnfoods-label-map.json').read_text())
-        manifest=json.loads((ROOT/'deploy/artifacts/manifest.json').read_text())
+        taxonomy=json.loads((ROOT/'data/processed/30vnfoods-label-map.json').read_text(encoding="utf-8"))
+        manifest=json.loads((ROOT/'deploy/artifacts/manifest.json').read_text(encoding="utf-8"))
         labels=taxonomy['labels']
         self.assertEqual(taxonomy['taxonomy_version'],manifest['taxonomy_version'])
         self.assertEqual([x['class_id'] for x in labels],list(range(30)))

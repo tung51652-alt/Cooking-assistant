@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { createApi, normalizeBaseUrl } from './index.ts';
+import { createApi, normalizeBaseUrl, recipeSourceHref } from './index.ts';
 
 const requestId = () => '11111111-1111-4111-8111-111111111111';
 const taxonomy = JSON.parse(readFileSync(new URL('../../data/processed/30vnfoods-label-map.json', import.meta.url)));
@@ -11,6 +11,23 @@ const envelope = value => ({ api_version: '1.0.0', request_id: requestId(), ...v
 function response(data, status = 200) {
   return new Response(JSON.stringify(envelope(data)), { status, headers: { 'Content-Type': 'application/json', 'X-Request-ID': requestId() } });
 }
+
+test('recipe source links allow recipe pages and suppress GitHub pull requests', () => {
+  const { source } = corpus.find(recipe => new URL(recipe.source.url).hostname === 'vi.wikibooks.org');
+  assert.equal(recipeSourceHref(source.url), new URL(source.url).href);
+  const credentialed = new URL('https://example.com/recipe');
+  credentialed.username = 'name';
+  credentialed.password = 'password';
+  for (const url of [
+    'https://github.com/owner/recipes/pull/10',
+    'https://github.com/owner/recipes/pull/10/files#diff',
+    credentialed.href,
+    'javascript:alert(1)',
+    '/recipe',
+  ]) {
+    assert.equal(recipeSourceHref(url), null, url);
+  }
+});
 
 const sessionId='22222222-2222-4222-8222-222222222222';
 const startOperation='33333333-3333-4333-8333-333333333333';
@@ -78,7 +95,7 @@ test('assistant still accepts legacy action-only sessions', async t => {
 });
 
 test('assistant persistence errors retain their machine-readable code', async t => {
-  for (const [status,code] of [[409,'ASSISTANT_REQUEST_IN_PROGRESS'],[409,'SESSION_MESSAGE_LIMIT'],[503,'ASSISTANT_OUTCOME_UNKNOWN'],[504,'ASSISTANT_PROVIDER_TIMEOUT'],
+  for (const [status,code] of [[503,'ASSISTANT_NOT_CONFIGURED'],[409,'ASSISTANT_REQUEST_IN_PROGRESS'],[409,'SESSION_MESSAGE_LIMIT'],[503,'ASSISTANT_OUTCOME_UNKNOWN'],[504,'ASSISTANT_PROVIDER_TIMEOUT'],
     [503,'ASSISTANT_PROVIDER_AUTH_FAILED'],[503,'ASSISTANT_PROVIDER_UNSUPPORTED'],[429,'ASSISTANT_RATE_LIMITED'],[503,'ASSISTANT_BUDGET_EXCEEDED'],[422,'ASSISTANT_CONTEXT_TOO_LARGE'],
     [422,'ASSISTANT_MODEL_INVALID'],[422,'VALIDATION_ERROR']]) {
     t.mock.method(globalThis,'fetch',async () => response({ code, message:'Không lộ nội dung provider' },status));

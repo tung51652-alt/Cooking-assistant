@@ -3,6 +3,9 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { resolve } from 'node:path';
 import { mkdir } from 'node:fs/promises';
+import type { components } from '../src/generated/api';
+
+type RecipeSearch = components['schemas']['SearchResponse'];
 
 const photo = resolve('../ai/cv/inference/tests/fixtures/food.png');
 async function capture(page: Page, name: string) {
@@ -111,18 +114,35 @@ test('real catalog correction, scoped query, and disclosed AI-authored recipe', 
   await page.locator('#confirmButton').click();
   await expect(page.locator('.recipe-list-item').first()).toBeVisible();
   await page.getByLabel('Ưu tiên nguyên liệu hoặc cách nấu (không bắt buộc)').fill('bò ninh xương');
-  const search = page.waitForRequest(r => r.url().endsWith('/api/recipes/search'));
+  const search = page.waitForResponse(r => r.url().endsWith('/api/recipes/search')
+    && r.request().method() === 'POST' && r.request().postDataJSON().query === 'bò ninh xương');
   await page.getByRole('button', { name: 'Tìm công thức', exact: true }).click();
-  expect((await search).postDataJSON()).toEqual({ confirmed_dish: 'pho', top_k: 3, query: 'bò ninh xương' });
+  const phoResponse = await search;
+  expect(phoResponse.status()).toBe(200);
+  expect(phoResponse.request().postDataJSON()).toEqual({ confirmed_dish: 'pho', top_k: 3, query: 'bò ninh xương' });
+  const pho: RecipeSearch = await phoResponse.json();
+  expect(pho.recipes.length).toBeGreaterThanOrEqual(2);
+  expect(pho.recipes.length).toBeLessThanOrEqual(3);
+  expect(pho.recipes.every(recipe => recipe.normalized_dish === 'pho')).toBe(true);
+  expect(pho.recipes.some(recipe => recipe.id === 'wb_pho_bo_ninh_xuong')).toBe(true);
   await expect(page.locator('.recipe-toolbar')).toContainText('Phở');
-  await expect(page.locator('.recipe-list-item')).toHaveCount(2);
+  await expect(page.locator('.recipe-list-item h2')).toHaveText(pho.recipes.map(recipe => recipe.title));
   await page.getByRole('link', { name: 'Nhận diện', exact: true }).click();
   await page.locator('#dishSelect').selectOption('banh_can');
+  const banhCanSearch = page.waitForResponse(r => r.url().endsWith('/api/recipes/search')
+    && r.request().method() === 'POST' && r.request().postDataJSON().confirmed_dish === 'banh_can');
   await page.locator('#confirmButton').click();
-  await expect(page.locator('.recipe-list-item')).toHaveCount(1);
-  await expect(page.locator('.source-info')).toContainText('AI biên soạn');
-  await expect(page.locator('.source-info')).toContainText('CC-BY-4.0');
-  await page.getByRole('button', { name: /^Xem công thức / }).click();
+  const banhCanResponse = await banhCanSearch;
+  expect(banhCanResponse.status()).toBe(200);
+  const banhCan: RecipeSearch = await banhCanResponse.json();
+  const authored = banhCan.recipes.find(recipe => recipe.id === 'cooklens_banh_can_home');
+  expect(authored).toBeDefined();
+  const card = page.locator('.recipe-list-item').filter({
+    has: page.getByRole('heading', { name: authored!.title, exact: true }),
+  });
+  await expect(card.locator('.source-info')).toContainText('AI biên soạn');
+  await expect(card.locator('.source-info')).toContainText('CC-BY-4.0');
+  await card.getByRole('button', { name: /^Xem công thức / }).click();
   await expect(page.getByRole('heading', { name: 'Nguyên liệu', exact: true })).toBeVisible();
 });
 

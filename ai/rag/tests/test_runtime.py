@@ -52,19 +52,20 @@ class RuntimeTests(unittest.TestCase):
     def test_ties_use_recipe_id_and_filter_before_search(self):
         candidates = [p for p in self.bundle.points if p["payload"]["normalized_dish"] == "pho"]
         reply = {"points": [{"payload": p["payload"], "score": .5} for p in reversed(candidates)]}
+        expected = sorted(p["payload"]["recipe_id"] for p in candidates)[:3]
         with patch.object(self.store, "call", return_value=reply) as call:
             result = self.store.search("pho", candidates[0]["vector"], 3)
-            self.assertEqual([r["id"] for r, _ in result], sorted(p["payload"]["recipe_id"] for p in candidates))
+            self.assertEqual([r["id"] for r, _ in result], expected)
             request = call.call_args.args[2]
             conditions = {c["key"]: c["match"]["value"] for c in request["filter"]["must"]}
             self.assertEqual(conditions, {"normalized_dish": "pho", "language": "vi", "cuisine": "vietnamese", **self.bundle.versions})
             self.assertTrue(request["params"]["exact"])
 
     def test_real_encoder_distinguishes_variants(self):
-        cases = [("pho", "phở bò", "wb_pho_bo_ninh_xuong"),
-                 ("pho", "phở gà", "wb_pho_ga"),
-                 ("banh_canh", "bánh canh cua", "wb_banh_canh_cua"),
-                 ("banh_canh", "bánh canh cá", "wb_banh_canh_ca"),
+        cases = [("pho", "phở ninh xương bò hồi quế", "wb_pho_bo_ninh_xuong"),
+                 ("pho", "phở dùng gà nguyên con", "wb_pho_ga"),
+                 ("banh_canh", "bánh canh cua có hột điều tạo màu", "wb_banh_canh_cua"),
+                 ("banh_canh", "bánh canh cá basa xào sơ với nước hầm xương", "wb_banh_canh_ca"),
                  ("banh_bot_loc", "bánh bột lọc Huế gói lá chuối", "wb_banh_bot_loc_hue")]
         for dish, query, expected in cases:
             with self.subTest(query=query):
@@ -81,8 +82,10 @@ class RuntimeTests(unittest.TestCase):
         for dish in dishes:
             response = self.client.post("/search", json={"confirmed_dish": dish["normalized_dish"]})
             self.assertEqual(response.status_code, 200)
-            self.assertTrue(response.json()["recipes"], dish["normalized_dish"])
-            for preview in response.json()["recipes"]:
+            previews = response.json()["recipes"]
+            expected_recipes = self.bundle.manifest["coverage"][dish["normalized_dish"]]
+            self.assertEqual(len(previews), min(expected_recipes, 3), dish["normalized_dish"])
+            for preview in previews:
                 detail = self.client.get("/recipes/" + preview["id"]).json()["recipe"]
                 self.assertEqual(detail["normalized_dish"], dish["normalized_dish"])
                 self.assertTrue(detail["ingredients"] and detail["instructions"])
@@ -96,8 +99,8 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(self.client.get("/recipes/invalid.id").status_code, 422)
         self.assertEqual(self.client.post("/search", json={"confirmed_dish": "Phở"}).json()["code"], "INVALID_DISH")
 
-    def test_empty_result_contract_for_a_future_partial_corpus(self):
-        # All 30 classes are now populated. Inject an empty candidate set only for this API contract regression.
+    def test_empty_result_contract_for_a_known_dish(self):
+        # Simulate an empty result for a dish that normally has recipes.
         with patch.object(self.store, "search", return_value=[]):
             response = self.client.post("/search", json={"confirmed_dish": "banh_pia"})
         self.assertEqual(response.status_code, 200)

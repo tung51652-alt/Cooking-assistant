@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { CheckSquare, PencilSimple, WarningCircle } from '@phosphor-icons/react';
 import type { Dish, Prediction, SelectedImage } from '../types';
+import DishCatalogPicker from './DishCatalogPicker';
 
 interface Props {
   image: SelectedImage | null;
@@ -9,13 +11,25 @@ interface Props {
   busy: boolean;
   onChoose: (dish: Dish | null) => void;
   onConfirm: () => void;
+  onConfirmDish: (dish: Dish) => void;
   onEdit: () => void;
   onUpload: () => void;
 }
 
-export default function RecognitionPage({ image, predictions, chosen, dishes, busy, onChoose, onConfirm, onEdit, onUpload }: Props) {
+export default function RecognitionPage({ image, predictions, chosen, dishes, busy, onChoose, onConfirm, onConfirmDish, onEdit, onUpload }: Props) {
   const lowConfidence = predictions.length > 0 && predictions[0].confidence < 0.5;
   const formatConfidence = (value: number) => new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(value * 100);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const predictionKey = predictions.map(item => `${item.class_id}:${item.confidence}`).join(',');
+
+  useEffect(() => {
+    setCatalogOpen(false);
+  }, [predictionKey]);
+
+  function openManualCatalog() {
+    setCatalogOpen(true);
+    onEdit();
+  }
 
   function candidate(prediction: Prediction) {
     return <label className={`prediction-choice${chosen?.class_id === prediction.class_id ? ' is-selected' : ''}`} key={prediction.class_id}>
@@ -26,21 +40,31 @@ export default function RecognitionPage({ image, predictions, chosen, dishes, bu
   }
   return <section className="section" aria-labelledby="recognition-title">
     <div className="section-title"><h1 id="recognition-title">Kết quả nhận diện</h1><p>{lowConfidence ? 'Ảnh chưa đạt độ rõ hoặc độ tin cậy tối thiểu để gợi ý món.' : 'Ba gợi ý từ ảnh của bạn. Hãy chọn món đúng để tìm công thức.'}</p></div>
-    {predictions.length === 0 ? <div className="empty-state">
-      <h2>Chưa có kết quả nhận diện</h2><p>Hãy tải ảnh và nhấn “Nhận diện món” để bắt đầu.</p>
-      <button className="primary-btn" onClick={onUpload}>Tải ảnh món ăn</button>
-    </div> : lowConfidence ? <>
+    {predictions.length === 0 ? <>
+      <div className="empty-state">
+        <h2>Chưa có kết quả nhận diện</h2><p>Hãy tải ảnh và nhấn “Nhận diện món”, hoặc chọn món trực tiếp từ danh mục 30 món Việt.</p>
+        <div className="empty-state-actions">
+          <button type="button" className="primary-btn" onClick={onUpload}>Tải ảnh món ăn</button>
+          <button type="button" className="secondary-btn" onClick={openManualCatalog}>Chọn món từ danh mục</button>
+        </div>
+      </div>
+      {catalogOpen && <DishCatalogPicker dishes={dishes} busy={busy} onConfirm={onConfirmDish} onRetry={onEdit} onClose={() => setCatalogOpen(false)} />}
+    </> : lowConfidence ? <>
       {image && <div className="recognition-photo"><img src={image.url} alt="Ảnh món ăn đang nhận diện" /><span>{image.file.name}</span><button className="text-btn" onClick={onUpload}>Đổi ảnh</button></div>}
       <div className="vision-warning-card" role="alert">
         <div className="vision-warning-copy">
           <WarningCircle size={28} aria-hidden="true" />
           <div>
             <h2>Ảnh có vấn đề hoặc không nhận diện được món ăn</h2>
-            <p>Độ tin cậy cao nhất chỉ đạt {formatConfidence(predictions[0].confidence)}% (dưới ngưỡng 50%). Ảnh có thể bị mờ, thiếu sáng, chứa nhiều vật thể hoặc không thuộc 30 món Việt hỗ trợ.</p>
+            <p>Độ tin cậy cao nhất chỉ đạt {formatConfidence(predictions[0].confidence)}% (dưới ngưỡng 50%). Ảnh có thể bị mờ, thiếu sáng, chứa nhiều vật thể hoặc không thuộc 30 món Việt hỗ trợ. Bạn có thể tải ảnh khác hoặc chọn món thủ công từ danh mục.</p>
           </div>
         </div>
-        <button type="button" className="primary-btn" onClick={onUpload}>Chọn / tải ảnh khác</button>
+        <div className="vision-warning-actions">
+          <button type="button" className="primary-btn" onClick={onUpload}>Chọn / tải ảnh khác</button>
+          <button type="button" className="secondary-btn" onClick={openManualCatalog}>Chọn món từ danh mục</button>
+        </div>
       </div>
+      {catalogOpen && <DishCatalogPicker dishes={dishes} busy={busy} onConfirm={onConfirmDish} onRetry={onEdit} onClose={() => setCatalogOpen(false)} />}
     </> : <>
       {image && <div className="recognition-photo"><img src={image.url} alt="Ảnh món ăn đang nhận diện" /><span>{image.file.name}</span><button className="text-btn" onClick={onUpload}>Đổi ảnh</button></div>}
       <div className="recognition-container" role="radiogroup" aria-label="Chọn món từ ba gợi ý">

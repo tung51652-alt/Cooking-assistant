@@ -12,9 +12,10 @@ interface Props {
   onPredict: () => void;
   onInvalid: (file: File, message: string) => void;
   onDismissError: () => void;
+  onOpenCatalog: () => void;
 }
 
-export default function UploadPage({ image, busy, error, visionIssue, onFiles, onRemove, onPredict, onInvalid, onDismissError }: Props) {
+export default function UploadPage({ image, busy, error, visionIssue, onFiles, onRemove, onPredict, onInvalid, onDismissError, onOpenCatalog }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const camera = useRef<HTMLInputElement>(null);
   const inlineErrorRef = useRef<HTMLDivElement>(null);
@@ -68,6 +69,7 @@ export default function UploadPage({ image, busy, error, visionIssue, onFiles, o
           <p>{error}</p>
           <div className="error-actions">
             {visionIssue && <button type="button" className="secondary-btn" onClick={() => input.current?.click()}>Chọn / tải ảnh khác</button>}
+            {visionIssue && <button type="button" className="secondary-btn" onClick={onOpenCatalog}>Chọn món từ danh mục</button>}
             <button type="button" className="text-btn" onClick={onDismissError}>Đóng thông báo</button>
           </div>
         </div>}
