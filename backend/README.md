@@ -53,7 +53,8 @@ Native library SQLite được đóng gói tại `/app/sqlite` để dùng đư�
 `ChatProvider` có adapter Chat Completions tương thích OpenAI dùng Java HttpClient, không thêm SDK.
 `ChatContextBuilder` lấy recipe snapshot/state server, tách system instruction khỏi dữ liệu và giữ tối đa 6 cặp hội thoại gần nhất.
 Adapter/context builder đã nối `/messages`, kiểm chứng bằng HTTP provider giả.
-Context giữ nguyên recipe, thêm current instruction tách rõ; số lượng ingredients là tổng, instructions là phân bổ, dữ liệu null/ước lượng không được biến thành số chính xác.
+Context giữ nội dung nấu ăn và nguồn, loại `source.modifications` chứa ghi chú biên tập, thêm current instruction tách rõ.
+Số lượng ingredients là tổng, instructions là phân bổ, dữ liệu null/ước lượng không được biến thành số chính xác.
 Các trial profile được chọn đặt temperature 0,1, không sửa top_p; Nemotron dùng thinking off, Super dùng `reasoning_effort=none`, Gemma không nhận kwargs của Nemotron.
 Ưu tiên câu trả lời ngắn, hỏi lại câu mơ hồ và tách rõ gợi ý.
 Header `Server-Timing` chỉ chứa số ms prepare/provider/persist/total để chẩn đoán, không chứa session ID hoặc nội dung.
