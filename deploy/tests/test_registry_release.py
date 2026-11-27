@@ -1,15 +1,23 @@
 """Registry acceptance cannot be claimed from a local candidate or mismatched bundle."""
 import json
-from pathlib import Path
 import sys
 import tarfile
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from prepare_candidate_bundle import prepare
-from registry_release import candidate_identity, confirm_registry_identity, package, preflight, registry_images, release_version, verified_metadata
+from registry_release import (
+    candidate_identity,
+    confirm_registry_identity,
+    package,
+    preflight,
+    registry_images,
+    release_version,
+    verified_metadata,
+)
 from test_candidate_bundle import compose
 
 

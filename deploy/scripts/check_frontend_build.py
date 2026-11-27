@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Check published static artifacts without exposing matched identifier values."""
-from pathlib import Path
 import re
+from pathlib import Path
+
 from check_public_metadata import violations
 
 

@@ -24,6 +24,15 @@ node --experimental-strip-types --test packages/cooklens-api/client.test.mjs
 python3 deploy/scripts/check_public_metadata.py
 ```
 
+Kiểm tra lint/format theo từng ngôn ngữ:
+
+```sh
+ruff check ai data deploy
+npm --prefix frontend run lint
+npm --prefix frontend run format:check
+mvn -B -q -f backend/pom.xml spotless:check
+```
+
 Cài dependency/toolchain theo [development.md](development.md).
 Playwright cần Chromium: chạy `npx playwright install chromium` trong `frontend/`.
 Kiểm tra native theo [mobile README](../mobile/README.md); browser emulation không thay thế thiết bị thật.
@@ -33,6 +42,61 @@ Trợ lý có 12 tình huống trên mỗi viewport: lifecycle/reload, retry cù
 Flow LLM thật trong `real-flow.spec.ts` chỉ bật khi cả `COOKLENS_REAL_API=1` và `COOKLENS_REAL_ASSISTANT=1`, với key ở backend và candidate Phase 10/11.
 Không bật cờ trợ lý cho image public cũ hoặc job chưa được cấp key.
 Kết quả local và các check đã lược bỏ theo yêu cầu người dùng nằm ở [Phase 11](plan/phase-11-web.md#kết-quả-kiểm-tra).
+
+## Kiểm tra AI services cục bộ
+
+Các test của `ai/cv/inference` và `ai/rag` chạy bằng Python 3.12 trong môi trường ảo riêng (xem [development.md](development.md)) và đối chiếu với [vision.yml](../.github/workflows/vision.yml), [recipes.yml](../.github/workflows/recipes.yml).
+
+### Vision (`ai/cv/inference/tests`)
+
+Cần checkpoint đã staging (hoặc đặt biến môi trường `FOOD_MODEL_PATH` trỏ tới file checkpoint khớp manifest; tùy chọn `FOOD_TAXONOMY_PATH`, `TORCH_NUM_THREADS`). Không cần Qdrant hay Docker cho bộ `unittest`:
+
+```sh
+python3 deploy/scripts/fetch_vision_checkpoint.py
+python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 torchvision==0.29.1
+python -m pip install -r ai/cv/inference/requirements-test.txt
+python -m unittest discover -s ai/cv/inference/tests -v
+```
+
+Để kiểm tra thêm image offline read-only sau khi build `cooklens-vision:local`:
+
+```sh
+docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
+python3 deploy/scripts/smoke_vision_container.py --image cooklens-vision:local
+```
+
+### Recipes / RAG (`ai/rag/tests`)
+
+`test_preview.py` và `test_evaluation.py` chạy thuần Python (cần dependency trong `ai/rag/requirements.txt`).
+`test_runtime.py` kiểm tra seed/retrieval thật nên cần **Docker Engine** chạy một Qdrant cục bộ riêng (`qdrant/qdrant:v1.19.2`), embedding model đã staging, vector bundle và các biến môi trường bên dưới:
+
+```sh
+export QDRANT_URL=http://127.0.0.1:6333
+export RECIPES_BUNDLE_DIR=deploy/artifacts/staging/recipes
+export EMBEDDING_MODEL_DIR=deploy/artifacts/staging/embedding
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+
+python3 deploy/scripts/fetch_embedding_model.py
+python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
+python -m pip install -r ai/rag/requirements.txt
+python -m ai.rag.ingestion.bundle --model "$EMBEDDING_MODEL_DIR" --output "$RECIPES_BUNDLE_DIR"
+
+docker run -d --name cooklens-recipes-test-qdrant \
+  -p 127.0.0.1:6333:6333 \
+  -e QDRANT__TELEMETRY_DISABLED=true \
+  qdrant/qdrant:v1.19.2
+python -m unittest discover -s ai/rag/tests -v
+docker rm -f cooklens-recipes-test-qdrant
+```
+
+Dùng container Qdrant riêng cho test để tránh ảnh hưởng volume runtime của `docker compose up`, và luôn dọn container sau khi chạy xong.
+Để kiểm tra image `cooklens-recipes:local`:
+
+```sh
+docker build -f ai/rag/Dockerfile -t cooklens-recipes:local .
+python3 deploy/scripts/smoke_recipes_container.py
+```
 
 ## Nghiệm thu bộ image
 

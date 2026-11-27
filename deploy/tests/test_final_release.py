@@ -1,11 +1,11 @@
 """Final publication must preserve accepted source, manifests and standalone gates."""
-from copy import deepcopy
 import json
-from pathlib import Path
 import sys
 import tarfile
 import tempfile
 import unittest
+from copy import deepcopy
+from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))

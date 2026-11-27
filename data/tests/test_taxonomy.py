@@ -1,9 +1,9 @@
 """Shared taxonomy invariants, independent of Python ML dependencies."""
 
 import json
-from pathlib import Path
 import unicodedata
 import unittest
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 

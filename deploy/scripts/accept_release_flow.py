@@ -9,17 +9,16 @@ import csv
 import io
 import json
 import os
-from pathlib import Path
 import socket
 import subprocess
 import tempfile
-from urllib.request import Request, urlopen
+from pathlib import Path
 from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 from uuid import uuid4
 from zipfile import ZipFile
 
 from PIL import Image
-
 from recipe_evaluation import evaluate_in_container
 
 ROOT = Path(__file__).resolve().parents[2]

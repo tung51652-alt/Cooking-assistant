@@ -40,7 +40,7 @@ export default function DishCatalogPicker({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const normalizedQuery = normalizeVietnamese(query);
-  const filtered = (dishes ?? []).filter(dish => {
+  const filtered = (dishes ?? []).filter((dish) => {
     if (!normalizedQuery) return true;
     const normalizedName = normalizeVietnamese(dish.display_name);
     const normalizedSlug = dish.normalized_dish.replace(/_/g, ' ');
@@ -95,7 +95,7 @@ export default function DishCatalogPicker({
                 id="dishCatalogSearch"
                 type="text"
                 value={query}
-                onChange={event => setQuery(event.target.value)}
+                onChange={(event) => setQuery(event.target.value)}
                 placeholder="Ví dụ: pho, Phở, bun dau, bánh xèo…"
                 maxLength={100}
               />
@@ -126,7 +126,7 @@ export default function DishCatalogPicker({
             </div>
           ) : (
             <div className="dish-catalog-grid" role="group" aria-label="Danh mục 30 món Việt">
-              {filtered.map(dish => {
+              {filtered.map((dish) => {
                 const active = selected?.normalized_dish === dish.normalized_dish;
                 return (
                   <button

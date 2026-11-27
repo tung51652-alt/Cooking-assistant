@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Publish immutable release candidates and package only verified public registry builds."""
 import argparse
-from copy import deepcopy
 import json
 import math
 import os
-from pathlib import Path
 import re
 import subprocess
 import tarfile
 import tempfile
+from copy import deepcopy
+from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 

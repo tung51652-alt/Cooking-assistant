@@ -1,7 +1,7 @@
 """Internal vision API: uvicorn ai.cv.inference.main:app, one worker/process."""
 
-from contextlib import asynccontextmanager
 import logging
+from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, File, Request, UploadFile

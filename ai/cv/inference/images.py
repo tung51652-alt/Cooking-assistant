@@ -1,7 +1,7 @@
 """Bound reads and inspect actual format/frames/pixels before inference."""
 
-from io import BytesIO
 import warnings
+from io import BytesIO
 
 import numpy as np
 from PIL import Image, UnidentifiedImageError

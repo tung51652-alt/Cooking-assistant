@@ -1,23 +1,23 @@
 """Real model/API regressions; run with the pinned checkpoint staged or FOOD_MODEL_PATH."""
 
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import csv
-from dataclasses import replace
-from io import BytesIO
 import json
 import os
-from pathlib import Path
 import tempfile
-from threading import Event
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
+from io import BytesIO
+from pathlib import Path
+from threading import Event
 from unittest.mock import patch
 from uuid import UUID
 
-from fastapi.testclient import TestClient
 import numpy as np
-from PIL import Image, ImageFilter
 import torch
+from fastapi.testclient import TestClient
+from PIL import Image, ImageFilter
 from torchvision.models import EfficientNet_B2_Weights
 
 from ai.cv.inference.errors import MAX_REQUEST_BYTES, MAX_UPLOAD_BYTES
@@ -25,8 +25,8 @@ from ai.cv.inference.guard import RequestGuard, Runtime
 from ai.cv.inference.images import BLUR_LAPLACIAN_THRESHOLD, laplacian_variance
 from ai.cv.inference.inference import evaluation_transform, predict_image
 from ai.cv.inference.main import CONFIDENCE_THRESHOLD, create_app
-from ai.cv.inference.schemas import PredictionResponse
 from ai.cv.inference.model import ROOT, load_model
+from ai.cv.inference.schemas import PredictionResponse
 
 FIXTURE = Path(__file__).parent / 'fixtures/food.png'
 

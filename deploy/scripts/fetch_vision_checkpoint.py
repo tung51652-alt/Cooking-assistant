@@ -5,9 +5,9 @@ import argparse
 import hashlib
 import json
 import os
-from pathlib import Path
 import sys
 import tempfile
+from pathlib import Path
 from urllib.request import Request, urlopen
 
 from verify_mvp_inputs import ROOT, verify

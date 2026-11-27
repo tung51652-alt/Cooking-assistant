@@ -2,8 +2,8 @@
 import argparse
 import json
 import math
-from pathlib import Path
 import re
+from pathlib import Path
 
 from data.recipes.validate import load, require, validate
 

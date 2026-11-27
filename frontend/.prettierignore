@@ -1,0 +1,8 @@
+dist/
+node_modules/
+src/generated/
+package-lock.json
+# Temporary exclusions to avoid merge conflicts with #66; remove after merging #66 and run `npm --prefix frontend run format`
+src/lib/llmConfig.ts
+src/features/LlmSettingsModal.tsx
+tests/assistant.spec.ts
