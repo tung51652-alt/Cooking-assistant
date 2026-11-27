@@ -47,14 +47,14 @@ def run(archive, report, out_of_domain=None, bundle=None):
     def dc(*args):
         return subprocess.check_output([*compose, *args], env=env)
 
-    def api(path, data=None, mime='application/json', expected=200):
+    def api(path, data=None, mime='application/json', expected=(200,)):
         try:
             response = urlopen(Request(base + path, data=data, headers={'Content-Type': mime}), timeout=30)
         except HTTPError as error:
             response = error
         with response:
-            assert response.status == expected, (path, response.status, expected)
-            return json.load(response)
+            assert response.status in expected, (path, response.status, expected)
+            return response.status, json.load(response)
 
     def upload(contents):
         boundary = 'cooklens-photo-boundary'
@@ -82,24 +82,35 @@ def run(archive, report, out_of_domain=None, bundle=None):
                     encoded = io.BytesIO()
                     image.convert('RGB').save(encoded, format='JPEG')
                 body, mime = upload(encoded.getvalue())
-                prediction = api('/api/vision/predict', body, mime)
-                assert len(prediction['predictions']) == 3
+                status, prediction = api('/api/vision/predict', body, mime, expected=(200, 422))
+                rejection = None
+                suggestions = []
+                if status == 200:
+                    suggestions = prediction['predictions']
+                    assert len(suggestions) == 3
+                else:
+                    rejection = prediction['code']
+                    assert rejection in ('IMAGE_BLURRY', 'LOW_CONFIDENCE_PREDICTION'), rejection
+                    assert 'predictions' not in prediction
                 dish = labels[index]['normalized_dish']
-                # Explicitly confirm the ground-truth dish, exercising manual correction too.
-                results = api('/api/recipes/search', json.dumps({'confirmed_dish': dish, 'top_k': 3}).encode())
+                # The chosen dish is sent explicitly, including after a vision rejection.
+                _, results = api('/api/recipes/search', json.dumps({'confirmed_dish': dish, 'top_k': 3}).encode())
                 recipes = results['recipes']
                 assert 1 <= len(recipes) <= 3 and all(r['normalized_dish'] == dish for r in recipes)
-                detail = api('/api/recipes/' + recipes[0]['id'])['recipe']
+                _, document = api('/api/recipes/' + recipes[0]['id'])
+                detail = document['recipe']
                 assert detail['normalized_dish'] == dish and detail['ingredients'] and detail['instructions'] and detail['source']
-                cases.append({'dish': dish, 'top3_contains_expected': any(p['class_id'] == index for p in prediction['predictions']),
-                              'top1_confidence': prediction['predictions'][0]['confidence'],
+                cases.append({'dish': dish, 'top3_contains_expected': any(p['class_id'] == index for p in suggestions),
+                              'top1_confidence': suggestions[0]['confidence'] if suggestions else None,
+                              'vision_rejection': rejection,
                               'confirmed_dish_flow_passed': True})
         for contents, status, code in [(b'not an image', 400, 'INVALID_IMAGE'),
                                        (b'x' * (10 * 1024 * 1024 + 1), 413, 'UPLOAD_TOO_LARGE')]:
             body, mime = upload(contents)
-            assert api('/api/vision/predict', body, mime, expected=status)['code'] == code
-        api('/api/recipes/search', b'{"confirmed_dish":"pizza"}', expected=422)
-        api('/api/recipes/not_a_recipe', expected=404)
+            _, failure = api('/api/vision/predict', body, mime, expected=(status,))
+            assert failure['code'] == code
+        api('/api/recipes/search', b'{"confirmed_dish":"pizza"}', expected=(422,))
+        api('/api/recipes/not_a_recipe', expected=(404,))
         # Evaluate inside the released recipes image: no model or network port added on host.
         container = dc('ps', '-q', 'recipes').decode().strip()
         retrieval = evaluate_in_container(container)

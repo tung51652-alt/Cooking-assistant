@@ -37,3 +37,7 @@ Ngưỡng 67% trở lên không chặn thêm ảnh ngoài danh mục trong mẫu
 Chọn món trong danh mục là đường tiếp tục cho ảnh bị từ chối.
 
 Chạy lại ca bóng đèn qua Docker với `COOKLENS_REAL_API=1` và `COOKLENS_LIGHTBULB_IMAGE` trỏ tới ảnh gốc trong gói Ubuntu.
+Bộ nghiệm thu release giữ nguyên mẫu đầu tiên của mỗi lớp Test và ghi mã lỗi nếu ảnh bị từ chối.
+Khi ảnh mờ hoặc điểm thấp, bộ kiểm thử vẫn tra công thức của món được chọn thủ công.
+Lượt chạy Docker trên 30 ảnh cố định có 23 ảnh nhận gợi ý và 7 ảnh bị từ chối vì điểm thấp.
+Cả 30 món tra được công thức và 12 ca trình duyệt dùng API thật đã qua.
