@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 """Promote a fully accepted candidate without rebuilding or overwriting public tags."""
 import argparse
-from copy import deepcopy
 import json
-from pathlib import Path
 import shutil
 import tarfile
+from copy import deepcopy
+from pathlib import Path
 
 from check_public_metadata import violations
 from prepare_candidate_bundle import APPS, ROOT, candidate_config
-from registry_release import (ASSISTANT_SMOKE, NAMESPACE, automated_acceptance, confirm_registry_identity,
-                              hub_resource, local_image_digest, phase13_acceptance,
-                              quiet_command, verified_metadata)
+from registry_release import (
+    ASSISTANT_SMOKE,
+    NAMESPACE,
+    automated_acceptance,
+    confirm_registry_identity,
+    hub_resource,
+    local_image_digest,
+    phase13_acceptance,
+    quiet_command,
+    verified_metadata,
+)
 
 VERSION = '2.0.0'
 

@@ -62,9 +62,11 @@ Phiên giữ công thức, bước và hội thoại ở backend trong 24 giờ.
 Ứng dụng dùng SecureStore để giữ ID phiên gần nhất và địa chỉ gateway tương ứng.
 Nếu thiết bị không lưu được ID, điều khiển bước vẫn hoạt động trong phiên đang mở.
 
+Người dùng cũng có thể mở **Cài đặt trợ lý** để chọn chế độ **Mặc định hệ thống** hoặc **Dùng khóa API riêng** (Google Gemini, OpenAI, NVIDIA NIM, hoặc nhà cung cấp tùy chỉnh tương thích OpenAI qua HTTPS). Khóa API riêng được lưu trong `expo-secure-store` trên thiết bị, có thể kiểm tra trước qua nút **Kiểm tra kết nối (Test hello)**, và chỉ được gửi trực tiếp qua header `X-LLM-*` kèm yêu cầu hỏi đáp; có thể bấm **Quay về mặc định** để xóa khóa bất kỳ lúc nào.
+
 ## Kiểm tra
 
-Từ root, chạy `npm --prefix mobile run test:assistant` để kiểm tra xử lý phiên và lưu ID.
+Từ root, chạy `npm --prefix mobile run test:assistant` để kiểm tra xử lý phiên, lưu ID và cấu hình khóa API trợ lý.
 
 ```powershell
 npx expo install --check

@@ -1,7 +1,7 @@
 """Project history must exclude verified upstream metadata without hiding own literals."""
-from pathlib import Path
 import sys
 import unittest
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from check_public_metadata import violations

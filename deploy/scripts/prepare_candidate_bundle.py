@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Package a local-image candidate; never publish images or claim registry acceptance."""
 import argparse
-from copy import deepcopy
 import json
-from pathlib import Path
 import re
+from copy import deepcopy
+from pathlib import Path
 
 from check_public_metadata import violations
 

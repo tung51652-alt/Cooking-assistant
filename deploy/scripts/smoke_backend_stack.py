@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Exercise the public gateway with real CV, E5 and Qdrant in an isolated Compose project."""
 import argparse
-from contextlib import closing
 import json
 import os
-from pathlib import Path
 import socket
 import sqlite3
 import subprocess
 import tempfile
 import time
+from contextlib import closing
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from uuid import uuid4

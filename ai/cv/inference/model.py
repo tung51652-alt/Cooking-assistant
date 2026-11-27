@@ -1,8 +1,8 @@
 """Load and validate all runtime artifacts once, without any network operation."""
 
-from dataclasses import dataclass
 import json
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
 import torch

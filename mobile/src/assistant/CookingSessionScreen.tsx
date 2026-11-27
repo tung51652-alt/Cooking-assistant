@@ -1,7 +1,16 @@
 import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 import { ActivityIndicator, AppState, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import type { RecipeDocument } from '../../../packages/cooklens-api/types';
+import type { LlmUserConfig, RecipeDocument } from '../../../packages/cooklens-api/types';
+import { formatLlmBadge } from './llm-config';
 import { messageLimit, type createCookingSessionController } from './session-controller';
+
+const CONFIG_ERROR_CODES = new Set([
+  'ASSISTANT_NOT_CONFIGURED',
+  'ASSISTANT_PROVIDER_AUTH_FAILED',
+  'ASSISTANT_MODEL_INVALID',
+  'ASSISTANT_PROVIDER_UNSUPPORTED',
+  'VALIDATION_ERROR',
+]);
 
 const progress = {
   create: 'Đang tạo phiên nấu…',
@@ -11,13 +20,15 @@ const progress = {
   refresh: 'Đang tải trạng thái mới nhất…',
 };
 
-export function CookingSessionScreen({ controller, Button, onChooseDish, onOpenRecipe, scrollToChat, document }: {
+export function CookingSessionScreen({ controller, Button, onChooseDish, onOpenRecipe, scrollToChat, document, llmConfig, onOpenLlmSettings }: {
   controller: ReturnType<typeof createCookingSessionController>;
   Button: React.ComponentType<{ title: string; onPress: () => void; disabled?: boolean; secondary?: boolean }>;
   onChooseDish: () => void;
   onOpenRecipe: (document: RecipeDocument) => void;
   scrollToChat: () => void;
   document?: RecipeDocument | null;
+  llmConfig?: LlmUserConfig | null;
+  onOpenLlmSettings?: (mode?: 'default' | 'custom') => void;
 }) {
   const { session, busy, error, storageWarning, canAct, canDiscardMessage, canResend, refreshRequired } = useSyncExternalStore(
     controller.subscribe, controller.getSnapshot,
@@ -46,13 +57,22 @@ export function CookingSessionScreen({ controller, Button, onChooseDish, onOpenR
   const stepLabel = step && session ? `Bước ${step.step} trên ${session.total_steps}` : null;
   const actionLimit = (session?.history.length ?? 0) >= 99;
   const chatFeedback = !!session && (busy === 'message' || !!error?.relatedToMessage);
+  const isNotConfigured = error?.code === 'ASSISTANT_NOT_CONFIGURED';
+  const isConfigError = !!error?.code && CONFIG_ERROR_CODES.has(error.code);
   const feedback = <>
     {busy && <View accessibilityLiveRegion="polite" style={styles.card}>
       <ActivityIndicator color="#b84415" />
       <Text style={styles.body}>{progress[busy]}</Text>
     </View>}
     {error && <View accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.notice}>
-      <Text style={styles.body}>{error.message}</Text>
+      {isNotConfigured ? <>
+        <Text style={styles.label}>Máy chủ chưa bật tính năng hỏi đáp.</Text>
+        <Text style={styles.body}>
+          Bạn vẫn có thể xem các bước nấu và điều khiển từng bước như bình thường. Để tiếp tục đặt câu hỏi, hãy chọn Dùng khóa API riêng bên dưới hoặc liên hệ người quản lý hệ thống. Nội dung chưa gửi vẫn được giữ trong ô nhập.
+        </Text>
+      </> : <Text style={styles.body}>{error.message}</Text>}
+      {isConfigError && onOpenLlmSettings && <Button title="Dùng khóa API riêng"
+        onPress={() => onOpenLlmSettings('custom')} />}
       {error.retryable && <Button title={refreshRequired ? 'Kiểm tra phiên' : 'Thử lại yêu cầu'} disabled={!!busy}
         onPress={() => { void controller.retry(); }} />}
       {canResend && <Button title="Gửi lại câu hỏi" disabled={!!busy} onPress={() => {
@@ -64,7 +84,23 @@ export function CookingSessionScreen({ controller, Button, onChooseDish, onOpenR
   </>;
 
   return <>
-    <Text accessibilityRole="header" style={document ? styles.label : styles.title}>{session?.recipe.title ?? document?.recipe.title ?? 'Hướng dẫn nấu'}</Text>
+    <View style={styles.headingRow}>
+      <Text accessibilityRole="header" style={[document ? styles.label : styles.title, styles.headingTitle]}>
+        {session?.recipe.title ?? document?.recipe.title ?? 'Hướng dẫn nấu'}
+      </Text>
+      {onOpenLlmSettings && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={llmConfig ? `Cài đặt trợ lý, đang dùng ${formatLlmBadge(llmConfig)}` : 'Cài đặt trợ lý'}
+          onPress={() => onOpenLlmSettings()}
+          style={({ pressed }) => [styles.settingsPill, llmConfig && styles.settingsPillActive, pressed && styles.disabled]}
+        >
+          <Text style={[styles.settingsPillText, llmConfig && styles.settingsPillTextActive]} numberOfLines={1}>
+            {llmConfig ? formatLlmBadge(llmConfig) : 'Cài đặt trợ lý'}
+          </Text>
+        </Pressable>
+      )}
+    </View>
     {!session && !!document && <Button title="Bắt đầu nấu" disabled={!canAct} onPress={() => { void controller.act('start'); }} />}
     {session && <View style={styles.card}>
       {session.status === 'ready' && <Text style={styles.body}>Sẵn sàng. Công thức có {session.total_steps} bước.</Text>}
@@ -126,6 +162,13 @@ export function CookingComposer({ controller }: {
 }
 
 const styles = StyleSheet.create({
+  headingRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  headingTitle: { flexShrink: 1 },
+  settingsPill: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, backgroundColor: '#f2e4d3',
+    borderWidth: 1, borderColor: '#d8bea2', maxWidth: '100%' },
+  settingsPillActive: { backgroundColor: '#fff0df', borderColor: '#b84415' },
+  settingsPillText: { fontSize: 13, fontFamily: 'JakartaSemi', color: '#713b1f' },
+  settingsPillTextActive: { color: '#a83d0d' },
   title: { fontSize: 32, fontFamily: 'Epilogue', color: '#35271d' },
   label: { fontSize: 18, fontFamily: 'JakartaSemi', color: '#403025' },
   body: { fontSize: 16, fontFamily: 'Jakarta', color: '#4d4037' },

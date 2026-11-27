@@ -1,6 +1,6 @@
 import type { createApi } from '../../../packages/cooklens-api';
 import type {
-  AssistantAction, AssistantSession, CreateSession, RecipeDocument, SessionActionRequest, SessionMessageRequest,
+  AssistantAction, AssistantSession, CreateSession, LlmUserConfig, RecipeDocument, SessionActionRequest, SessionMessageRequest,
 } from '../../../packages/cooklens-api/types';
 import type { SessionPointerStore } from './session-pointer';
 
@@ -68,10 +68,12 @@ function includesQuestion(result: AssistantSession, body: SessionMessageRequest)
   return !result.history.some(event => event.version === version) && message?.text === body.text;
 }
 
-export function createCookingSessionController({ api, store, gateway, operationId }: {
+export function createCookingSessionController({ api, store, gateway, operationId, getLlmConfig }: {
   api: SessionApi; store: SessionPointerStore; gateway: string; operationId: () => string;
+  getLlmConfig?: () => LlmUserConfig | null;
 }) {
   let snapshot = empty;
+  let currentLlmConfig: LlmUserConfig | null = null;
   let selectedDocument: RecipeDocument | null = null;
   let flight: AbortController | null = null;
   let pending: Mutation | null = null;
@@ -79,6 +81,10 @@ export function createCookingSessionController({ api, store, gateway, operationI
   let retryWork: (() => Promise<void>) | null = null;
   let foregroundRestore: (() => Promise<void>) | null = null;
   const listeners = new Set<() => void>();
+
+  function resolveLlmConfig(): LlmUserConfig | null {
+    return getLlmConfig ? getLlmConfig() : currentLlmConfig;
+  }
 
   function update(change: Partial<Snapshot>) {
     const next = { ...snapshot, ...change };
@@ -198,11 +204,14 @@ export function createCookingSessionController({ api, store, gateway, operationI
     pending = mutation;
     retryWork = () => mutate(mutation);
     try {
+      const llmConfig = mutation.kind === 'message' ? resolveLlmConfig() : null;
       const result = mutation.kind === 'create'
         ? await api.createSession(mutation.body, request.signal)
         : mutation.kind === 'action'
           ? await api.sessionAction(mutation.sessionId, mutation.body, request.signal)
-          : await api.sessionMessage(mutation.sessionId, mutation.body, request.signal);
+          : llmConfig
+            ? await api.sessionMessage(mutation.sessionId, mutation.body, request.signal, llmConfig)
+            : await api.sessionMessage(mutation.sessionId, mutation.body, request.signal);
       if (!request.active()) return;
       if (mutation.kind !== 'create' && (
         result.id !== mutation.sessionId || result.version <= mutation.body.expected_version
@@ -396,6 +405,7 @@ export function createCookingSessionController({ api, store, gateway, operationI
         action, expected_version: session.version, operation_id: operationId(),
       } });
     },
+    setLlmConfig: (config: LlmUserConfig | null) => { currentLlmConfig = config; },
     retry: () => retryWork?.() ?? Promise.resolve(),
     suspend,
     leave,

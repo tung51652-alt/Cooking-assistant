@@ -1,19 +1,19 @@
 """Run against a dedicated Qdrant and the real local model (see ai/rag/README.md)."""
-import copy
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
+import copy
 import json
 import os
-from pathlib import Path
 import tempfile
 import threading
 import time
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from unittest.mock import patch
 from uuid import UUID
 
-from fastapi.testclient import TestClient
 import httpx
+from fastapi.testclient import TestClient
 
 from ai.rag.api.main import create_app
 from ai.rag.embeddings.local import Encoder

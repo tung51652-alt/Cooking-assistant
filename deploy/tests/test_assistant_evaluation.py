@@ -1,13 +1,13 @@
 """Acceptance tooling must keep mock outcomes, live evidence and human review separate."""
-from copy import deepcopy
 import argparse
-from contextlib import closing
 import json
-from pathlib import Path
 import sqlite3
 import sys
 import tempfile
 import unittest
+from contextlib import closing
+from copy import deepcopy
+from pathlib import Path
 from unittest.mock import Mock, patch
 from urllib.parse import urlunsplit
 from uuid import uuid4

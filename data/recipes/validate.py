@@ -1,12 +1,12 @@
 """Validate the distributed corpus without installing runtime or ML dependencies."""
 import argparse
-from collections import Counter
-from datetime import date
 import json
 import math
-from pathlib import Path
 import re
 import unicodedata
+from collections import Counter
+from datetime import date
+from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[2]
