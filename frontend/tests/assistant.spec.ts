@@ -61,6 +61,7 @@ test('restores, cooks through all controls, chats, reloads and finishes', async 
     await route.fulfill(json({ session: state }));
   });
   await open(page);
+  await expect(page.getByRole('button', { name: 'Cài đặt trợ lý', exact: true })).toHaveCount(1);
   await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
   await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Nhắc lại', exact: true })).toHaveCount(0);
@@ -77,8 +78,9 @@ test('restores, cooks through all controls, chats, reloads and finishes', async 
   await page.getByRole('button', { name: 'Kết thúc nấu', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Đã kết thúc phiên nấu' })).toBeVisible();
   await expect(question(page)).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Nấu lại' })).toBeEnabled();
   expect(new Set(bodies.map(b => b.operation_id)).size).toBe(bodies.length);
-  await page.getByText('Xem công thức gốc', { exact: true }).click();
+  await page.getByText(`Xem công thức ${recipe.title}`, { exact: true }).click();
   await expect(page.getByRole('link', { name: 'Nguồn kiểm thử' })).toHaveAttribute('rel', 'noopener noreferrer');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
@@ -161,7 +163,7 @@ test('expired session has a truthful recovery route and no enabled chat', async 
   await page.goto('/assistant.html');
   await expect(page.getByRole('heading', { name: 'Phiên không còn khả dụng' })).toBeVisible();
   await expect(question(page)).toHaveCount(0);
-  await page.getByRole('button', { name: 'Chọn công thức', exact: true }).click();
+  await page.getByRole('button', { name: 'Chọn món', exact: true }).click();
   await expect(page).toHaveURL(/recipe.html$/);
 });
 
@@ -234,34 +236,34 @@ test('recipe entry resumes an active session and starts fresh after finishing or
   await page.locator('#imageInput').setInputFiles({ name: 'fixture.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNQTPf6DwADUQHSSaoLLQAAAABJRU5ErkJggg==', 'base64') });
   await page.locator('#predictBtn').click(); await page.getByRole('radio').first().check(); await page.locator('#confirmButton').click();
   await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
-  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
+  await page.getByRole('button', { name: 'Chọn công thức này' }).click();
+  expect(creates).toHaveLength(0);
+  await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
   await expect(page.getByRole('heading', { name: recipe.title })).toBeVisible(); const original = current.id;
   expect(creates[0].corpus_version).toBe('test-corpus'); expect(creates[0].recipe_id).toBe(recipe.id);
-  await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
-  await expect(page.getByRole('heading', { name: 'Công thức', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
-  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
-  await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
+  await page.reload();
   await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
   expect(current.id).toBe(original);
   expect(creates).toHaveLength(1);
 
   await page.getByRole('button', { name: 'Kết thúc nấu', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Đã kết thúc phiên nấu' })).toBeVisible();
-  await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
-  await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
-  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
+  await page.reload();
   await expect(page.getByRole('button', { name: 'Bắt đầu nấu', exact: true })).toBeEnabled();
+  expect(creates).toHaveLength(1);
+  await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
+  await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
   expect(current.id).not.toBe(original);
   expect(creates.map(body => body.recipe_id)).toEqual([recipe.id, recipe.id]);
   expect(creates[1].operation_id).not.toBe(creates[0].operation_id);
 
-  await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
-  await expect(page.getByRole('heading', { name: 'Công thức', exact: true })).toBeVisible();
   await page.getByRole('button', { name: `Xem công thức ${other.title}` }).click();
-  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
+  await page.getByRole('button', { name: 'Chọn công thức này' }).click();
+  expect(creates).toHaveLength(2);
+  await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
   await expect(page.getByRole('heading', { name: other.title })).toBeVisible(); expect(current.id).not.toBe(original);
   expect(current.messages).toEqual([]);
+  expect(creates.map(body => body.recipe_id)).toEqual([recipe.id, recipe.id, other.id]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
@@ -367,7 +369,7 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
 
   await dialog.getByRole('button', { name: 'Lưu cài đặt' }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.locator('.llm-status-badge')).toContainText('Khóa riêng: OpenAI · gpt-4o-mini');
+  await expect(page.locator('.llm-nav-btn')).toContainText('OpenAI · gpt-4o-mini');
 
   await page.getByRole('button', { name: 'Gửi câu hỏi' }).click();
   await expect(page.getByRole('log')).toContainText('Theo công thức');
