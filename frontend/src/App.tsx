@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { IconContext, BowlFood, ArrowRight, Key } from '@phosphor-icons/react';
-import type { Dish, LlmUserConfig, Prediction, RecipeSummary, SelectedImage, View } from './types';
+import type { Dish, Prediction, RecipeSummary, SelectedImage, View } from './types';
 import * as api from './lib/api';
-import { clearLlmConfig, LLM_PRESETS, loadLlmConfig, saveLlmConfig } from './lib/llmConfig';
+import { clearLlmConfig, LLM_PRESETS, loadLlmConfigWithScope, saveLlmConfig, type StoredLlmConfig } from './lib/llmConfig';
 import { loadConfirmedDish, saveConfirmedDish, saveRecipeSelection } from './lib/recipeContext';
 import UploadPage from './features/UploadPage';
 import RecognitionPage from './features/RecognitionPage';
@@ -29,7 +29,9 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [busy, setBusy] = useState<'predict' | 'dishes' | 'search' | null>(null);
-  const [llmConfig, setLlmConfig] = useState<LlmUserConfig | null>(loadLlmConfig);
+  const [llmState, setLlmState] = useState<StoredLlmConfig | null>(loadLlmConfigWithScope);
+  const llmConfig = llmState?.config ?? null;
+  const llmStorageScope = llmState?.scope ?? 'session';
   const [llmModalOpen, setLlmModalOpen] = useState(false);
   const [llmModalInitialMode, setLlmModalInitialMode] = useState<'default' | 'custom' | undefined>(undefined);
   const request = useRef<AbortController | null>(null);
@@ -172,8 +174,9 @@ export default function App() {
       open={llmModalOpen}
       initialMode={llmModalInitialMode}
       currentConfig={llmConfig}
-      onSave={cfg => { saveLlmConfig(cfg); setLlmConfig(cfg); setLlmModalOpen(false); }}
-      onClear={() => { clearLlmConfig(); setLlmConfig(null); setLlmModalOpen(false); }}
+      currentStorageScope={llmStorageScope}
+      onSave={(cfg, scope) => { saveLlmConfig(cfg, scope); setLlmState({ config: cfg, scope }); setLlmModalOpen(false); }}
+      onClear={() => { clearLlmConfig(); setLlmState(null); setLlmModalOpen(false); }}
       onClose={() => setLlmModalOpen(false)}
     />
   </IconContext.Provider>;

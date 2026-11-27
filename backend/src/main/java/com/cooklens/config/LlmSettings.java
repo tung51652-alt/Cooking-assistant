@@ -91,11 +91,12 @@ public final class LlmSettings {
             String scheme = base.getScheme() == null ? null : base.getScheme().toLowerCase(Locale.ROOT);
             String host = base.getHost();
             String authority = base.getRawAuthority();
-            if (host == null || host.isBlank() || authority == null || authority.contains("@") || authority.endsWith(":")) {
+            if (host == null || host.isBlank() || authority == null || authority.contains("@") || authority.contains("%") || authority.endsWith(":")) {
                 throw ApiFailure.invalid();
             }
-            boolean local = List.of("127.0.0.1", "localhost", "[::1]").contains(host.toLowerCase(Locale.ROOT));
-            if (!("https".equals(scheme) || ("http".equals(scheme) && local))) throw ApiFailure.invalid();
+            if (!"https".equals(scheme) && !"http".equals(scheme)) {
+                throw ApiFailure.invalid();
+            }
             if (base.getRawUserInfo() != null || base.getUserInfo() != null
                     || base.getRawQuery() != null || base.getQuery() != null
                     || base.getRawFragment() != null || base.getFragment() != null
@@ -106,6 +107,12 @@ public final class LlmSettings {
             String path = stripSingleTrailingSlash(base.getRawPath());
             if (path.contains("%") || path.contains("..") || path.contains("//")) throw ApiFailure.invalid();
             if (!(path.endsWith("/v1") || path.endsWith("/v1beta/openai") || path.endsWith("/openai"))) {
+                throw ApiFailure.invalid();
+            }
+            if (OutboundEndpointGuard.isBlockedHost(host)) {
+                throw OutboundEndpointGuard.blockedEndpoint();
+            }
+            if (!"https".equals(scheme)) {
                 throw ApiFailure.invalid();
             }
             return scheme + "://" + authority + path;

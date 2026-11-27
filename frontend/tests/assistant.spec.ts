@@ -267,8 +267,9 @@ test('recipe entry resumes an active session and starts fresh after finishing or
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test('LLM settings modal validates inputs, tests hello, saves to localStorage, sends BYOK headers and clears', async ({ page }, testInfo) => {
+test('LLM settings modal validates inputs, defaults key storage to sessionStorage, toggles localStorage, sends BYOK headers and clears both', async ({ page }, testInfo) => {
   const state = await restored(page);
+  const llmStorageKey = 'cooklens.llm.config';
   const sentHeaders: Record<string, string>[] = [];
   await page.route('**/api/assistant/llm/test', async route => {
     const body = route.request().postDataJSON();
@@ -311,6 +312,9 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
   await expect(defaultDialog).not.toContainText('HTTPS header');
   await expect(defaultDialog.getByRole('button', { name: /Cài đặt nâng cao/ })).toHaveAttribute('aria-expanded', 'false');
   await expect(defaultDialog.getByLabel('Base URL (OpenAI-compatible)')).toHaveCount(0);
+  const sessionOnlyDefault = defaultDialog.getByRole('checkbox', { name: /Chỉ dùng trong phiên này/ });
+  await expect(sessionOnlyDefault).toBeChecked();
+  await expect(defaultDialog).toContainText('thiết bị dùng chung');
   await defaultDialog.getByRole('button', { name: 'Quay về mặc định' }).click();
   await expect(defaultDialog.getByRole('textbox', { name: /^Khóa API/ })).toHaveCount(0);
   await defaultDialog.getByRole('button', { name: 'Đóng', exact: true }).click();
@@ -335,6 +339,10 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
   await expect(dialog.getByLabel('Base URL (OpenAI-compatible)')).toBeEditable();
   await dialog.getByLabel('Base URL (OpenAI-compatible)').fill('http://evil.example/api');
   await expect(dialog).toContainText('HTTPS');
+  await dialog.getByLabel('Base URL (OpenAI-compatible)').fill('http://localhost:8080/v1');
+  await expect(dialog).toContainText('HTTPS');
+  await dialog.getByLabel('Base URL (OpenAI-compatible)').fill('https://169.254.169.254/v1');
+  await expect(dialog).toContainText('địa chỉ nội bộ');
 
   await dialog.getByRole('radio', { name: /OpenAI\s/ }).first().click();
   await expect(dialog.getByRole('button', { name: /Cài đặt nâng cao/ })).toHaveAttribute('aria-expanded', 'false');
@@ -360,6 +368,9 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
   await dialog.getByRole('button', { name: 'gpt-4o-mini' }).click();
   await expect(dialog).toContainText('Tên model hợp lệ.');
 
+  const sessionOnlyCheckbox = dialog.getByRole('checkbox', { name: /Chỉ dùng trong phiên này/ });
+  await expect(sessionOnlyCheckbox).toBeChecked();
+
   await dialog.getByRole('button', { name: 'Kiểm tra kết nối' }).click();
   await expect(dialog).toContainText('Kết nối thành công');
   await expect(dialog).toContainText('Hello! Tôi sẵn sàng hỗ trợ bạn nấu ăn.');
@@ -367,9 +378,17 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
     await page.screenshot({ path: `${process.env.COOKLENS_SCREENSHOT_DIR}/llm-settings-hello-ok.png` });
   }
 
+  // Default save stores in sessionStorage and leaves localStorage empty.
   await dialog.getByRole('button', { name: 'Lưu cài đặt' }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page.locator('.llm-nav-btn')).toContainText('OpenAI · gpt-4o-mini');
+  const afterDefaultSave = await page.evaluate(key => ({
+    session: sessionStorage.getItem(key),
+    local: localStorage.getItem(key),
+  }), llmStorageKey);
+  expect(afterDefaultSave.session).not.toBeNull();
+  expect(JSON.parse(afterDefaultSave.session!).api_key).toBe('sk-test-valid-12345');
+  expect(afterDefaultSave.local).toBeNull();
 
   await page.getByRole('button', { name: 'Gửi câu hỏi' }).click();
   await expect(page.getByRole('log')).toContainText('Theo công thức');
@@ -378,9 +397,51 @@ test('LLM settings modal validates inputs, tests hello, saves to localStorage, s
   expect(sentHeaders[1]['x-llm-model']).toBe('gpt-4o-mini');
   expect(sentHeaders[1]['x-llm-api-key']).toBe('sk-test-valid-12345');
 
+  // Unchecking session-only stores in localStorage and removes sessionStorage copy.
+  await page.locator('.llm-nav-btn').click();
+  const reopenDialog = page.getByRole('dialog', { name: 'Cài đặt trợ lý' });
+  const reopenCheckbox = reopenDialog.getByRole('checkbox', { name: /Chỉ dùng trong phiên này/ });
+  await expect(reopenCheckbox).toBeChecked();
+  await reopenCheckbox.uncheck();
+  await expect(reopenCheckbox).not.toBeChecked();
+  await reopenDialog.getByRole('button', { name: 'Lưu cài đặt' }).click();
+  await expect(reopenDialog).toHaveCount(0);
+  const afterLocalSave = await page.evaluate(key => ({
+    session: sessionStorage.getItem(key),
+    local: localStorage.getItem(key),
+  }), llmStorageKey);
+  expect(afterLocalSave.session).toBeNull();
+  expect(afterLocalSave.local).not.toBeNull();
+  expect(JSON.parse(afterLocalSave.local!).api_key).toBe('sk-test-valid-12345');
+
+  // Switching back to session-only moves back to sessionStorage and clears localStorage.
+  await page.locator('.llm-nav-btn').click();
+  const switchBackDialog = page.getByRole('dialog', { name: 'Cài đặt trợ lý' });
+  const switchBackCheckbox = switchBackDialog.getByRole('checkbox', { name: /Chỉ dùng trong phiên này/ });
+  await expect(switchBackCheckbox).not.toBeChecked();
+  await switchBackCheckbox.check();
+  await switchBackDialog.getByRole('button', { name: 'Lưu cài đặt' }).click();
+  const afterSwitchBack = await page.evaluate(key => ({
+    session: sessionStorage.getItem(key),
+    local: localStorage.getItem(key),
+  }), llmStorageKey);
+  expect(afterSwitchBack.session).not.toBeNull();
+  expect(afterSwitchBack.local).toBeNull();
+
+  // Clearing removes keys from both sessionStorage and localStorage.
+  await page.evaluate(key => {
+    localStorage.setItem(key, sessionStorage.getItem(key)!);
+  }, llmStorageKey);
   await page.locator('.llm-nav-btn').click();
   await page.getByRole('button', { name: 'Quay về mặc định' }).click();
   await expect(page.locator('.llm-status-badge')).toHaveCount(0);
+  const afterClear = await page.evaluate(key => ({
+    session: sessionStorage.getItem(key),
+    local: localStorage.getItem(key),
+  }), llmStorageKey);
+  expect(afterClear.session).toBeNull();
+  expect(afterClear.local).toBeNull();
+
   await question(page).fill('Câu hỏi mặc định');
   await question(page).press('Enter');
   await expect(page.getByRole('log')).toContainText('Câu hỏi mặc định');

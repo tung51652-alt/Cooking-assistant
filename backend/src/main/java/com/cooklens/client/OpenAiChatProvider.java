@@ -2,6 +2,7 @@ package com.cooklens.client;
 
 import com.cooklens.config.LlmSettings;
 import com.cooklens.config.LlmSettings.Connection;
+import com.cooklens.config.OutboundEndpointGuard;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
 import java.net.ConnectException;
@@ -9,6 +10,7 @@ import java.net.http.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.slf4j.LoggerFactory;
 
@@ -19,10 +21,16 @@ public final class OpenAiChatProvider implements ChatProvider {
     private static final Set<String> ALLOWED_FINISH_REASONS = Set.of("stop", "length");
     private final LlmSettings settings;
     private final ObjectMapper mapper;
+    private final ByokTransport byokTransport;
     private final HttpClient http=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2))
             .followRedirects(HttpClient.Redirect.NEVER).build();
     public OpenAiChatProvider(LlmSettings settings, ObjectMapper mapper) {
+        this(settings, mapper, new PinnedHttpsTransport(new OutboundEndpointGuard()));
+    }
+    @Autowired
+    public OpenAiChatProvider(LlmSettings settings, ObjectMapper mapper, ByokTransport byokTransport) {
         this.settings=settings;
+        this.byokTransport=byokTransport;
         this.mapper=mapper.copy().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
                 .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
     }
@@ -55,7 +63,7 @@ public final class OpenAiChatProvider implements ChatProvider {
     @Override public Completion complete(Prompt prompt, Connection config) {
         byte[] payload=payload(prompt,config);
         long deadlineNanos=System.nanoTime()+config.timeout().toNanos();
-        HttpResponse<byte[]> received=null;
+        ByokTransport.Response received=null;
         for (int attempt=0; attempt<2; attempt++) {
             long remainingMs=TimeUnit.NANOSECONDS.toMillis(deadlineNanos-System.nanoTime());
             if (remainingMs<=0) throw timeout();
@@ -82,7 +90,7 @@ public final class OpenAiChatProvider implements ChatProvider {
         }
         Usage usage=Usage.unknown();
         try {
-            if (!received.headers().firstValue("content-type").orElse("").split(";")[0].trim().equalsIgnoreCase("application/json"))
+            if (!received.contentType().split(";")[0].trim().equalsIgnoreCase("application/json"))
                 throw unavailable(usage);
             JsonNode root=mapper.readTree(received.body());
             if (root==null || !root.isObject()) throw unavailable(usage);
@@ -127,18 +135,28 @@ public final class OpenAiChatProvider implements ChatProvider {
     private static String stripModelsPrefix(String model) {
         return model.startsWith("models/") ? model.substring("models/".length()) : model;
     }
-    private HttpResponse<byte[]> sendAttempt(Connection config, byte[] payload, long remainingMs) throws ConnectException {
+    private ByokTransport.Response sendAttempt(Connection config, byte[] payload, long remainingMs) throws ConnectException {
+        if (config.byok()) {
+            return byokTransport.send(config, payload, remainingMs);
+        }
         var request=HttpRequest.newBuilder(config.endpoint()).timeout(Duration.ofMillis(Math.max(1,remainingMs)))
                 .header("Authorization","Bearer "+config.key()).header("Content-Type","application/json")
                 .header("Accept","application/json").POST(HttpRequest.BodyPublishers.ofByteArray(payload)).build();
         var response=http.sendAsync(request,info -> new UpstreamTransport.LimitedBody());
-        try { return response.get(remainingMs,TimeUnit.MILLISECONDS); }
+        try {
+            var httpResponse = response.get(remainingMs,TimeUnit.MILLISECONDS);
+            return new ByokTransport.Response(
+                    httpResponse.statusCode(),
+                    httpResponse.headers().firstValue("content-type").orElse(""),
+                    httpResponse.body());
+        }
         catch (TimeoutException e) { response.cancel(true); throw timeout(); }
         catch (InterruptedException e) { response.cancel(true); Thread.currentThread().interrupt(); throw unavailable(Usage.unknown()); }
         catch (ExecutionException e) {
             response.cancel(true);
             Throwable cause=e.getCause();
             while (cause instanceof CompletionException) cause=cause.getCause();
+            if (cause instanceof HttpConnectTimeoutException) throw unavailable(Usage.unknown());
             if (cause instanceof HttpTimeoutException) throw timeout();
             if (cause instanceof ConnectException connect) throw connect;
             throw unavailable(Usage.unknown());

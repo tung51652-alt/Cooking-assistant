@@ -2,7 +2,11 @@ package com.cooklens;
 
 import com.cooklens.config.RuntimeContract;
 import com.cooklens.config.LlmSettings;
+import com.cooklens.config.OutboundEndpointGuard;
+import com.cooklens.client.ByokTransport;
+import com.cooklens.client.ChatProvider;
 import com.cooklens.client.ChatProvider.Prompt;
+import com.cooklens.client.PinnedHttpsTransport;
 import com.cooklens.repository.*;
 import com.cooklens.service.ChatPricing;
 import com.fasterxml.jackson.databind.*;
@@ -45,6 +49,11 @@ class AssistantChatIntegrationTest {
             UPSTREAM.setExecutor(EXECUTOR); UPSTREAM.createContext("/",AssistantChatIntegrationTest::respond); UPSTREAM.start();
         } catch (Exception error) { throw new ExceptionInInitializerError(error); }
     }
+    static final String BYOK_TEST_HOST = "byok-upstream.example";
+    static final String BYOK_REDIRECT_HOST = "redirect-byok.example";
+    static final String BYOK_UNREACHABLE_HOST = "unreachable-byok.example";
+    static final String BYOK_REBIND_HOST = "rebind-byok.example";
+
     @TestConfiguration(proxyBeanMethods=false)
     static class Pricing {
         @Bean @Primary ChatPricing testPricing() {
@@ -53,6 +62,65 @@ class AssistantChatIntegrationTest {
                     if (config.byok()) return super.quote(config, prompt);
                     return new Quote(1000,1_000_000,1_000_000);
                 }
+            };
+        }
+
+        @Bean @Primary ByokTransport testByokTransport() {
+            var publicIp = new byte[]{93, (byte) 184, (byte) 216, 34};
+            var guard = new OutboundEndpointGuard(host -> {
+                if (BYOK_TEST_HOST.equals(host) || BYOK_REDIRECT_HOST.equals(host) || BYOK_UNREACHABLE_HOST.equals(host)) {
+                    return new InetAddress[]{InetAddress.getByAddress(publicIp)};
+                }
+                if (BYOK_REBIND_HOST.equals(host)) {
+                    return new InetAddress[]{InetAddress.getByAddress(new byte[]{127, 0, 0, 1})};
+                }
+                if (host.endsWith(".invalid")) {
+                    throw new UnknownHostException(host);
+                }
+                return InetAddress.getAllByName(host);
+            });
+            var realTransport = new PinnedHttpsTransport(guard);
+            var localHttp = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2))
+                    .followRedirects(HttpClient.Redirect.NEVER).build();
+            return (config, payload, remainingMs) -> {
+                String host = config.endpoint().getHost();
+                // Always enforce the real OutboundEndpointGuard (host, IP, DNS validation) first.
+                guard.resolvePinnedPublicAddress(host);
+                if (BYOK_UNREACHABLE_HOST.equals(host)) {
+                    throw new ConnectException("Simulated unreachable public custom host");
+                }
+                if (BYOK_TEST_HOST.equals(host) || BYOK_REDIRECT_HOST.equals(host)) {
+                    URI localTarget = URI.create("http://127.0.0.1:" + UPSTREAM.getAddress().getPort()
+                            + (BYOK_REDIRECT_HOST.equals(host) ? "/v1/redirect-chat" : "/v1/chat/completions"));
+                    var req = HttpRequest.newBuilder(localTarget).timeout(Duration.ofMillis(Math.max(1, remainingMs)))
+                            .header("Authorization", "Bearer " + config.key())
+                            .header("Content-Type", "application/json")
+                            .header("Accept", "application/json")
+                            .POST(HttpRequest.BodyPublishers.ofByteArray(payload))
+                            .build();
+                    var fut = localHttp.sendAsync(req, HttpResponse.BodyHandlers.ofByteArray());
+                    try {
+                        var resp = fut.get(remainingMs, TimeUnit.MILLISECONDS);
+                        return new ByokTransport.Response(resp.statusCode(),
+                                resp.headers().firstValue("content-type").orElse(""), resp.body());
+                    } catch (TimeoutException e) {
+                        fut.cancel(true);
+                        throw new ChatProvider.Failure(504, "ASSISTANT_PROVIDER_TIMEOUT", ChatProvider.Usage.unknown());
+                    } catch (InterruptedException e) {
+                        fut.cancel(true);
+                        Thread.currentThread().interrupt();
+                        throw new ChatProvider.Failure(503, "ASSISTANT_PROVIDER_UNAVAILABLE", ChatProvider.Usage.unknown());
+                    } catch (ExecutionException e) {
+                        fut.cancel(true);
+                        Throwable cause = e.getCause();
+                        while (cause instanceof CompletionException) cause = cause.getCause();
+                        if (cause instanceof HttpTimeoutException)
+                            throw new ChatProvider.Failure(504, "ASSISTANT_PROVIDER_TIMEOUT", ChatProvider.Usage.unknown());
+                        if (cause instanceof ConnectException connect) throw connect;
+                        throw new ChatProvider.Failure(503, "ASSISTANT_PROVIDER_UNAVAILABLE", ChatProvider.Usage.unknown());
+                    }
+                }
+                return realTransport.send(config, payload, remainingMs);
             };
         }
     }
@@ -85,7 +153,16 @@ class AssistantChatIntegrationTest {
             String path=exchange.getRequestURI().getPath();
             JsonNode body;
             int status=200;
-            if (path.equals("/v1/chat/completions")) {
+            if (path.equals("/v1/redirect-chat")) {
+                CALLS.incrementAndGet();
+                exchange.getRequestBody().readAllBytes();
+                exchange.getResponseHeaders().set("Location", "http://127.0.0.1:" + UPSTREAM.getAddress().getPort() + "/v1/chat/completions");
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                byte[] redirectBody = "{}".getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(302, redirectBody.length);
+                exchange.getResponseBody().write(redirectBody);
+                return;
+            } else if (path.equals("/v1/chat/completions")) {
                 CALLS.incrementAndGet();
                 lastAuthorization=exchange.getRequestHeaders().getFirst("Authorization");
                 JsonNode reqBody=JSON.readTree(exchange.getRequestBody().readAllBytes());
@@ -306,7 +383,7 @@ class AssistantChatIntegrationTest {
 
     @Test void llmTestHelloValidatesInputsMapsUpstreamErrorsAndNeverPersistsKey() throws Exception {
         String byokKey="sk-test-"+UUID.randomUUID();
-        String base="http://127.0.0.1:"+UPSTREAM.getAddress().getPort()+"/v1";
+        String base="https://"+BYOK_TEST_HOST+"/v1";
 
         mode="byok-snapshot";
         var okResp=send("/api/assistant/llm/test",Map.of(
@@ -364,7 +441,7 @@ class AssistantChatIntegrationTest {
 
     @Test void byokHeadersOverrideEnvFallbackAndNeverStoreApiKeyInSqliteOrResponse() throws Exception {
         String byokKey="sk-byok-"+UUID.randomUUID();
-        String base="http://127.0.0.1:"+UPSTREAM.getAddress().getPort()+"/v1";
+        String base="https://"+BYOK_TEST_HOST+"/v1";
         JsonNode session=create(0);
 
         // Exhaust server monthly budget to verify BYOK calls still work
@@ -440,5 +517,61 @@ class AssistantChatIntegrationTest {
         for (String h:List.of("x-llm-provider","x-llm-base-url","x-llm-model","x-llm-api-key")) {
             assertTrue(allowed.contains(h),"Missing allowed CORS header "+h+" in "+allowed);
         }
+    }
+
+    @Test void ssrfBlockedAndUnreachableCustomEndpointsReturnIdenticalErrorAcrossTestAndMessageRoutes() throws Exception {
+        String byokKey = "sk-ssrf-" + UUID.randomUUID();
+        JsonNode session = create(0);
+        List<String> blockedOrUnreachableUrls = List.of(
+                "https://10.255.255.1/v1",
+                "https://169.254.169.254/v1",
+                "http://localhost:8080/v1",
+                "http://127.0.0.1:" + UPSTREAM.getAddress().getPort() + "/v1",
+                "https://127.0.0.1/v1",
+                "https://[::1]/v1",
+                "https://[::ffff:127.0.0.1]/v1",
+                "https://100.64.0.1/v1",
+                "https://service.local/v1",
+                "https://metadata.google.internal/v1",
+                "https://" + BYOK_REBIND_HOST + "/v1",
+                "https://nonexistent.invalid/v1",
+                "https://" + BYOK_UNREACHABLE_HOST + "/v1");
+
+        Set<String> observedMessages = new HashSet<>();
+        for (String url : blockedOrUnreachableUrls) {
+            var testResp = send("/api/assistant/llm/test", Map.of(
+                    "provider", "custom", "base_url", url, "model", "gpt-4o-mini", "api_key", byokKey));
+            error(testResp, 503, "ASSISTANT_PROVIDER_UNAVAILABLE");
+            assertFalse(testResp.body().contains(byokKey));
+            observedMessages.add(JSON.readTree(testResp.body()).path("message").asText());
+
+            var msgReq = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + route(session) + "/messages"))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("X-Request-ID", id())
+                    .header("Content-Type", "application/json")
+                    .header("X-LLM-Provider", "custom")
+                    .header("X-LLM-Base-Url", url)
+                    .header("X-LLM-Model", "gpt-4o-mini")
+                    .header("X-LLM-Api-Key", byokKey)
+                    .POST(HttpRequest.BodyPublishers.ofString(JSON.writeValueAsString(message("Hỏi thử SSRF", 0, id()))))
+                    .build();
+            var msgResp = client.send(msgReq, HttpResponse.BodyHandlers.ofString());
+            error(msgResp, 503, "ASSISTANT_PROVIDER_UNAVAILABLE");
+            assertFalse(msgResp.body().contains(byokKey));
+            observedMessages.add(JSON.readTree(msgResp.body()).path("message").asText());
+        }
+        // None of the blocked/DNS-failing/unreachable URLs may contact local UPSTREAM.
+        assertEquals(0, CALLS.get());
+
+        // A public custom host that returns 302 redirect to localhost must never be followed and returns the exact same 503.
+        var redirectTestResp = send("/api/assistant/llm/test", Map.of(
+                "provider", "custom", "base_url", "https://" + BYOK_REDIRECT_HOST + "/v1", "model", "gpt-4o-mini", "api_key", byokKey));
+        error(redirectTestResp, 503, "ASSISTANT_PROVIDER_UNAVAILABLE");
+        observedMessages.add(JSON.readTree(redirectTestResp.body()).path("message").asText());
+        assertEquals(1, CALLS.get());
+
+        // Every blocked, DNS-failing, unreachable, and redirecting response shares the exact same generic error message.
+        assertEquals(1, observedMessages.size(), "Expected uniform error message, got: " + observedMessages);
+        assertEquals(0, ok(send(route(session), null)).path("version").asInt());
     }
 }

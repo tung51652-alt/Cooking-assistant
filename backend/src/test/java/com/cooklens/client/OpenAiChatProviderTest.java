@@ -320,8 +320,42 @@ class OpenAiChatProviderTest {
 
     @Test void byokAcceptsLengthFinishSnapshotPrefixReasoningTokensAndMapsErrors() throws Exception {
         var settings = settings();
+        String publicCustomBase = "https://byok.example/v1";
+        var localHttp = java.net.http.HttpClient.newBuilder()
+                .connectTimeout(java.time.Duration.ofSeconds(2))
+                .followRedirects(java.net.http.HttpClient.Redirect.NEVER)
+                .build();
+        ByokTransport localBridge = (config, bodyBytes, remainingMs) -> {
+            assertEquals(publicCustomBase + "/chat/completions", config.endpoint().toString());
+            var req = java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + "/chat/completions"))
+                    .timeout(java.time.Duration.ofMillis(Math.max(1, remainingMs)))
+                    .header("Authorization", "Bearer " + config.key())
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofByteArray(bodyBytes))
+                    .build();
+            var fut = localHttp.sendAsync(req, info -> new UpstreamTransport.LimitedBody());
+            try {
+                var resp = fut.get(remainingMs, TimeUnit.MILLISECONDS);
+                return new ByokTransport.Response(resp.statusCode(), resp.headers().firstValue("content-type").orElse(""), resp.body());
+            } catch (TimeoutException e) {
+                fut.cancel(true);
+                throw new Failure(504, "ASSISTANT_PROVIDER_TIMEOUT", Usage.unknown());
+            } catch (InterruptedException e) {
+                fut.cancel(true);
+                Thread.currentThread().interrupt();
+                throw new Failure(503, "ASSISTANT_PROVIDER_UNAVAILABLE", Usage.unknown());
+            } catch (ExecutionException e) {
+                fut.cancel(true);
+                Throwable cause = e.getCause();
+                while (cause instanceof CompletionException) cause = cause.getCause();
+                if (cause instanceof java.net.http.HttpTimeoutException) throw new Failure(504, "ASSISTANT_PROVIDER_TIMEOUT", Usage.unknown());
+                throw new Failure(503, "ASSISTANT_PROVIDER_UNAVAILABLE", Usage.unknown());
+            }
+        };
+        var byokProvider = new OpenAiChatProvider(settings, mapper, localBridge);
         var userConfig = settings.resolveUserConnection(
-                new LlmSettings.UserOverride("custom", base, "gpt-4o-mini", key), 64, true);
+                new LlmSettings.UserOverride("custom", publicCustomBase, "gpt-4o-mini", key), 64, true);
         assertTrue(userConfig.byok());
 
         // Accept finish_reason=length, snapshot model prefix, and prompt+completion <= total (reasoning_tokens)
@@ -335,7 +369,7 @@ class OpenAiChatProviderTest {
         payload = root.toString();
 
         var testPrompt = new Prompt(List.of(new Message(Role.system, "Reply briefly."), new Message(Role.user, "hello")));
-        Completion ok = provider().complete(testPrompt, userConfig);
+        Completion ok = byokProvider.complete(testPrompt, userConfig);
         assertEquals("gpt-4o-mini-2024-07-18", ok.model());
         assertEquals("Hello!", ok.text());
         assertEquals(64, mapper.readTree(received).path("max_tokens").asInt());
@@ -343,33 +377,33 @@ class OpenAiChatProviderTest {
         // Gemini models/ prefix is also accepted
         root.put("model", "models/gpt-4o-mini-001");
         payload = root.toString();
-        assertEquals("models/gpt-4o-mini-001", provider().complete(testPrompt, userConfig).model());
+        assertEquals("models/gpt-4o-mini-001", byokProvider.complete(testPrompt, userConfig).model());
 
         // Reject when prompt + completion > total even in BYOK
         ((ObjectNode) root.path("usage")).put("total_tokens", 14);
         payload = root.toString();
-        failure(503, "ASSISTANT_PROVIDER_UNAVAILABLE", () -> provider().complete(testPrompt, userConfig));
+        failure(503, "ASSISTANT_PROVIDER_UNAVAILABLE", () -> byokProvider.complete(testPrompt, userConfig));
 
         // Error mappings for BYOK: 400/404 -> 422 ASSISTANT_MODEL_INVALID, 401/403 -> 503 ASSISTANT_PROVIDER_AUTH_FAILED, 429 -> 429
         payload = "{\"error\":\"bad " + key + "\"}";
         for (int code : List.of(400, 404)) {
             status = code;
-            failure(422, "ASSISTANT_MODEL_INVALID", () -> provider().complete(testPrompt, userConfig));
+            failure(422, "ASSISTANT_MODEL_INVALID", () -> byokProvider.complete(testPrompt, userConfig));
         }
         for (int code : List.of(401, 403)) {
             status = code;
-            failure(503, "ASSISTANT_PROVIDER_AUTH_FAILED", () -> provider().complete(testPrompt, userConfig));
+            failure(503, "ASSISTANT_PROVIDER_AUTH_FAILED", () -> byokProvider.complete(testPrompt, userConfig));
         }
         status = 429;
-        failure(429, "ASSISTANT_RATE_LIMITED", () -> provider().complete(testPrompt, userConfig));
+        failure(429, "ASSISTANT_RATE_LIMITED", () -> byokProvider.complete(testPrompt, userConfig));
 
         // Timeout -> 504 ASSISTANT_PROVIDER_TIMEOUT
         status = 200;
         stall = true;
         payload = good().toString();
         var shortByok = new LlmSettings("openai", base, LlmSettings.NVIDIA_MODEL, "", "1", "512", "6000")
-                .resolveUserConnection(new LlmSettings.UserOverride("custom", base, "gpt-4o-mini", key), 64, true);
-        failure(504, "ASSISTANT_PROVIDER_TIMEOUT", () -> provider().complete(testPrompt, shortByok));
+                .resolveUserConnection(new LlmSettings.UserOverride("custom", publicCustomBase, "gpt-4o-mini", key), 64, true);
+        failure(504, "ASSISTANT_PROVIDER_TIMEOUT", () -> byokProvider.complete(testPrompt, shortByok));
     }
 
     @Test void byokPresetsAndCustomUrlValidationEnforceSecurityRules() {
@@ -383,11 +417,39 @@ class OpenAiChatProviderTest {
         for (String validCustom : List.of(
                 "https://llm.example.com/v1",
                 "https://llm.example.com/proxy/v1beta/openai",
-                "https://my-azure.openai.azure.com/openai",
-                "http://127.0.0.1:11434/v1",
-                "http://localhost:8080/v1",
-                "http://[::1]:8000/v1")) {
+                "https://my-azure.openai.azure.com/openai")) {
             assertTrue(unconfigured.resolveUserConnection(new LlmSettings.UserOverride("custom", validCustom, "my-model", key), 64, true).byok());
+        }
+        for (String blockedSsrf : List.of(
+                "http://localhost:8080/v1",
+                "http://127.0.0.1:11434/v1",
+                "http://[::1]:8000/v1",
+                "https://localhost/v1",
+                "https://sub.localhost/v1",
+                "https://service.local/v1",
+                "https://metadata.google.internal/v1",
+                "https://10.255.255.1/v1",
+                "https://169.254.169.254/v1",
+                "https://127.0.0.1/v1",
+                "https://[::1]/v1",
+                "https://[::ffff:127.0.0.1]/v1",
+                "https://100.64.0.1/v1",
+                "https://172.16.0.1/v1",
+                "https://192.168.1.1/v1",
+                "https://0.0.0.0/v1",
+                "https://192.0.2.1/v1",
+                "https://198.51.100.1/v1",
+                "https://203.0.113.1/v1",
+                "https://198.18.0.1/v1",
+                "https://240.0.0.1/v1",
+                "https://[2001:db8::1]/v1",
+                "https://[fc00::1]/v1",
+                "https://[fe80::1]/v1")) {
+            var err = assertThrows(ApiFailure.class,
+                    () -> unconfigured.resolveUserConnection(new LlmSettings.UserOverride("custom", blockedSsrf, "my-model", key), 64, true),
+                    "Expected SSRF block for " + blockedSsrf);
+            assertEquals(503, err.status(), blockedSsrf);
+            assertEquals("ASSISTANT_PROVIDER_UNAVAILABLE", err.code(), blockedSsrf);
         }
         for (var bad : List.of(
                 new LlmSettings.UserOverride("unknown", null, "gpt-4o", key),

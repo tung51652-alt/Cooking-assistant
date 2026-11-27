@@ -3,6 +3,7 @@ import { CaretDown, Check, Key, Lock, LockOpen, Play, ShieldCheck, Trash, Warnin
 import * as api from '../lib/api';
 import {
   LLM_PRESETS,
+  type LlmStorageScope,
   validateApiKey,
   validateBaseUrl,
   validateModelName,
@@ -13,7 +14,8 @@ interface Props {
   open: boolean;
   initialMode?: 'default' | 'custom';
   currentConfig: LlmUserConfig | null;
-  onSave: (config: LlmUserConfig) => void;
+  currentStorageScope?: LlmStorageScope;
+  onSave: (config: LlmUserConfig, scope: LlmStorageScope) => void;
   onClear: () => void;
   onClose: () => void;
 }
@@ -34,12 +36,13 @@ function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
     .filter(el => !el.hasAttribute('hidden') && el.getClientRects().length > 0);
 }
 
-export default function LlmSettingsModal({ open, initialMode, currentConfig, onSave, onClear, onClose }: Props) {
+export default function LlmSettingsModal({ open, initialMode, currentConfig, currentStorageScope = 'session', onSave, onClear, onClose }: Props) {
   const [mode, setMode] = useState<'default' | 'custom'>(initialMode ?? (currentConfig ? 'custom' : 'default'));
   const [provider, setProvider] = useState<LlmProviderPreset>(currentConfig?.provider || 'gemini');
   const [baseUrl, setBaseUrl] = useState<string>(currentConfig?.base_url || LLM_PRESETS.gemini.baseUrl);
   const [apiKey, setApiKey] = useState<string>(currentConfig?.api_key || '');
   const [model, setModel] = useState<string>(currentConfig?.model || LLM_PRESETS.gemini.defaultModel);
+  const [sessionOnly, setSessionOnly] = useState<boolean>(currentConfig ? currentStorageScope !== 'local' : true);
   const [showKey, setShowKey] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(currentConfig?.provider === 'custom');
   const [testing, setTesting] = useState(false);
@@ -63,11 +66,12 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, onS
     setBaseUrl(currentConfig?.base_url || LLM_PRESETS[nextProvider].baseUrl);
     setApiKey(currentConfig?.api_key || '');
     setModel(currentConfig?.model || LLM_PRESETS[nextProvider].defaultModel);
+    setSessionOnly(currentConfig ? currentStorageScope !== 'local' : true);
     setShowKey(false);
     setAdvancedOpen(nextProvider === 'custom');
     setTestResult(null);
     setTestError(null);
-  }, [open, initialMode, currentConfig]);
+  }, [open, initialMode, currentConfig, currentStorageScope]);
 
   useEffect(() => {
     if (open && !wasOpenRef.current) {
@@ -191,7 +195,7 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, onS
       base_url: provider === 'custom' ? baseUrl.trim() : preset.baseUrl,
       model: model.trim(),
       api_key: apiKey,
-    });
+    }, sessionOnly ? 'session' : 'local');
   }
 
   function handleBackToDefault() {
@@ -279,7 +283,7 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, onS
         ) : (
           <>
             <p className="modal-lead">
-              Khóa API của bạn chỉ được lưu trên trình duyệt này và chỉ dùng khi bạn gửi câu hỏi; máy chủ không lưu trữ khóa của bạn.
+              Mặc định khóa API chỉ được giữ trong phiên mở tab hiện tại và tự xóa khi bạn đóng tab; máy chủ không lưu trữ khóa của bạn.
             </p>
 
             <div className="llm-steps">
@@ -381,6 +385,30 @@ export default function LlmSettingsModal({ open, initialMode, currentConfig, onS
                       <span>{keyFeedback.warning}</span>
                     </p>
                   )}
+                </div>
+                <div className="llm-storage-choice">
+                  <label className="llm-checkbox-label" htmlFor="llm-session-only">
+                    <input
+                      id="llm-session-only"
+                      type="checkbox"
+                      checked={sessionOnly}
+                      onChange={event => setSessionOnly(event.target.checked)}
+                    />
+                    <span className="llm-checkbox-copy">
+                      <strong>Chỉ dùng trong phiên này (khuyên dùng)</strong>
+                      <small>
+                        {sessionOnly
+                          ? 'Khóa API sẽ tự động bị xóa khi bạn đóng tab trình duyệt.'
+                          : 'Khóa API sẽ được lưu lại trên trình duyệt này cho các lần mở sau.'}
+                      </small>
+                    </span>
+                  </label>
+                  <p className="llm-security-warning" role="note">
+                    <WarningCircle size={16} aria-hidden="true" />
+                    <span>
+                      Lưu ý bảo mật: Khóa API lưu trong bộ nhớ trình duyệt có thể bị lộ trên thiết bị dùng chung hoặc nếu trang gặp lỗ hổng mã kịch bản. Hãy giữ chọn chế độ chỉ dùng trong phiên này và xóa khóa khi không còn sử dụng.
+                    </span>
+                  </p>
                 </div>
               </section>
 
