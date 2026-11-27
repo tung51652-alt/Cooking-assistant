@@ -15,7 +15,7 @@ const state = (version = 0, extra = {}) => ({
   ...extra,
 });
 
-function fixture(overrides = {}, storeOverrides = {}) {
+function fixture(overrides = {}, storeOverrides = {}, options = {}) {
   const calls = [];
   let pointer = null;
   let counter = 0;
@@ -31,7 +31,7 @@ function fixture(overrides = {}, storeOverrides = {}) {
     clear: async (_gateway, sessionId) => { if (pointer?.sessionId === sessionId) pointer = null; },
     ...storeOverrides,
   };
-  const controller = createCookingSessionController({ api, store, gateway, operationId: () => 'operation-' + ++counter });
+  const controller = createCookingSessionController({ api, store, gateway, operationId: () => 'operation-' + ++counter, ...options });
   return { controller, calls, store, pointer: () => pointer };
 }
 
@@ -458,4 +458,77 @@ test('a reply after leaving and opening another recipe cannot affect its draft o
   await request;
   assert.equal(controller.getSnapshot().session.id, otherId);
   assert.equal(controller.getSnapshot().draft, 'Câu hỏi mới');
+});
+
+test('passes custom llmConfig to sessionMessage and omits it when cleared back to default', async () => {
+  const customConfig = {
+    provider: 'openai',
+    base_url: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini',
+    api_key: 'sk-test-key-123',
+  };
+  let activeConfig = customConfig;
+  const seen = [];
+  const { controller } = fixture({
+    sessionMessage: async (...args) => {
+      const [_id, body, _signal, llmConfig] = args;
+      seen.push({ text: body.text, argCount: args.length, llmConfig });
+      const nextVersion = body.expected_version + 1;
+      return state(nextVersion, {
+        status: 'ready',
+        current_step: 0,
+        messages: Array.from({ length: nextVersion }, (_, i) => [
+          { role: 'user', text: `Q${i + 1}` },
+          { role: 'assistant', text: `A${i + 1}` },
+        ]).flat(),
+      });
+    },
+  }, {}, { getLlmConfig: () => activeConfig });
+
+  await controller.openRecipe(document);
+  controller.setDraft('Hỏi với khóa riêng');
+  await controller.sendMessage();
+  assert.equal(seen[0].argCount, 4);
+  assert.deepEqual(seen[0].llmConfig, customConfig);
+
+  activeConfig = null;
+  controller.setDraft('Hỏi bằng mặc định');
+  await controller.sendMessage();
+  assert.equal(seen[1].argCount, 3);
+  assert.equal(seen[1].llmConfig, undefined);
+});
+
+test('setLlmConfig updates and clears the llmConfig passed to sessionMessage', async () => {
+  const geminiConfig = {
+    provider: 'gemini',
+    base_url: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    model: 'gemini-2.5-flash',
+    api_key: 'AIzaTestKey123',
+  };
+  const configs = [];
+  const { controller } = fixture({
+    sessionMessage: async (_id, body, _signal, llmConfig) => {
+      configs.push(llmConfig);
+      const nextVersion = body.expected_version + 1;
+      return state(nextVersion, {
+        status: 'ready',
+        current_step: 0,
+        messages: Array.from({ length: nextVersion }, (_, i) => [
+          { role: 'user', text: `Q${i + 1}` },
+          { role: 'assistant', text: `A${i + 1}` },
+        ]).flat(),
+      });
+    },
+  });
+
+  await controller.openRecipe(document);
+  controller.setLlmConfig(geminiConfig);
+  controller.setDraft('Câu hỏi 1');
+  await controller.sendMessage();
+  assert.deepEqual(configs[0], geminiConfig);
+
+  controller.setLlmConfig(null);
+  controller.setDraft('Câu hỏi 2');
+  await controller.sendMessage();
+  assert.equal(configs[1], undefined);
 });
