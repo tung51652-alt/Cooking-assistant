@@ -13,6 +13,12 @@ The reported Cơm tấm photo ranked the correct dish first at 53.7% and receive
 
 When a supported dish is visible, keep its supported label even if other objects or foods appear. Hold ambiguous photos for review. Group near-duplicates, edits, crop variants, and photos from the same meal or session before splitting. Check against the original 30VNFoods splits. Multi-dish recognition is a separate experiment and needs complete labels for the distinct dishes visible in each photo.
 
+## Reversible fallback labels
+
+Keep a stable photo ID, file path, source label, source attribution, and split in the intake manifest. Each `other_food` photo also retains a `dish_key` derived from its source dish name. The photo's `collection_label` records its original fallback label.
+
+The local pilot collection includes `promotions.json` and a copy of the [label resolver](resolve_vision_labels.py). Adding a reviewed `dish_key` to the mapping generates a new effective `label` for matching rows. Removing the mapping restores `other_food` on the next export. Photo paths, original labels, source records, and split assignments stay in the same manifest. Recount the fallback classes before comparing models after a promotion.
+
 ## Source inventory
 
 Prioritize public-domain, CC0, and CC BY photos. Retain attribution, the original photo URL or source ID, the license, the proposed label, and the review status. CC BY-SA samples are useful when their terms fit the intended use. A publisher license badge establishes the published claim. Record any gap in photo provenance before using the images. Keep source archives and preview photos outside Git.
@@ -41,5 +47,7 @@ I checked the [Open Images Extended labels](https://storage.googleapis.com/open-
 
 - The first street-food review batch contains 30 annotated photos, with original archive paths in its manifest.
 - The fallback review batch has 35 source records and 16 viewable photos. It contains five `other_food` previews from WorldCuisines, nine proposed `non_food` previews from SEA-VL, and two CC BY 4.0 `non_food` previews retrieved from the original Open Images Extended archive. Two SEA-VL photos are flagged because food might be visible.
+- The first bulk fallback batch collected 400 `non_food` photos from Open Images Extended and 200 `other_food` photos from WorldCuisines, representing 182 original dish keys. It checks source labels, accepted photo license metadata, image decoding, minimum resolution, and exact and perceptual duplicates within the intake. Local contact sheets provided a visual screen. Eight `non_food` and sixteen `other_food` photos are on hold, including three food photos that need source metadata confirmation.
+- The local draft selection is 368 `non_food` and 184 `other_food`. It preserves a 2:1 ratio in each split, with 278/139 for training, 46/23 for validation, and 44/22 for testing. The manifest retains held photos and reserves with their original source and split records. Cross-checking against the original 30VNFoods image pixels is pending.
 
 These are candidate samples. Record decisions after viewing the photos and checking duplicate groups. Compare the existing model and the model trained on accepted data on held-out supported dishes, `other_food`, and `non_food` before changing the confidence policy.
