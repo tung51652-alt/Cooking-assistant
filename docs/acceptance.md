@@ -301,3 +301,11 @@ Aggregate tại `backend/target/gemini35-evaluation-summary.json`; report gốc,
 Surefire của candidate cuối tại `backend/target/gemini35-surefire/`. Bằng chứng run 3.1 thất bại được giữ nguyên.
 
 **Kết luận candidate 3.5:** bộ 50 câu đã hoàn tất và qua gate HTTP/state, latency, usage cùng controlled faults; lỗi timeout đang chặn phép đo không còn xuất hiện trong run này. Human quality review vẫn pending, chưa tự đánh dấu toàn bộ nghiệm thu/phát hành 2.1.0 hoàn tất.
+
+### Sửa bước build Docker trong CI
+
+Check `standalone-and-offline` của PR #75 dừng ở `dependency:go-offline`: Maven không resolve được dependency của plugin này sau năm lần thử, trước khi build source backend.
+Bỏ preflight đó; lệnh `package` tự resolve đúng plugin/dependency cần thiết, giữ retry/backoff khi tải dependency và dùng chung cache Maven với bước trích thư viện SQLite.
+Không bỏ qua lỗi build hoặc thay điều kiện gate CI.
+
+Kiểm chứng local: `docker build --no-cache` với cache Maven mới qua, bước package khoảng 44 s; image mới chạy healthy với root filesystem chỉ đọc, user không phải root và SQLite native. Container kiểm thử tách khỏi stack local đang dùng.
