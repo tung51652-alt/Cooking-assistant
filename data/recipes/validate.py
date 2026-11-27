@@ -17,6 +17,21 @@ INGREDIENT_AMOUNT = re.compile(
     r"thìa canh|thìa cà phê|bát|chén|hộp|bó|con|quả|trái|cái|bịch|cây|nhánh|xấp)\b",
     re.IGNORECASE,
 )
+EDITORIAL_BOILERPLATE = re.compile(
+    r"giữ nguyên định lượng(?: và lựa chọn)? theo nguồn|không suy đoán hoặc quy đổi"
+    r"|^có trong (?:phần hướng dẫn|bước làm) của nguồn[;,.]?\s*"
+    r"(?:nguồn )?không (?:có )?định lượng(?: đầy đủ)?[.]?$",
+    re.IGNORECASE,
+)
+UNTRANSLATED_SOURCE_TERMS = re.compile(
+    r"\b(?:suppenh(?:uhn|(?:[üu]|ue)hner)|semmelw(?:[üu]|ue)rfel)\b",
+    re.IGNORECASE,
+)
+STOVE_DIAL = re.compile(
+    r"\bnấc(?:\s+số)?\s+\d+\b"
+    r"|\b(?:lửa|bếp|mức nhiệt)(?:\s+(?:nhỏ|vừa|lớn))?\s*\(?\s*(?:khoảng\s+)?số\s+\d+\b",
+    re.IGNORECASE,
+)
 RECIPE_FIELDS = set("id title normalized_dish language cuisine servings prep_time_minutes cook_time_minutes ingredients instructions tags source created_at updated_at".split())
 
 
@@ -29,6 +44,12 @@ def text(value):
     require(isinstance(value, str) and value.strip() == value and bool(value), "empty/invalid text")
     require(unicodedata.normalize("NFC", value) == value, "text must be NFC")
     require(not re.search(r"[<>\x00-\x08\x0b\x0c\x0e-\x1f]", value), "text must be plain")
+
+
+def recipe_copy(value, location):
+    text(value)
+    require(not EDITORIAL_BOILERPLATE.search(value), f"{location}: move editorial boilerplate to source.modifications")
+    require(not UNTRANSLATED_SOURCE_TERMS.search(value), f"{location}: contains an untranslated source term")
 
 
 def positive(value, integer=False):
@@ -52,7 +73,9 @@ def validate(recipes, taxonomy):
         require(isinstance(recipe["id"], str) and ID.fullmatch(recipe["id"]), "invalid recipe ID")
         require(recipe["id"] not in ids, "duplicate recipe ID")
         ids.add(recipe["id"])
-        for key in ("title", "normalized_dish", "created_at", "updated_at"):
+        recipe_id = recipe["id"]
+        recipe_copy(recipe["title"], f"{recipe_id} title")
+        for key in ("normalized_dish", "created_at", "updated_at"):
             text(recipe[key])
         require(recipe["normalized_dish"] in known, "dish not in taxonomy")
         require(recipe["language"] == "vi" and recipe["cuisine"] == "vietnamese", "invalid locale")
@@ -62,9 +85,9 @@ def validate(recipes, taxonomy):
             date.fromisoformat(recipe[key])
         require(recipe["updated_at"] >= recipe["created_at"], "dates out of order")
         require(isinstance(recipe["ingredients"], list) and recipe["ingredients"], "missing ingredients")
-        for item in recipe["ingredients"]:
+        for index, item in enumerate(recipe["ingredients"], 1):
             require(type(item) is dict and set(item) == set("name normalized_name quantity unit optional note".split()), "ingredient fields")
-            text(item["name"])
+            recipe_copy(item["name"], f"{recipe_id} ingredient {index} name")
             require(not INGREDIENT_AMOUNT.search(item["name"]),
                     "ingredient amount belongs in quantity/unit or note")
             require(isinstance(item["normalized_name"], str) and re.fullmatch(r"[a-z0-9]+(?:_[a-z0-9]+)*", item["normalized_name"]), "invalid ingredient key")
@@ -72,14 +95,16 @@ def validate(recipes, taxonomy):
             require(type(item["optional"]) is bool, "optional must be boolean")
             for key in ("unit", "note"):
                 if item[key] is not None:
-                    text(item[key])
+                    recipe_copy(item[key], f"{recipe_id} ingredient {index} {key}")
             require(item["unit"] not in {"tbsp", "tsp", "cup", "pound", "gram", "gr", "kilogram", "l", "trái"},
                     "ingredient unit must use canonical Vietnamese notation")
         require(isinstance(recipe["instructions"], list) and recipe["instructions"], "missing instructions")
         for step, item in enumerate(recipe["instructions"], 1):
             require(type(item) is dict and set(item) == {"step", "text", "duration_minutes"}, "instruction fields")
             require(type(item["step"]) is int and item["step"] == step, "steps must be continuous")
-            text(item["text"])
+            location = f"{recipe_id} step {step}"
+            recipe_copy(item["text"], location)
+            require(not STOVE_DIAL.search(item["text"]), f"{location}: describe the heat instead of using a stove dial setting")
             positive(item["duration_minutes"], integer=True)
         require(isinstance(recipe["tags"], list) and len(recipe["tags"]) == len(set(recipe["tags"])), "invalid tags")
         for tag in recipe["tags"]:

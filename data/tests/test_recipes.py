@@ -77,6 +77,41 @@ class CorpusTests(unittest.TestCase):
         ingredient.update(quantity=None, unit=None, note="Theo khẩu vị; nguồn không định lượng.")
         validate([recipe], self.taxonomy)
 
+    def test_reject_editorial_boilerplate_in_ingredient_notes(self):
+        for note in (
+            "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi.",
+            "Có trong bước làm của nguồn; không có định lượng.",
+        ):
+            recipe = copy.deepcopy(self.recipes[0])
+            recipe["ingredients"][0]["note"] = note
+            with self.subTest(note=note), self.assertRaisesRegex(ValueError, "ingredient 1 note.*editorial"):
+                validate([recipe], self.taxonomy)
+
+    def test_reject_untranslated_terms_in_public_copy(self):
+        recipe = copy.deepcopy(self.recipes[0])
+        recipe["ingredients"][0]["name"] = "Bánh mì khô (Semmelwürfel)"
+        with self.assertRaisesRegex(ValueError, "ingredient 1 name.*untranslated"):
+            validate([recipe], self.taxonomy)
+
+        recipe = copy.deepcopy(self.recipes[0])
+        recipe["instructions"][0]["text"] = "Hầm Suppenhuhn đến khi mềm."
+        with self.assertRaisesRegex(ValueError, "step 1.*untranslated"):
+            validate([recipe], self.taxonomy)
+
+    def test_reject_stove_specific_dial_settings(self):
+        for step in ("Hạ nhỏ lửa (khoảng số 3 hoặc 4).", "Vặn bếp xuống nấc 3."):
+            recipe = copy.deepcopy(self.recipes[0])
+            recipe["instructions"][0]["text"] = step
+            with self.subTest(step=step), self.assertRaisesRegex(ValueError, "step 1.*stove dial"):
+                validate([recipe], self.taxonomy)
+
+    def test_keep_cooking_details_and_source_provenance(self):
+        recipe = copy.deepcopy(self.recipes[0])
+        recipe["ingredients"][0].update(name="Bột mì số 8", note="Có thể dùng bột đa dụng.")
+        recipe["instructions"][0]["text"] = "Nướng ở 180 °C, sau đó vặn lửa vừa để nấu xốt hoisin."
+        recipe["source"]["modifications"] = "Giữ nguyên định lượng theo nguồn. Suppenhühner chỉ loại gà dùng để hầm."
+        validate([recipe], self.taxonomy)
+
     def test_bun_dau_amounts_and_verified_servings(self):
         recipe = next(r for r in self.recipes if r['id'] == 'wb_bun_dau_mam_tom')
         ingredients = {i['name']: i for i in recipe['ingredients']}

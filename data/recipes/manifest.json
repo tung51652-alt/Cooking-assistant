@@ -1,5 +1,5 @@
 {
-  "corpus_version": "cooklens-recipes-v3",
+  "corpus_version": "cooklens-recipes-v4",
   "taxonomy_version": "1.0.0",
   "recipe_count": 90,
   "covered_dishes": 30,
@@ -39,7 +39,7 @@
   "review": {
     "source_and_structure": "finished_dish_audit_followed_by_verified_nem_chua_yen_mac_serving_recipe",
     "human_cooking_review": "not_performed",
-    "retrieval_acceptance_review": "v3_local_api_technical_gate_met_packaged_candidate_and_external_review_pending",
+    "retrieval_acceptance_review": "v4_runtime_acceptance_pending",
     "full_coverage_gate": "met"
   },
   "license": "CC-BY-SA-4.0",

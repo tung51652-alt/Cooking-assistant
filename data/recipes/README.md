@@ -2,9 +2,9 @@
 
 `corpus.json` có **90 công thức tiếng Việt cho đủ 30 món**, gồm 42 công thức từ Wikibooks, 37 bản ghi dựa trên công thức từ nguồn tiếng Việt khác và 11 công thức có gắn nhãn AI từ [Phase 2](AUTHORSHIP.md).
 Nem chua có một công thức Yên Mạc. Mỗi món còn lại có ít nhất hai biến thể. Số lượng của từng món được ghi trong `manifest.json`.
-Search trả số công thức phù hợp trong giới hạn `top_k` từ 1 đến 3. Tạo lại vector bundle và chạy `recipe-init` để dùng collection v3 khi dựng từ source. [Hướng dẫn dựng image](https://github.com/tung51652-alt/Cooking-assistant/blob/main/docs/development.md)
+Search trả số công thức phù hợp trong giới hạn `top_k` từ 1 đến 3. Tạo lại vector bundle và chạy `recipe-init` để dùng collection v4 khi dựng từ source. [Hướng dẫn dựng image](https://github.com/tung51652-alt/Cooking-assistant/blob/main/docs/development.md)
 
-`manifest.json` ghi version `cooklens-recipes-v3`, coverage từng món, số lượng theo nguồn và review.
+`manifest.json` ghi version `cooklens-recipes-v4`, coverage từng món, số lượng theo nguồn và review.
 Mỗi công thức có nguyên liệu, bước làm, thông tin nguồn, giấy phép và ghi chú chỉnh sửa.
 Bộ sưu tập văn bản theo [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) và mỗi bản ghi ghi rõ giấy phép riêng trong `source`.
 Giấy phép của 37 bản ghi từ nguồn ngoài Wikibooks áp dụng cho bản chuẩn hóa trong corpus. Quyền dùng lại văn bản và hình ảnh của nguồn gốc được ghi riêng trong ghi chú nguồn.
@@ -12,6 +12,7 @@ Giấy phép của 37 bản ghi từ nguồn ngoài Wikibooks áp dụng cho b�
 Các bản ghi Wikibooks giữ URL phiên bản bài viết, liên kết lịch sử tác giả, CC BY-SA 4.0 và ghi chú chỉnh sửa.
 Các bản ghi từ những nguồn tiếng Việt khác dẫn trang công thức và ghi tên tác giả hoặc đơn vị đăng khi xác định được.
 Tách định lượng rõ ràng vào `quantity` và `unit`. Giữ khoảng lượng và lựa chọn thay thế trong ghi chú, dùng `null` nếu thiếu số. Các đơn vị như `muỗng canh`, `muỗng cà phê`, `cốc`, `pao` và `lít` giữ nguyên lượng của nguồn. Nguồn chỉ có tổng thời gian thì ghi trong `source.modifications`.
+Ghi chú nguyên liệu dành cho thông tin người nấu có thể sử dụng. Ghi lại quyết định biên tập trong `source.modifications`. Dùng tên nguyên liệu tiếng Việt và mô tả mức lửa trong bước làm.
 Chỉ nhập công thức đủ nguyên liệu và các bước thiết yếu. Với nguồn gốc văn bản chưa rõ, bản ghi dùng các dữ kiện nấu ăn và ghi rõ bài đăng đối chiếu trong `source.modifications`. Các nguồn có hạn chế rõ ràng được loại khỏi đợt nhập.
 
 Công thức do AI biên soạn dùng tên nguồn và tag `ai_authored`, giấy phép CC BY 4.0 và `revision_url` là `null`.
