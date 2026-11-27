@@ -6,7 +6,7 @@ import { randomUUID } from 'expo-crypto';
 import { File, UploadType } from 'expo-file-system';
 import { useFonts } from 'expo-font';
 import * as SecureStore from 'expo-secure-store';
-import { ApiError, createApi, normalizeBaseUrl, recipeSourceHref, type NativeFileUploader } from '../packages/cooklens-api';
+import { ApiError, createApi, MIN_VISION_CONFIDENCE, normalizeBaseUrl, recipeSourceHref, type NativeFileUploader } from '../packages/cooklens-api';
 import type { Dish, Prediction, RecipeDocument, RecipeSummary, RecipeSource } from '../packages/cooklens-api/types';
 import { chooseImage, discardImage, uploadBody, type UploadImage } from './src/image';
 import { CookingComposer, CookingSessionScreen } from './src/assistant/CookingSessionScreen';
@@ -322,18 +322,18 @@ function CookLens() {
         <Text style={styles.small}>Ảnh được chuyển sang JPEG, tối đa 10 MiB và 25 triệu pixel. Ảnh và lựa chọn không được lưu thành lịch sử.</Text>
       </>}
       {page === 'recognition' && (() => {
-        const lowConfidence = predictions.length > 0 && predictions[0].confidence < 0.5;
+        const lowConfidence = predictions.length > 0 && predictions[0].confidence < MIN_VISION_CONFIDENCE;
         return <>
           {image && <Image source={{ uri: image.uri }} style={styles.thumbnail} accessibilityLabel="Ảnh đang nhận diện" resizeMode="contain" />}
           {lowConfidence ? <View accessibilityRole="alert" style={styles.error}>
-            <Text style={styles.label}>Ảnh có vấn đề hoặc không nhận diện được món ăn</Text>
-            <Text style={styles.body}>Độ tin cậy cao nhất chỉ đạt {confidenceFormat.format(predictions[0].confidence)} (dưới ngưỡng 50%). Vui lòng chụp hoặc chọn ảnh món ăn rõ nét hơn.</Text>
+            <Text style={styles.label}>Chưa xác định được món</Text>
+            <Text style={styles.body}>Hãy thử ảnh khác hoặc chọn món theo tên trong danh mục 30 món Việt.</Text>
             <View style={styles.row}>
               <Button title="Chọn ảnh khác" onPress={() => { void pick(false, false); }} disabled={!!busy} />
               <Button title="Chụp ảnh mới" secondary onPress={() => { void pick(true, false); }} disabled={!!busy} />
             </View>
-          </View> : <>
-            {!!predictions.length && <Text style={styles.body}>CookLens gợi ý món từ ảnh. Hãy chọn món đúng trước khi xem công thức.</Text>}
+          </View> : !!predictions.length && <>
+            <Text style={styles.body}>CookLens gợi ý món từ ảnh. Hãy chọn món đúng trước khi xem công thức.</Text>
             <View accessibilityRole="radiogroup" style={{ gap: 12 }}>
               {predictions.map(prediction => <Pressable key={prediction.class_id} accessibilityRole="radio"
                 accessibilityState={{ checked: selected?.class_id === prediction.class_id }} onPress={() => chooseDish(prediction)}
@@ -342,24 +342,24 @@ function CookLens() {
                 <Text style={styles.small}>Độ tin cậy của gợi ý: {confidenceFormat.format(prediction.confidence)}</Text>
               </Pressable>)}
             </View>
-            {!manual && <Button title="Chọn món từ danh mục" secondary onPress={showCatalog} />}
-            {manual && (() => {
-              const filteredDishes = filterDishes(dishes, filter);
-              return <View style={styles.card}><Text style={styles.label}>Danh mục món ăn</Text>
-                <TextInput accessibilityLabel="Lọc tên món" value={filter} onChangeText={setFilter} placeholder="Tìm tên món…" style={styles.input} />
-                {filteredDishes.map(dish =>
-                  <Pressable key={dish.class_id} accessibilityRole="radio" accessibilityState={{ checked: selected?.class_id === dish.class_id }}
-                    style={[styles.dish, selected?.class_id === dish.class_id && styles.selected]} onPress={() => chooseDish(dish)}>
-                    <Text style={styles.body}>{dish.display_name}</Text></Pressable>)}
-                {!busy && dishes.length > 0 && filteredDishes.length === 0 && <View style={{ gap: 10 }}>
-                  <Text style={styles.body}>Không tìm thấy món phù hợp</Text>
-                  <Button title="Xóa bộ lọc" secondary onPress={() => setFilter('')} />
-                </View>}
-              </View>;
-            })()}
-            <Button title={selected ? `Xác nhận ${selected.display_name}` : 'Chọn món để tiếp tục'} disabled={!selected || !!busy || !api}
-              onPress={() => { if (selected) search(selected, ''); }} />
           </>}
+          {!manual && <Button title="Chọn món từ danh mục" secondary onPress={showCatalog} />}
+          {manual && (() => {
+            const filteredDishes = filterDishes(dishes, filter);
+            return <View style={styles.card}><Text style={styles.label}>Danh mục món ăn</Text>
+              <TextInput accessibilityLabel="Lọc tên món" value={filter} onChangeText={setFilter} placeholder="Tìm tên món…" style={styles.input} />
+              {filteredDishes.map(dish =>
+                <Pressable key={dish.class_id} accessibilityRole="radio" accessibilityState={{ checked: selected?.class_id === dish.class_id }}
+                  style={[styles.dish, selected?.class_id === dish.class_id && styles.selected]} onPress={() => chooseDish(dish)}>
+                  <Text style={styles.body}>{dish.display_name}</Text></Pressable>)}
+              {!busy && dishes.length > 0 && filteredDishes.length === 0 && <View style={{ gap: 10 }}>
+                <Text style={styles.body}>Không tìm thấy món phù hợp</Text>
+                <Button title="Xóa bộ lọc" secondary onPress={() => setFilter('')} />
+              </View>}
+            </View>;
+          })()}
+          {(!lowConfidence || manual) && <Button title={selected ? `Xác nhận ${selected.display_name}` : 'Chọn món để tiếp tục'} disabled={!selected || !!busy || !api}
+            onPress={() => { if (selected) search(selected, ''); }} />}
         </>;
       })()}
       {chat && confirmed && <>

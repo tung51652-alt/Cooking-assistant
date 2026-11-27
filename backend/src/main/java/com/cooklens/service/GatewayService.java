@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class GatewayService {
+    private static final double MIN_VISION_CONFIDENCE = 0.65;
     private final RuntimeContract contract;
     private final VisionClient vision;
     private final RecipesClient recipes;
@@ -42,7 +43,7 @@ public class GatewayService {
             sum += p.confidence(); previous = p;
         }
         contract.require(sum <= 1.000001);
-        if (result.predictions().get(0).confidence() < 0.5) {
+        if (result.predictions().get(0).confidence() < MIN_VISION_CONFIDENCE) {
             throw new ApiFailure(422, "LOW_CONFIDENCE_PREDICTION");
         }
         return new PredictionResponse(contract.apiVersion, id, result.modelVersion(), result.taxonomyVersion(), result.predictions());

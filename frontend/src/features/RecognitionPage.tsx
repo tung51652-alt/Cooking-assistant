@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CheckSquare, PencilSimple, WarningCircle } from '@phosphor-icons/react';
 import type { Dish, Prediction, SelectedImage } from '../types';
+import { MIN_VISION_CONFIDENCE } from '../../../packages/cooklens-api';
 import DishCatalogPicker from './DishCatalogPicker';
 
 interface Props {
@@ -17,7 +18,7 @@ interface Props {
 }
 
 export default function RecognitionPage({ image, predictions, chosen, dishes, busy, onChoose, onConfirm, onConfirmDish, onEdit, onUpload }: Props) {
-  const lowConfidence = predictions.length > 0 && predictions[0].confidence < 0.5;
+  const lowConfidence = predictions.length > 0 && predictions[0].confidence < MIN_VISION_CONFIDENCE;
   const formatConfidence = (value: number) => new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(value * 100);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const predictionKey = predictions.map(item => `${item.class_id}:${item.confidence}`).join(',');
@@ -39,7 +40,7 @@ export default function RecognitionPage({ image, predictions, chosen, dishes, bu
     </label>;
   }
   return <section className="section" aria-labelledby="recognition-title">
-    <div className="section-title"><h1 id="recognition-title">Kết quả nhận diện</h1><p>{lowConfidence ? 'Ảnh chưa đạt độ rõ hoặc độ tin cậy tối thiểu để gợi ý món.' : 'Ba gợi ý từ ảnh của bạn. Hãy chọn món đúng để tìm công thức.'}</p></div>
+    <div className="section-title"><h1 id="recognition-title">Kết quả nhận diện</h1><p>{lowConfidence ? 'CookLens chưa đủ tự tin để gợi ý món từ ảnh này.' : 'Ba gợi ý từ ảnh của bạn. Hãy chọn món đúng để tìm công thức.'}</p></div>
     {predictions.length === 0 ? <>
       <div className="empty-state">
         <h2>Chưa có kết quả nhận diện</h2><p>Hãy tải ảnh và nhấn “Nhận diện món”, hoặc chọn món trực tiếp từ danh mục 30 món Việt.</p>
@@ -55,8 +56,8 @@ export default function RecognitionPage({ image, predictions, chosen, dishes, bu
         <div className="vision-warning-copy">
           <WarningCircle size={28} aria-hidden="true" />
           <div>
-            <h2>Ảnh có vấn đề hoặc không nhận diện được món ăn</h2>
-            <p>Độ tin cậy cao nhất chỉ đạt {formatConfidence(predictions[0].confidence)}% (dưới ngưỡng 50%). Ảnh có thể bị mờ, thiếu sáng, chứa nhiều vật thể hoặc không thuộc 30 món Việt hỗ trợ. Bạn có thể tải ảnh khác hoặc chọn món thủ công từ danh mục.</p>
+            <h2>Chưa xác định được món</h2>
+            <p>Hãy thử ảnh khác hoặc chọn món theo tên trong danh mục 30 món Việt.</p>
           </div>
         </div>
         <div className="vision-warning-actions">
@@ -68,7 +69,7 @@ export default function RecognitionPage({ image, predictions, chosen, dishes, bu
     </> : <>
       {image && <div className="recognition-photo"><img src={image.url} alt="Ảnh món ăn đang nhận diện" /><span>{image.file.name}</span><button className="text-btn" onClick={onUpload}>Đổi ảnh</button></div>}
       <div className="recognition-container" role="radiogroup" aria-label="Chọn món từ ba gợi ý">
-        <div className="result-card"><h2>Món ăn được nhận diện</h2><div id="mainResult">{candidate(predictions[0])}</div><p className="muted" id="confidence">Độ tin cậy của mô hình, không phải xác nhận món ăn.</p></div>
+        <div className="result-card"><h2>Món gợi ý</h2><div id="mainResult">{candidate(predictions[0])}</div><p className="muted" id="confidence">Đây là gợi ý từ ảnh. Hãy chọn món đúng hoặc tìm món theo tên.</p></div>
         <div className="result-card"><h2>Các khả năng khác</h2><div id="topResults" className="top-results">{predictions.slice(1).map(candidate)}</div></div>
       </div>
       <div className="confirmation-panel">
@@ -82,7 +83,7 @@ export default function RecognitionPage({ image, predictions, chosen, dishes, bu
           {dishes.map(item => <option key={item.class_id} value={item.normalized_dish}>{item.display_name}</option>)}
         </select></div>}
       {busy && <p role="status" className="status-text">Đang tải danh mục món ăn…</p>}
-      <p className="privacy-note">Model hỗ trợ 30 món Việt. Ảnh nhiều món hoặc món ngoài danh mục có thể cho kết quả chưa chính xác.</p>
+      <p className="privacy-note">CookLens hỗ trợ 30 món Việt. Ảnh nhiều món hoặc món ngoài danh mục có thể cho kết quả chưa chính xác.</p>
     </>}
   </section>;
 }

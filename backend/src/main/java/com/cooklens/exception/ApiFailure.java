@@ -35,7 +35,7 @@ public class ApiFailure extends RuntimeException {
             case "ASSISTANT_NOT_CONFIGURED" -> "Hỏi đáp chưa được cấu hình. Bạn vẫn có thể điều khiển bước nấu.";
             case "INVALID_IMAGE" -> "Không đọc được ảnh. Vui lòng chọn ảnh JPG hoặc PNG hợp lệ.";
             case "IMAGE_BLURRY" -> "Ảnh bị mờ, không đủ rõ nét để nhận diện món ăn. Vui lòng chụp hoặc chọn ảnh rõ nét hơn.";
-            case "LOW_CONFIDENCE_PREDICTION" -> "Ảnh có vấn đề hoặc không nhận diện được món ăn Việt phù hợp (độ tin cậy dưới 50%). Vui lòng chọn ảnh món ăn rõ nét hơn.";
+            case "LOW_CONFIDENCE_PREDICTION" -> "Chưa xác định được món từ ảnh này. Hãy chọn ảnh khác hoặc chọn món theo tên.";
             case "UPLOAD_TOO_LARGE" -> "Yêu cầu vượt quá giới hạn dung lượng.";
             case "UNSUPPORTED_MEDIA_TYPE" -> "Định dạng yêu cầu không được hỗ trợ.";
             case "INVALID_DISH" -> "Món ăn không thuộc danh mục hỗ trợ.";

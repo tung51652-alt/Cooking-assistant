@@ -39,7 +39,9 @@ File ≤10 MiB, multipart body ≤11 MiB, ảnh ≤25 triệu pixel, một frame
 Mỗi prediction có `rank`, `class_id`, `normalized_dish`, `display_name`, `confidence`.
 Sort confidence giảm dần, tie-break class ID tăng dần; không trùng class.
 Confidence lấy từ softmax toàn bộ 30 lớp, không chuẩn hóa lại Top-3; tổng ≤1 với sai số 1e-6.
-UI luôn yêu cầu xác nhận/sửa, không dùng threshold để tự chọn hoặc tuyên bố phát hiện ngoài miền.
+Nếu confidence cao nhất dưới 65%, API trả 422 `LOW_CONFIDENCE_PREDICTION`.
+UI yêu cầu xác nhận món khi có gợi ý và cho phép chọn ảnh khác hoặc tra món theo tên khi ảnh bị từ chối.
+Điểm softmax thể hiện độ tin cậy của gợi ý trong 30 lớp món thuộc danh mục.
 
 ## Truy xuất công thức
 

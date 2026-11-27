@@ -63,14 +63,29 @@ for (const [name, variable] of [['out-of-domain', 'COOKLENS_OOD_IMAGE'], ['multi
   test(`${name} photo keeps model limitations and explicit confirmation`, async ({ page }) => {
     test.skip(!process.env[variable], 'External acceptance photo supplied only by the acceptance runner');
     await recognize(page, process.env[variable]!);
-    await expect(page.locator('.privacy-note')).toContainText('Model hỗ trợ 30 món Việt');
+    await expect(page.locator('.privacy-note')).toContainText('CookLens hỗ trợ 30 món Việt');
     await expect(page.locator('.privacy-note')).toContainText('ngoài danh mục');
-    await expect(page.locator('#confidence')).toContainText('không phải xác nhận món ăn');
+    await expect(page.locator('#confidence')).toContainText('Đây là gợi ý từ ảnh');
     await expect(page.locator('#confirmButton')).toBeDisabled();
     await page.getByRole('button', { name: 'Sửa món trong danh mục' }).click();
     await expect(page.locator('#dishSelect option')).toHaveCount(31);
   });
 }
+
+test('the #49 lightbulb photo is rejected and offers manual dish selection', async ({ page }) => {
+  const imagePath = process.env.COOKLENS_LIGHTBULB_IMAGE;
+  test.skip(!imagePath, 'The Ubuntu wallpaper is supplied by the acceptance runner');
+  await page.goto('/');
+  await page.locator('#imageInput').setInputFiles(imagePath!);
+  const response = page.waitForResponse(r => r.url().endsWith('/api/vision/predict') && r.request().method() === 'POST');
+  await page.locator('#predictBtn').click();
+  const result = await response;
+  expect(result.status()).toBe(422);
+  expect((await result.json()).code).toBe('LOW_CONFIDENCE_PREDICTION');
+  await expect(page.getByRole('alert')).toContainText('Chưa xác định được món');
+  await page.getByRole('button', { name: 'Chọn món từ danh mục' }).click();
+  await expect(page.getByRole('group', { name: 'Danh mục 30 món Việt' })).toBeVisible();
+});
 
 test('real assistant photo to chat, cooking controls, reload and finish', async ({ page }, info) => {
   test.skip(process.env.COOKLENS_REAL_ASSISTANT !== '1', 'Requires the Phase 10/11 candidate and a backend LLM key');
