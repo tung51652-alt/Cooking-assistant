@@ -77,6 +77,65 @@ class CorpusTests(unittest.TestCase):
         ingredient.update(quantity=None, unit=None, note="Theo khẩu vị; nguồn không định lượng.")
         validate([recipe], self.taxonomy)
 
+    def test_reject_editorial_text_in_cooking_fields(self):
+        marker = 'Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi.'
+        for value in [marker, 'Ghi chú nội bộ: giữ nguyên dữ liệu.',
+                      'GHI CHÚ BIÊN TẬP: chưa chuẩn hóa.',
+                      'Giữ nguyên định lượng\n và lựa chọn theo nguồn.']:
+            for field in ['title', 'name', 'note', 'unit', 'text', 'tags']:
+                recipe = copy.deepcopy(self.recipes[0])
+                if field == 'text':
+                    recipe['instructions'][0][field] = value
+                elif field == 'title':
+                    recipe[field] = value
+                elif field == 'tags':
+                    recipe[field] = [value]
+                else:
+                    recipe['ingredients'][0][field] = value
+                with self.subTest(field=field, value=value), self.assertRaisesRegex(
+                        ValueError, 'editorial text belongs in source.modifications'):
+                    validate([recipe], self.taxonomy)
+        recipe = copy.deepcopy(self.recipes[0])
+        recipe['source']['modifications'] += ' ' + marker
+        validate([recipe], self.taxonomy)
+
+    def test_reject_untranslated_source_terms(self):
+        for value in ['Hầm Suppenhühner cho mềm.', 'Chiên SEMMELWÜRFEL vàng.']:
+            for field in ['name', 'note', 'text']:
+                recipe = copy.deepcopy(self.recipes[0])
+                target = recipe['instructions'][0] if field == 'text' else recipe['ingredients'][0]
+                target[field] = value
+                with self.subTest(field=field, value=value), self.assertRaisesRegex(
+                        ValueError, 'untranslated source term'):
+                    validate([recipe], self.taxonomy)
+
+    def test_reject_appliance_specific_heat_settings(self):
+        for value in ['Giảm nhỏ lửa (khoảng số 3 hoặc 4).',
+                      'Bắc lên bếp để lửa nhỏ (số 3 hoặc 4) quậy đều.',
+                      'Để bếp ở mức 4.', 'Đun ở nấc nhiệt 3.']:
+            recipe = copy.deepcopy(self.recipes[0])
+            recipe['instructions'][0]['text'] = value
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, 'descriptive heat'):
+                validate([recipe], self.taxonomy)
+        for value in ['Đun lửa nhỏ khoảng 3 hoặc 4 phút.',
+                      'Hấp 15 phút; quay lò vi sóng 600W.',
+                      'Làm tiếp bước số 3, cho 4 quả trứng vào bát.']:
+            recipe = copy.deepcopy(self.recipes[0])
+            recipe['instructions'][0]['text'] = value
+            with self.subTest(value=value):
+                validate([recipe], self.taxonomy)
+
+    def test_localized_source_instructions_keep_cooking_details(self):
+        recipes = {r['id']: r for r in self.recipes}
+        pho = recipes['wb_pho_ga']['instructions'][1]['text']
+        self.assertIn('giảm xuống lửa nhỏ', pho)
+        self.assertIn('khoảng ba tiếng đối với gà mái già (gà nấu súp)', pho)
+        batter = recipes['wb_banh_bot_loc_hue']['instructions'][2]['text']
+        self.assertIn('lửa nhỏ', batter)
+        self.assertIn('đến khi thấy hơi nặng tay', batter)
+        bread = recipes['wb_banh_beo_chen']['instructions'][3]['text']
+        self.assertIn('bánh mì khô cắt hạt lựu vào và chiên vàng', bread)
+
     def test_bun_dau_amounts_and_verified_servings(self):
         recipe = next(r for r in self.recipes if r['id'] == 'wb_bun_dau_mam_tom')
         ingredients = {i['name']: i for i in recipe['ingredients']}

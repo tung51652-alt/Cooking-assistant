@@ -1925,7 +1925,7 @@
       },
       {
         "step": 4,
-        "text": "Bánh mì chiên: Cho 3 muỗng canh dầu ăn vào 1 chảo dầu, dầu nóng, cho bánh mì khô cắt hạt lựu (Semmelwürfel) (bánh mì khô) vào và chiên vàng. Bánh mì chiên xong để lên giấy cho thấm bớt dầu.",
+        "text": "Bánh mì chiên: Cho 3 muỗng canh dầu ăn vào 1 chảo dầu, dầu nóng, cho bánh mì khô cắt hạt lựu vào và chiên vàng. Bánh mì chiên xong để lên giấy cho thấm bớt dầu.",
         "duration_minutes": null
       },
       {
@@ -1960,10 +1960,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_bèo_chén?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_bèo_chén&oldid=243178",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: Việt hóa thuật ngữ còn sót và bỏ số mức bếp, giữ mô tả lửa nhỏ cùng các mốc thời gian của nguồn."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_banh_bot_loc",
@@ -1997,7 +1997,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Dầu ăn",
@@ -2005,7 +2005,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Hành lá",
@@ -2013,7 +2013,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Nước sôi",
@@ -2062,10 +2062,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_bột_lọc?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_bột_lọc&oldid=246726",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null. Nguồn ghi tổng thời gian 45 phút; không dùng tổng thời gian làm thời gian nấu."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null. Nguồn ghi tổng thời gian 45 phút; không dùng tổng thời gian làm thời gian nấu. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_banh_bot_loc_hue",
@@ -2115,7 +2115,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Dầu ăn, dầu điều, lá chuối",
@@ -2123,7 +2123,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Hành tím dùng ướp nhân",
@@ -2147,7 +2147,7 @@
       },
       {
         "step": 3,
-        "text": "Phần vỏ bánh: cho 2 chén bột năng, 2 chén nước, 1/2 muỗng cà phê muối và 2 muỗng canh dầu ăn vào nồi (phần dầu ăn rất quan trọng, nếu không có dầu dầu ăn thì khi gói bánh rất khó, sẽ bị dính) khuấy đều cho tan bột, bắc lên bếp để lửa nhỏ (số 3 hoặc 4) quậy đều tay, đến khi thấy hơi nặng tay thì nhấc ra khỏi bếp, quậy thêm vài vòng.",
+        "text": "Phần vỏ bánh: cho 2 chén bột năng, 2 chén nước, 1/2 muỗng cà phê muối và 2 muỗng canh dầu ăn vào nồi (phần dầu ăn rất quan trọng, nếu không có dầu dầu ăn thì khi gói bánh rất khó, sẽ bị dính) khuấy đều cho tan bột, bắc lên bếp để lửa nhỏ quậy đều tay, đến khi thấy hơi nặng tay thì nhấc ra khỏi bếp, quậy thêm vài vòng.",
         "duration_minutes": null
       },
       {
@@ -2172,10 +2172,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_bột_lọc_Huế?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_bột_lọc_Huế&oldid=241488",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi. Ngày 2026-11-27: Việt hóa thuật ngữ còn sót và bỏ số mức bếp, giữ mô tả lửa nhỏ cùng các mốc thời gian của nguồn."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_banh_canh_ca",
@@ -2201,7 +2201,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Xương heo",
@@ -2225,7 +2225,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Hành ngò",
@@ -2233,7 +2233,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Gia vị nêm nếm: nước mắm ngon, muối, hạt nêm từ thịt, hạt tiêu",
@@ -2241,7 +2241,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Dầu ăn và đường phèn theo bước làm",
@@ -2300,10 +2300,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_canh_cá?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_canh_cá&oldid=243943",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_banh_canh_cua",
@@ -2361,7 +2361,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Hành tây",
@@ -2393,7 +2393,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Dầu ăn, nước mắm và hành lá theo bước làm",
@@ -2467,10 +2467,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_canh_cua?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_canh_cua&oldid=243158",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_banh_chung_goi_la_chuoi",
@@ -2568,7 +2568,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       }
     ],
     "instructions": [
@@ -2624,10 +2624,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://en.wikibooks.org/wiki/Cookbook:Bánh_chưng?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Bánh_chưng&oldid=4632245",
-      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_banh_duc_nong",
@@ -2758,7 +2758,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Muối, nước, giấm dừa hoặc giấm trắng, đường",
@@ -2766,7 +2766,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Rau mùi, ớt thái mỏng, dưa leo",
@@ -2774,7 +2774,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Nhân chín tùy chọn: thịt heo nướng, gà nướng, pa-tê, giò hoặc đậu phụ đã nêm",
@@ -2782,7 +2782,7 @@
         "quantity": null,
         "unit": null,
         "optional": true,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Xốt mayonnaise hoặc xốt tùy chọn trong nguồn",
@@ -2790,7 +2790,7 @@
         "quantity": null,
         "unit": null,
         "optional": true,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       }
     ],
     "instructions": [
@@ -2826,10 +2826,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://en.wikibooks.org/wiki/Cookbook:Bánh_Mì?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Bánh_Mì&oldid=4605959",
-      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_banh_tet_ngu_sac",
@@ -2903,7 +2903,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Muối bọt",
@@ -2985,10 +2985,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bánh_tét_ngũ_sắc?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bánh_tét_ngũ_sắc&oldid=243121",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bỏ hướng dẫn dùng ni lông khi luộc và tuyên bố bảo quản ở nhiệt độ phòng chưa kiểm chứng. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_bun_bo_hue",
@@ -3126,7 +3126,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Bún lớn",
@@ -3226,10 +3226,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_bò_Huế?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bún_bò_Huế&oldid=394104",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null. Nguồn ghi tổng thời gian 60 phút; không dùng tổng thời gian làm thời gian nấu."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null. Nguồn ghi tổng thời gian 60 phút; không dùng tổng thời gian làm thời gian nấu. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_bun_dau_mam_tom",
@@ -3279,7 +3279,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Mắm tôm",
@@ -3295,7 +3295,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Đường",
@@ -3391,10 +3391,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_đậu_mắm_tôm?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bún_đậu_mắm_tôm&oldid=336570",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null. Nguồn ghi tổng thời gian 120 phút; không dùng tổng thời gian làm thời gian nấu."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null. Nguồn ghi tổng thời gian 120 phút; không dùng tổng thời gian làm thời gian nấu. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_bun_mam",
@@ -3672,7 +3672,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Bún",
@@ -3688,7 +3688,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Hành lá",
@@ -3696,7 +3696,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Rau sống các loại (rau muống chẻ, xà lách, tía tô, kinh giới …)",
@@ -3704,7 +3704,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Gia vị nêm nếm và dầu chiên theo bước làm",
@@ -3793,10 +3793,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Bún_riêu_cua?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Bún_riêu_cua&oldid=243272",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_ca_kho_to",
@@ -3822,7 +3822,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       }
     ],
     "instructions": [
@@ -3883,10 +3883,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Cá_kho_tộ?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Cá_kho_tộ&oldid=152283",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_canh_chua_ca_voi_mang_va_dua",
@@ -3936,7 +3936,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Nước",
@@ -4020,10 +4020,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://en.wikibooks.org/wiki/Cookbook:Canh_Chua_(Vietnamese_Hot_and_Sour_Soup)?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Canh_Chua_(Vietnamese_Hot_and_Sour_Soup)&oldid=4629675",
-      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_canh_chua_ga_nau_la_giang",
@@ -4239,7 +4239,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Tương ớt Hội An",
@@ -4247,7 +4247,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Gia vị: dầu ăn, nước mắm, muối, bột ngọt, tiêu, hành tím",
@@ -4255,7 +4255,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Nước hầm xương",
@@ -4315,10 +4315,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Cao_lầu_Hội_An?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Cao_lầu_Hội_An&oldid=243301",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null. Nguồn ghi tổng thời gian 35 phút; không dùng tổng thời gian làm thời gian nấu."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null. Nguồn ghi tổng thời gian 35 phút; không dùng tổng thời gian làm thời gian nấu. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_com_tam",
@@ -4400,7 +4400,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Nước mắm và đồ chua dùng kèm theo bước làm",
@@ -4449,10 +4449,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Cơm_tấm?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Cơm_tấm&oldid=244215",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_goi_cuon_tom_thit",
@@ -4526,7 +4526,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Nước ấm",
@@ -4534,7 +4534,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       }
     ],
     "instructions": [
@@ -4575,10 +4575,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://en.wikibooks.org/wiki/Cookbook:Summer_Rolls?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Summer_Rolls&oldid=4630369",
-      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần 4 người từ bảng thông tin nguồn, đối chiếu ngày 2026-11-26; nguồn chỉ ghi tổng thời gian 15 phút, không tách chuẩn bị/nấu."
+      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần 4 người từ bảng thông tin nguồn, đối chiếu ngày 2026-11-26; nguồn chỉ ghi tổng thời gian 15 phút, không tách chuẩn bị/nấu. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_hu_tieu_nam_vang",
@@ -4668,7 +4668,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Rau ăn kèm: giá, hẹ, cần, xà lách",
@@ -4676,7 +4676,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Gia vị nêm nếm: muối, hạt nêm, tiêu",
@@ -4684,7 +4684,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Đường phèn, hành tây, dầu ăn, rượu trắng, gừng và tỏi theo bước làm",
@@ -4763,10 +4763,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Hủ_tiếu_Nam_Vang?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Hủ_tiếu_Nam_Vang&oldid=152690",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_pho_bo_ninh_xuong",
@@ -4856,7 +4856,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Thịt thăn bò thái thật mỏng",
@@ -4864,7 +4864,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Hành tây thái, hành lá và rau mùi",
@@ -4872,7 +4872,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Ớt, giá, chanh, húng quế, nước mắm, tương ớt hoặc tương đen tùy chọn",
@@ -4880,7 +4880,7 @@
         "quantity": null,
         "unit": null,
         "optional": true,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Tỏi dùng trong bước ninh của nguồn; không có định lượng",
@@ -4888,7 +4888,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       }
     ],
     "instructions": [
@@ -4929,10 +4929,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://en.wikibooks.org/wiki/Cookbook:Phở_Bò_(Vietnamese_Beef_Noodle_Soup)?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Phở_Bò_(Vietnamese_Beef_Noodle_Soup)&oldid=4518483",
-      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi."
+      "modifications": "Dịch sang tiếng Việt và chuẩn hóa cấu trúc; không nhập ảnh. Định lượng gốc giữ trong tên nguyên liệu; trường số để null khi chưa chuẩn hóa. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_pho_ga",
@@ -4966,7 +4966,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Củ hành tây",
@@ -4974,7 +4974,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Hành lá",
@@ -4982,7 +4982,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Gừng",
@@ -4990,7 +4990,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Giá",
@@ -4998,7 +4998,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       },
       {
         "name": "Gia vị nêm nếm: đường phèn, muối, hạt nêm từ thịt",
@@ -5006,7 +5006,7 @@
         "quantity": null,
         "unit": null,
         "optional": false,
-        "note": "Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi."
+        "note": null
       }
     ],
     "instructions": [
@@ -5017,7 +5017,7 @@
       },
       {
         "step": 2,
-        "text": "Gà rã đông cho vào nồi đổ nước lạnh ngập, nêm muối, đường phèn đun với lửa lớn cho sôi bùng thì vớt bọt, bỏ gừng + hành tây đã nướng vào giảm nhỏ lửa (khoảng số 3 hoặc 4), hầm gà cho mềm khoảng ba tiếng đối với Suppenhühner.",
+        "text": "Gà rã đông cho vào nồi đổ nước lạnh ngập, nêm muối, đường phèn đun với lửa lớn cho sôi bùng thì vớt bọt, bỏ gừng + hành tây đã nướng vào giảm xuống lửa nhỏ, hầm gà cho mềm khoảng ba tiếng đối với gà mái già (gà nấu súp).",
         "duration_minutes": null
       },
       {
@@ -5052,10 +5052,10 @@
       "retrieved_at": "2026-10-19",
       "attribution": "Wikibooks contributors; authors and contribution history: https://vi.wikibooks.org/wiki/Nấu_ăn:Phở_gà?action=history; license: https://creativecommons.org/licenses/by-sa/4.0/",
       "revision_url": "https://vi.wikibooks.org/w/index.php?title=Nấu_ăn:Phở_gà&oldid=243125",
-      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null."
+      "modifications": "Chuẩn hóa văn bản và thứ tự bước; tách định lượng rõ ràng khỏi tên nguyên liệu, không nhập ảnh. Các trường thời gian/khẩu phần chưa xác thực để null. Bổ sung vào danh sách các nguyên liệu đã có trong bước làm, giữ null nếu thiếu lượng. Chưa nấu kiểm chứng. Ngày 2026-11-26: chuẩn hóa tên, dấu câu và đơn vị tiếng Việt; tách các nguyên liệu gộp có lượng riêng; giữ khoảng lượng và lựa chọn thay thế trong ghi chú, không suy đoán quy đổi. Bổ sung khẩu phần từ bảng thông tin của nguồn, đối chiếu ngày 2026-11-26; nguồn không tách thời gian chuẩn bị/nấu nên hai trường này vẫn null. Ngày 2026-11-27: chuyển ghi chú biên tập khỏi nguyên liệu sang thông tin nguồn. Giữ nguyên định lượng và lựa chọn theo nguồn; không suy đoán hoặc quy đổi. Ngày 2026-11-27: Việt hóa thuật ngữ còn sót và bỏ số mức bếp, giữ mô tả lửa nhỏ cùng các mốc thời gian của nguồn."
     },
     "created_at": "2026-10-19",
-    "updated_at": "2026-11-26"
+    "updated_at": "2026-11-27"
   },
   {
     "id": "wb_banh_mi_ca_moi",

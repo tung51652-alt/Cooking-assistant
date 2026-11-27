@@ -38,12 +38,33 @@ class ChatContextBuilderTest {
             assertEquals(recipe.id(),data.path("recipe_id").asText()); assertEquals(recipe.updatedAt(),data.path("recipe_version").asText());
             assertEquals(1,data.path("current_step").asInt()); assertEquals("cooking",data.path("status").asText());
             assertEquals(recipe.instructions().getFirst().text(),data.path("current_instruction").path("text").asText());
-            JsonNode expected=mapper.valueToTree(recipe);
+            ObjectNode expected=mapper.valueToTree(recipe);
+            ((ObjectNode)expected.path("source")).remove("modifications");
             assertTrue(expected.equals((left,right) -> left.isNumber() && right.isNumber()
                     ? left.decimalValue().compareTo(right.decimalValue()) : (left.equals(right) ? 0 : 1),data.path("recipe")),recipe.id());
             assertFalse(content.contains(key)); assertFalse(content.contains(session.id())); assertFalse(content.contains("data:image"));
             ChatPromptLimits.validate(prompt,6000);
         }
+    }
+    @Test void excludesEditorialNotesButKeepsCookingNotesAndAttribution() throws Exception {
+        var pho=recipes.stream().filter(recipe -> recipe.id().equals("wb_pho_ga")).findFirst().orElseThrow();
+        ObjectNode document=mapper.valueToTree(pho);
+        String editorial="EDITORIAL_ONLY_SENTINEL";
+        ((ObjectNode)document.path("source")).put("modifications",editorial);
+        ((ObjectNode)document.path("ingredients").get(0)).put("note","Theo khẩu vị.");
+        var recipe=mapper.treeToValue(document,Recipe.class);
+        var prompt=builder("6000").build(session(recipe,List.of()),"Giải thích nguyên liệu và bước 2.");
+        String content=prompt.messages().get(1).text();
+        var data=mapper.readTree(content.substring(content.indexOf('{'))).path("recipe");
+        assertFalse(content.contains(editorial));
+        assertFalse(data.path("source").has("modifications"));
+        assertEquals(document.path("source").path("attribution"),data.path("source").path("attribution"));
+        assertEquals("Theo khẩu vị.",data.path("ingredients").get(0).path("note").asText());
+        String step=data.path("instructions").get(1).path("text").asText();
+        assertTrue(step.contains("gà mái già (gà nấu súp)"));
+        assertFalse(step.contains("Suppenhühner"));
+        assertFalse(step.contains("số 3 hoặc 4"));
+        assertEquals(editorial,recipe.source().modifications());
     }
     @Test void keepsLatestSixPairsAndDropsWholeOldPairsWhenHistoryIsTooLarge() {
         var history=new ArrayList<Message>();

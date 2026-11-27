@@ -7,6 +7,7 @@ import com.cooklens.config.LlmSettings;
 import com.cooklens.dto.AssistantModels.Session;
 import com.cooklens.exception.ApiFailure;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.core.JsonGenerator;
 import java.util.*;
 import org.springframework.stereotype.Component;
@@ -49,7 +50,10 @@ public final class ChatContextBuilder {
             data.put("current_step",session.currentStep()); data.put("total_steps",session.totalSteps());
             data.set("current_instruction",mapper.valueToTree(session.recipe().instructions().stream()
                     .filter(step -> step.step()==session.currentStep()).findFirst().orElse(null)));
-            data.set("recipe",mapper.valueToTree(session.recipe()));
+            ObjectNode recipe=mapper.valueToTree(session.recipe());
+            // Editorial provenance is not cooking guidance for the assistant.
+            ((ObjectNode)recipe.path("source")).remove("modifications");
+            data.set("recipe",recipe);
             context="Dữ liệu công thức và state từ server (JSON):\n"+mapper.writeValueAsString(data);
         } catch (java.io.IOException e) { throw new ApiFailure(503,"ASSISTANT_STORAGE_UNAVAILABLE"); }
         var history=new ArrayList<ChatProvider.Message>();
