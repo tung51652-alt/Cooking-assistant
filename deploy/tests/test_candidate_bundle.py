@@ -36,7 +36,7 @@ class CandidateBundleTests(unittest.TestCase):
         prepared, _ = candidate_config(config)
         environment = prepared['services']['backend']['environment']
         self.assertEqual(environment['LLM_API_KEY'], '${LLM_API_KEY:-}')
-        self.assertEqual(environment['LLM_MODEL'], '${LLM_MODEL:-gemini-3.1-flash-lite}')
+        self.assertEqual(environment['LLM_MODEL'], '${LLM_MODEL:-gemini-3.5-flash-lite}')
         self.assertEqual(config['services']['backend']['environment'], {'LLM_API_KEY': ''})
 
     def test_port_override_and_project_isolation_survive_packaging(self):
