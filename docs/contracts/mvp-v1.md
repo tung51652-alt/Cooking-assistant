@@ -24,6 +24,7 @@ Nguồn schema: Spring controller/DTO sinh OpenAPI tại `/v3/api-docs`; Swagger
 | `GET /api/dishes` | Không có body | `taxonomy_version`, `dishes[30]`, theo class ID |
 | `POST /api/recipes/search` | `confirmed_dish`, `top_k` 1–3 (mặc định 3), `query` tùy chọn | Version corpus/embedding/taxonomy, món xác nhận và `recipes[]` |
 | `GET /api/recipes/{id}` | ID `[a-z0-9][a-z0-9_-]{0,79}` | `corpus_version`, `recipe` |
+| `POST /api/assistant/transcriptions` | Multipart đúng một trường `file` âm thanh | `text` tiếng Việt để điền vào bản nháp |
 | `GET /api/health` | Không có body | `status: "ready"` và trạng thái/version vision, recipes |
 
 Các kết quả trên đều có public envelope. Ví dụ tìm công thức:
@@ -63,6 +64,26 @@ Connect timeout 2 s; upstream vision 15 s, recipes 5 s; client predict 25 s,
 search/detail 10 s. Không tự retry upload POST; người dùng chủ động thử lại.
 Health không chạy inference, deadline tổng 2 s; gateway cache dependency tối đa 1 s.
 Health trả 503 `not_ready` khi dependency/version không phù hợp; không lộ URL/config nội bộ.
+
+## Nhập giọng nói
+
+`POST /api/assistant/transcriptions` nhận một file WAV, WebM hoặc MP4/M4A có luồng âm thanh.
+MIME hỗ trợ gồm `audio/wav`, `audio/x-wav`, `audio/webm`, `audio/mp4`, `audio/m4a` và `audio/x-m4a`.
+File tối đa 512 KiB, multipart body tối đa 576 KiB và thời lượng giải mã tối đa 15 giây.
+Gateway xử lý tối đa một yêu cầu chuyển giọng nói đồng thời.
+Thành công trả HTTP 200 với `{api_version, request_id, text}` và header `X-Request-ID` khớp envelope.
+`text` là chuỗi khác rỗng, tối đa 2.000 UTF-16 code units.
+Bản ghi được dùng tạm thời để nhận chữ và response dùng `Cache-Control: no-store`.
+Client đưa chữ vào bản nháp, rồi người dùng chủ động gửi qua API messages của phiên hiện tại.
+
+| HTTP | Code |
+| --- | --- |
+| 400 | `INVALID_AUDIO` |
+| 413 | `UPLOAD_TOO_LARGE`, `AUDIO_TOO_LONG` |
+| 415 | `UNSUPPORTED_MEDIA_TYPE` |
+| 422 | `VALIDATION_ERROR`, `NO_SPEECH_DETECTED` |
+| 503 | `DEPENDENCY_NOT_READY`, `SERVICE_BUSY` |
+| 504 | `DEPENDENCY_TIMEOUT` |
 
 ## Lỗi
 

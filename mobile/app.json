@@ -13,11 +13,17 @@
         "expo-image-picker",
         {
           "cameraPermission": "CookLens cần camera để chụp ảnh món ăn bạn muốn nhận diện.",
-          "photosPermission": "CookLens cần chọn ảnh món ăn từ thư viện của bạn.",
-          "microphonePermission": false
+          "photosPermission": "CookLens cần chọn ảnh món ăn từ thư viện của bạn."
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "CookLens cần mic để chuyển lời nói của bạn thành câu hỏi.",
+          "enableBackgroundPlayback": false
+        }
+      ]
     ]
   }
 }

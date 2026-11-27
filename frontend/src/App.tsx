@@ -8,6 +8,7 @@ import { loadConfirmedDish, saveConfirmedDish } from './lib/recipeContext';
 import UploadPage from './features/UploadPage';
 import RecognitionPage from './features/RecognitionPage';
 import RecipePage from './features/RecipePage';
+import RecipeConversation from './features/RecipeConversation';
 import AssistantPage from './features/AssistantPage';
 import LlmSettingsModal from './features/LlmSettingsModal';
 
@@ -19,6 +20,7 @@ function currentView(): View {
 
 export default function App() {
   const [view, setView] = useState<View>(currentView);
+  const [chatRoute, setChatRoute] = useState(() => history.state?.recipeConversation === true);
   const [image, setImage] = useState<SelectedImage | null>(null);
   const imageRef = useRef<SelectedImage | null>(null);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
@@ -38,6 +40,7 @@ export default function App() {
   const [llmModalInitialMode, setLlmModalInitialMode] = useState<'default' | 'custom' | undefined>(undefined);
   const request = useRef<AbortController | null>(null);
   const main = useRef<HTMLElement>(null);
+  const conversation = view === 'assistant' && chatRoute && !!confirmed && !assistantDocument;
   const previousPage = useRef({ view, recipeId: detail?.id });
 
   function openLlmModal(mode?: 'default' | 'custom') {
@@ -46,7 +49,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    const pop = () => { cancel(); setError(null); setErrorCode(null); setCatalogOpen(false); if (currentView() === 'assistant') setAssistantDocument(null); setView(currentView()); };
+    const pop = () => { cancel(); setError(null); setErrorCode(null); setCatalogOpen(false); if (currentView() === 'assistant') setAssistantDocument(null); setChatRoute(history.state?.recipeConversation === true); setView(currentView()); };
     window.addEventListener('popstate', pop);
     return () => { window.removeEventListener('popstate', pop); request.current?.abort(); };
   }, []);
@@ -63,17 +66,19 @@ export default function App() {
   useEffect(() => {
     // Reloaded tabs have a confirmed dish but no cached recipe list.
     // Retry failures only through the existing search button.
-    if (view === 'recipes' && confirmed && recipes === null && !detail && !busy) {
+    if ((view === 'recipes' || conversation) && confirmed && recipes === null && !catalogOpen && !detail && !busy) {
       void run('search', async signal => {
         const result = await api.searchRecipes(confirmed.normalized_dish, signal);
         if (!signal.aborted) setRecipes(result);
       });
     }
-  }, [view, confirmed]);
+  }, [view, confirmed, conversation]);
 
-  function navigate(next: View) {
-    if (location.pathname !== routes[next]) history.pushState(null, '', routes[next]);
-    setView(next);
+  function navigate(next: View, recipeConversation = false) {
+    if (location.pathname !== routes[next] || chatRoute !== recipeConversation) {
+      history.pushState({ recipeConversation }, '', routes[next]);
+    }
+    setChatRoute(recipeConversation); setView(next);
   }
   function link(event: MouseEvent<HTMLAnchorElement>, next: View) {
     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
@@ -124,10 +129,12 @@ export default function App() {
     cancel(); setError(null); setErrorCode(null); setCatalogOpen(true); navigate('recipes');
     void editDish();
   }
-  async function findRecipes(dish: Dish | null = chosen, query = '') {
+  async function findRecipes(dish: Dish | null = chosen, query = '', target: 'assistant' | 'recipes' = 'assistant') {
     if (!dish) return;
     setCatalogOpen(false);
-    setConfirmed(dish); setRecipes(null); setDetail(null); setRecipeDocument(null); navigate('recipes');
+    if (target === 'recipes' || dish.normalized_dish !== confirmed?.normalized_dish) setRecipes(null);
+    setConfirmed(dish); setChosen(dish); setDetail(null); setRecipeDocument(null); setAssistantDocument(null);
+    navigate(target, target === 'assistant');
     await run('search', async signal => {
       const result = await api.searchRecipes(dish.normalized_dish, signal, query);
       if (!signal.aborted) setRecipes(result);
@@ -155,15 +162,20 @@ export default function App() {
         <span className="header-note"><BowlFood aria-hidden="true" /> Vị Việt, bếp nhà</span>
       </div>
     </nav></header>
-    <main id="main" ref={main} tabIndex={-1}>
-      {error && view !== 'upload' && <div className="error-message" role="alert"><p>{error}</p><div className="error-actions">
+    <main id="main" className={conversation ? 'conversation-main' : undefined} ref={main} tabIndex={-1}>
+      {error && view !== 'upload' && !conversation && <div className="error-message" role="alert"><p>{error}</p><div className="error-actions">
         {visionIssue && <button type="button" className="secondary-btn" onClick={() => { replaceImage(null); navigate('upload'); }}>Chọn / tải ảnh khác</button>}
         <button className="text-btn" onClick={() => { setError(null); setErrorCode(null); }}>Đóng thông báo</button>
       </div></div>}
       {view === 'upload' && <UploadPage image={image} busy={busy === 'predict'} error={error} visionIssue={visionIssue} onFiles={filesChanged} onRemove={() => replaceImage(null)} onPredict={recognize} onInvalid={invalidImage} onDismissError={() => { setError(null); setErrorCode(null); }} onOpenCatalog={openDishCatalog} />}
-      {view === 'recognition' && <RecognitionPage image={image} predictions={predictions} chosen={chosen} dishes={dishes} busy={busy === 'dishes'} onChoose={choose} onConfirm={() => findRecipes()} onConfirmDish={dish => findRecipes(dish)} onEdit={editDish} onUpload={() => { cancel(); setError(null); setErrorCode(null); navigate('upload'); }} />}
-      {view === 'recipes' && <RecipePage dish={confirmed} dishes={dishes} catalogOpen={catalogOpen} dishesBusy={busy === 'dishes'} recipes={recipes} detail={detail} busy={busy === 'search' ? 'search' : busy === 'detail' ? 'detail' : null} onOpen={openRecipe} onBack={() => { setDetail(null); setRecipeDocument(null); }} onSearch={query => findRecipes(confirmed, query)} onOpenCatalog={openDishCatalog} onCloseCatalog={() => setCatalogOpen(false)} onLoadDishes={editDish} onConfirmDish={dish => findRecipes(dish)} onUpload={() => { cancel(); setError(null); setErrorCode(null); setCatalogOpen(false); navigate('upload'); }} onAssistant={() => { if (recipeDocument) { cancel(); setError(null); setErrorCode(null); setAssistantDocument(recipeDocument); navigate('assistant'); } }} />}
-      {view === 'assistant' && <AssistantPage key={assistantDocument ? `${assistantDocument.recipe.id}:${assistantDocument.corpus_version}` : 'restore'} document={assistantDocument} llmConfig={llmConfig} onOpenLlmSettings={openLlmModal} onRecipes={() => { setAssistantDocument(null); setDetail(null); setRecipeDocument(null); setCatalogOpen(false); navigate('recipes'); }} />}
+      {view === 'recognition' && <RecognitionPage image={image} predictions={predictions} chosen={chosen} dishes={dishes} busy={busy === 'dishes'} onChoose={choose} onConfirm={() => findRecipes()} onConfirmDish={dish => findRecipes(dish, '', image ? 'assistant' : 'recipes')} onEdit={editDish} onUpload={() => { cancel(); setError(null); setErrorCode(null); navigate('upload'); }} />}
+      {view === 'recipes' && <RecipePage dish={confirmed} dishes={dishes} catalogOpen={catalogOpen} dishesBusy={busy === 'dishes'} recipes={recipes} detail={detail} busy={busy === 'search' ? 'search' : busy === 'detail' ? 'detail' : null} onOpen={openRecipe} onBack={() => { setDetail(null); setRecipeDocument(null); }} onSearch={query => findRecipes(confirmed, query, 'recipes')} onOpenCatalog={openDishCatalog} onCloseCatalog={() => setCatalogOpen(false)} onLoadDishes={editDish} onConfirmDish={dish => findRecipes(dish, '', 'recipes')} onUpload={() => { cancel(); setError(null); setErrorCode(null); setCatalogOpen(false); navigate('upload'); }} onAssistant={() => { if (recipeDocument) { cancel(); setError(null); setErrorCode(null); setAssistantDocument(recipeDocument); navigate('assistant'); } }} />}
+      {view === 'assistant' && !conversation && <AssistantPage key={assistantDocument ? `${assistantDocument.recipe.id}:${assistantDocument.corpus_version}` : 'restore'} document={assistantDocument} llmConfig={llmConfig} onOpenLlmSettings={openLlmModal} onRecipes={() => { setAssistantDocument(null); setDetail(null); setRecipeDocument(null); setCatalogOpen(false); navigate('recipes'); }} />}
+      {conversation && confirmed && <RecipeConversation key={confirmed.normalized_dish}
+        dish={confirmed} image={image} recipes={recipes} searching={busy === 'search'} searchError={error} llmConfig={llmConfig}
+        onSearch={query => findRecipes(confirmed, query)} onLlmSettings={openLlmModal}
+        onChangeDish={() => { cancel(); setError(null); setErrorCode(null); navigate('recognition'); }}
+        onNewPhoto={() => { replaceImage(null); navigate('upload'); }} />}
     </main>
     <footer><div className="footer-inner"><a className="footer-brand" href={routes.upload} onClick={event => link(event, 'upload')}><span aria-hidden="true">🍳</span> CookLens</a><span>© {new Date().getFullYear()} CookLens. Từ ảnh món ăn đến công thức của bạn.</span><a href="#main">Về đầu trang <ArrowRight size={16} aria-hidden="true" /></a></div></footer>
     <LlmSettingsModal

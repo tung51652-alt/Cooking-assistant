@@ -21,6 +21,9 @@ public class RequestGuard extends OncePerRequestFilter {
     private static final String BODY = "cooklens.bufferedBody";
     public static final int MAX_FILE = 10 * 1024 * 1024;
     public static final int MAX_UPLOAD = 11 * 1024 * 1024;
+    public static final String TRANSCRIPTION_PATH = "/api/assistant/transcriptions";
+    public static final int MAX_AUDIO_FILE = 512 * 1024;
+    public static final int MAX_AUDIO_UPLOAD = 576 * 1024;
     private final Semaphore slots = new Semaphore(4);
     private final ObjectMapper mapper;
     private final RuntimeContract contract;
@@ -50,7 +53,11 @@ public class RequestGuard extends OncePerRequestFilter {
         boolean async = false;
         try {
             if (request.getMethod().equals("POST")) {
-                int limit = path.equals("/api/vision/predict") ? MAX_UPLOAD : 8192;
+                int limit = switch (path) {
+                    case "/api/vision/predict" -> MAX_UPLOAD;
+                    case TRANSCRIPTION_PATH -> MAX_AUDIO_UPLOAD;
+                    default -> 8192;
+                };
                 if (request.getContentLengthLong() > limit) throw new ApiFailure(413, "UPLOAD_TOO_LARGE");
                 readBody(request, response, limit);
                 async = true;
@@ -60,7 +67,10 @@ public class RequestGuard extends OncePerRequestFilter {
     }
     private void readBody(HttpServletRequest request, HttpServletResponse response, int limit) throws IOException {
         AsyncContext context = request.startAsync();
-        context.setTimeout(request.getRequestURI().equals("/api/vision/predict") ? 15000 : 5000);
+        context.setTimeout(switch (request.getRequestURI()) {
+            case "/api/vision/predict", TRANSCRIPTION_PATH -> 15000;
+            default -> 5000;
+        });
         var finished = new AtomicBoolean();
         var bytes = new ByteArrayOutputStream();
         var input = request.getInputStream();

@@ -40,17 +40,21 @@ test('real photo, explicit second prediction, recipes and complete detail', asyn
   const searchRequest = page.waitForRequest(r => r.url().endsWith('/api/recipes/search'));
   await page.locator('#confirmButton').click();
   expect((await searchRequest).postDataJSON().confirmed_dish).toBe(selected.normalized_dish);
-  await expect(page.locator('.recipe-toolbar')).toContainText(selected.display_name);
+  await expect(page.locator('.recipe-chat-sent')).toContainText(selected.display_name);
   await expect(page.locator('.recipe-list-item').first()).toBeVisible();
   await page.getByRole('button', { name: /^Xem công thức / }).first().click();
   await expect(page.getByRole('heading', { name: 'Nguyên liệu', exact: true })).toBeVisible();
   await expect(page.locator('#recipeSteps li').first()).toBeVisible();
   expect(await page.locator('#ingredients li').count()).toBeGreaterThan(0);
-  const source = page.locator('.source-info > a');
-  await expect(source).toHaveAttribute('href', /^https?:/);
-  await expect(source).toHaveAttribute('rel', 'noopener noreferrer');
-  await page.locator('.source-info summary').click();
-  await expect(page.locator('.source-info details')).toHaveAttribute('open', '');
+  const dialog = page.getByRole('dialog');
+  const source = dialog.locator('.source-info');
+  await expect(source.locator('small')).not.toBeEmpty();
+  if (await source.locator('a').count()) {
+    await expect(source.locator('a')).toHaveAttribute('href', /^https?:/);
+    await expect(source.locator('a')).toHaveAttribute('rel', 'noopener noreferrer');
+  }
+  await dialog.locator('.source-info summary').click();
+  await expect(dialog.locator('.source-info details')).toHaveAttribute('open', '');
   if (info.project.name === 'desktop') await capture(page, 'recipe-desktop');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
@@ -74,7 +78,7 @@ test('real assistant photo to chat, cooking controls, reload and finish', async 
   await recognize(page);
   await page.getByRole('radio').first().check(); await page.locator('#confirmButton').click();
   await page.getByRole('button', { name: /^Xem công thức / }).first().click();
-  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
+  await page.getByRole('button', { name: 'Hỏi về công thức này' }).click();
   await expect(page.getByRole('button', { name: 'Bắt đầu nấu', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
   await expect(page.locator('.assistant-step-count')).toHaveText(/^Bước 1\//);
@@ -99,7 +103,7 @@ test('real assistant photo to chat, cooking controls, reload and finish', async 
   await capture(page, `assistant-${info.project.name}`);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.reload();
-  await expect(page.getByRole('article')).toHaveCount(4);
+  await expect(page.getByRole('log').getByRole('article')).toHaveCount(4);
   await expect(page.locator('.assistant-step-count')).toHaveText(/^Bước 2\//);
   await page.getByRole('button', { name: 'Kết thúc nấu', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Đã kết thúc phiên nấu' })).toBeVisible();
@@ -113,6 +117,7 @@ test('real catalog correction, scoped query, and disclosed AI-authored recipe', 
   await page.locator('#dishSelect').selectOption('pho');
   await page.locator('#confirmButton').click();
   await expect(page.locator('.recipe-list-item').first()).toBeVisible();
+  await page.locator('.recipe-chat-filter summary').click();
   await page.getByLabel('Ưu tiên nguyên liệu hoặc cách nấu (không bắt buộc)').fill('bò ninh xương');
   const search = page.waitForResponse(r => r.url().endsWith('/api/recipes/search')
     && r.request().method() === 'POST' && r.request().postDataJSON().query === 'bò ninh xương');
@@ -125,8 +130,8 @@ test('real catalog correction, scoped query, and disclosed AI-authored recipe', 
   expect(pho.recipes.length).toBeLessThanOrEqual(3);
   expect(pho.recipes.every(recipe => recipe.normalized_dish === 'pho')).toBe(true);
   expect(pho.recipes.some(recipe => recipe.id === 'wb_pho_bo_ninh_xuong')).toBe(true);
-  await expect(page.locator('.recipe-toolbar')).toContainText('Phở');
-  await expect(page.locator('.recipe-list-item h2')).toHaveText(pho.recipes.map(recipe => recipe.title));
+  await expect(page.locator('.recipe-chat-sent')).toContainText('Phở');
+  await expect(page.locator('.recipe-chat-card-button strong')).toHaveText(pho.recipes.map(recipe => recipe.title));
   await page.getByRole('link', { name: 'Nhận diện', exact: true }).click();
   await page.locator('#dishSelect').selectOption('banh_can');
   const banhCanSearch = page.waitForResponse(r => r.url().endsWith('/api/recipes/search')
@@ -137,12 +142,13 @@ test('real catalog correction, scoped query, and disclosed AI-authored recipe', 
   const banhCan: RecipeSearch = await banhCanResponse.json();
   const authored = banhCan.recipes.find(recipe => recipe.id === 'cooklens_banh_can_home');
   expect(authored).toBeDefined();
-  const card = page.locator('.recipe-list-item').filter({
-    has: page.getByRole('heading', { name: authored!.title, exact: true }),
-  });
-  await expect(card.locator('.source-info')).toContainText('AI biên soạn');
-  await expect(card.locator('.source-info')).toContainText('CC-BY-4.0');
-  await card.getByRole('button', { name: /^Xem công thức / }).click();
+  const card = page.getByRole('button', { name: `Xem công thức ${authored!.title}`, exact: true });
+  await expect(card).toContainText('AI biên soạn');
+  await expect(card).toContainText('CC-BY-4.0');
+  await card.click();
+  const source = page.getByRole('dialog').locator('.source-info');
+  await expect(source).toContainText('AI biên soạn');
+  await expect(source).toContainText('CC-BY-4.0');
   await expect(page.getByRole('heading', { name: 'Nguyên liệu', exact: true })).toBeVisible();
 });
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, AppState, BackHandler, Image, Linking, Pressable, ScrollView,
+import { ActivityIndicator, Alert, AppState, BackHandler, Image, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView,
   StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { randomUUID } from 'expo-crypto';
@@ -9,12 +9,12 @@ import * as SecureStore from 'expo-secure-store';
 import { ApiError, createApi, normalizeBaseUrl, recipeSourceHref, type NativeFileUploader } from '../packages/cooklens-api';
 import type { Dish, Prediction, RecipeDocument, RecipeSummary, RecipeSource } from '../packages/cooklens-api/types';
 import { chooseImage, discardImage, uploadBody, type UploadImage } from './src/image';
-import { CookingSessionScreen } from './src/assistant/CookingSessionScreen';
+import { CookingComposer, CookingSessionScreen } from './src/assistant/CookingSessionScreen';
 import { createCookingSessionController } from './src/assistant/session-controller';
 import { createSessionPointerStore } from './src/assistant/session-pointer';
 import { filterDishes } from './src/dishes';
 
-type Page = 'upload' | 'recognition' | 'recipes' | 'detail' | 'cooking';
+type Page = 'upload' | 'recognition' | 'recipes' | 'cooking';
 const configuredUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 const sessionStore = createSessionPointerStore(SecureStore);
 const confidenceFormat = new Intl.NumberFormat('vi-VN', {
@@ -100,11 +100,12 @@ function CookLens() {
   const [confirmed, setConfirmed] = useState<Dish | null>(null);
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null);
   const [document, setDetail] = useState<RecipeDocument | null>(null);
-  const detail = document?.recipe;
+  const [preview, setPreview] = useState<{ title: string; document?: RecipeDocument } | null>(null);
+  const detail = preview?.document?.recipe;
+  const [showFilter, setShowFilter] = useState(false);
   const [cooking] = useState(() => api && gateway ? createCookingSessionController({
     api, gateway, store: sessionStore, operationId: randomUUID,
   }) : null);
-  const cookingBackTo = useRef<'upload' | 'detail'>('upload');
   const [manual, setManual] = useState(false);
   const [filter, setFilter] = useState('');
   const [query, setQuery] = useState('');
@@ -132,14 +133,19 @@ function CookLens() {
   function navigate(next: Page, direction: 'forward' | 'back' = 'forward') {
     cancel(); setError(''); setVisionIssue(false); retry.current = null; transitionTo(next, direction);
   }
+  function newPhoto() {
+    photoGeneration.current++;
+    cooking?.leave();
+    discardImage(imageRef.current);
+    imageRef.current = null;
+    setImage(null); setPredictions([]); setSelected(null); setConfirmed(null); setRecipes(null); setDetail(null);
+    setManual(false); setFilter(''); setQuery('');
+    navigate('upload');
+  }
   function back() {
     photoGeneration.current++;
-    if (page === 'cooking') {
-      cooking?.leave();
-      navigate(cookingBackTo.current, 'back');
-      return;
-    }
-    navigate(page === 'detail' ? 'recipes' : page === 'recipes' ? 'recognition' : 'upload', 'back');
+    cooking?.leave();
+    navigate(page === 'recipes' ? 'recognition' : 'upload', 'back');
   }
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -228,34 +234,66 @@ function CookLens() {
     cancel(); setManual(true); setError('');
     if (!dishes.length && api) void perform('Đang tải danh mục…', signal => api!.getDishes(signal), setDishes);
   }
+  function activateRecipe(value: RecipeDocument) {
+    setDetail(value);
+    void cooking?.prepareRecipe(value);
+  }
+
   function search(dish: Dish, preference: string) {
     if (!api) return;
-    setConfirmed(dish); setRecipes(null); setDetail(null); transitionTo('recipes', 'forward');
-    void perform('Đang tìm công thức…', signal => api!.searchRecipes(dish.normalized_dish, signal, preference), setRecipes);
+    cooking?.leave();
+    setConfirmed(dish); setRecipes(null); setDetail(null); setPreview(null);
+    if (page !== 'recipes') { setShowFilter(false); navigate('recipes'); }
+    void perform('Đang tìm công thức…', signal => api!.searchRecipes(dish.normalized_dish, signal, preference), value => {
+      setRecipes(value);
+      if (value.length === 1) {
+        void perform('Đang tải công thức…', signal => api!.getRecipeDocument(value[0].id, dish.normalized_dish, signal), activateRecipe);
+      }
+    });
   }
+
   function openRecipe(recipe: RecipeSummary) {
     if (!api || !confirmed) return;
-    setDetail(null); transitionTo('detail', 'forward');
-    void perform('Đang mở công thức…', signal => api!.getRecipeDocument(recipe.id, confirmed.normalized_dish, signal), setDetail);
+    if (document?.recipe.id === recipe.id) {
+      setPreview({ title: recipe.title, document });
+      return;
+    }
+    setPreview({ title: recipe.title });
+    void perform('Đang mở công thức…', signal => api!.getRecipeDocument(recipe.id, confirmed.normalized_dish, signal),
+      value => setPreview({ title: recipe.title, document: value }));
   }
 
-  function openCooking(documentToCook?: RecipeDocument) {
+  function closeRecipe() {
+    cancel();
+    setError(''); retry.current = null; setPreview(null);
+  }
+
+  function resumeCooking() {
     if (!cooking) return;
-    cookingBackTo.current = documentToCook ? 'detail' : 'upload';
-    navigate('cooking', 'forward');
-    if (documentToCook) void cooking.openRecipe(documentToCook);
-    else void cooking.resume();
+    navigate('cooking');
+    void cooking.resume();
   }
 
+  const chat = page === 'recipes' || page === 'cooking';
   return <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
     <StatusBar barStyle="dark-content" />
+    <KeyboardAvoidingView style={styles.screen} behavior={chat && Platform.OS === 'ios' ? 'padding' : undefined}>
     <ScrollView ref={scroll} onScroll={event => { scrollY.current = event.nativeEvent.contentOffset.y; }}
-      scrollEventThrottle={16} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
-      <View style={styles.header}><Text accessibilityRole="header" style={styles.brand}>CookLens<Text style={{ color: '#c44b1b' }}> ✦</Text></Text>
-        <Text style={styles.small}>Từ một bức ảnh đến bữa cơm Việt</Text></View>
-      {page !== 'upload' && <Button title="← Quay lại" secondary onPress={back} />}
+      scrollEventThrottle={16} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets={!chat}>
+      {page === 'recipes' ? <View style={styles.chatHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Đổi món" onPress={back} style={styles.sheetClose}>
+          <Text style={styles.label}>‹</Text>
+        </Pressable>
+        <Text style={[styles.chatBrand, styles.chatCopy]}>CookLens</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Ảnh mới" onPress={newPhoto}
+          style={styles.sheetClose}><Text style={styles.label}>+</Text></Pressable>
+      </View> : <>
+        <View style={styles.header}><Text accessibilityRole="header" style={styles.brand}>CookLens<Text style={{ color: '#c44b1b' }}> ✦</Text></Text>
+          <Text style={styles.small}>Từ một bức ảnh đến bữa cơm Việt</Text></View>
+        {page !== 'upload' && <Button title="← Quay lại" secondary onPress={back} />}
+      </>}
       {!api && <View style={styles.error}><Text style={styles.body}>Chưa cấu hình được máy chủ CookLens. Hãy làm theo phần kết nối trong hướng dẫn mobile rồi khởi động lại ứng dụng.</Text></View>}
-      {page !== 'cooking' && <Text accessibilityRole="header" style={styles.title}>{page === 'upload' ? 'Hôm nay, mình nấu gì?' : page === 'recognition' ? 'Đây có phải món của bạn?' : page === 'detail' ? (detail?.title || 'Chi tiết công thức') : 'Công thức cho bạn'}</Text>}
+      {page !== 'cooking' && <Text accessibilityRole="header" style={page === 'recipes' ? styles.subtitle : styles.title}>{page === 'upload' ? 'Hôm nay, mình nấu gì?' : page === 'recognition' ? 'Đây có phải món của bạn?' : 'Trợ lý nấu ăn'}</Text>}
       {page === 'upload' && <>
         <Text style={styles.body}>Chụp hoặc chọn ảnh một món ăn Việt. Xem ba gợi ý, xác nhận món rồi khám phá công thức.</Text>
         {image ? <Image accessibilityLabel="Ảnh món ăn đã chọn" source={{ uri: image.uri }} style={styles.preview} resizeMode="contain" />
@@ -269,7 +307,7 @@ function CookLens() {
         <View style={styles.row}><Button title="Chụp ảnh" onPress={() => { void pick(true, true); }} disabled={!!busy} secondary />
           <Button title="Chọn từ thư viện" onPress={() => { void pick(false, true); }} disabled={!!busy} secondary /></View>
         {image && <Button title="Nhận diện món" onPress={recognize} disabled={!!busy || !api || visionIssue} />}
-        {cooking && gateway && <ResumeCooking gateway={gateway} disabled={!!busy} onResume={() => openCooking()} />}
+        {cooking && gateway && <ResumeCooking gateway={gateway} disabled={!!busy} onResume={resumeCooking} />}
         <Text style={styles.small}>Ảnh được chuyển sang JPEG, tối đa 10 MiB và 25 triệu pixel. Ảnh và lựa chọn không được lưu thành lịch sử.</Text>
       </>}
       {page === 'recognition' && (() => {
@@ -313,47 +351,88 @@ function CookLens() {
           </>}
         </>;
       })()}
-      {(page === 'recipes' || page === 'detail') && confirmed && <>
-        <Text style={styles.label}>Món đã xác nhận: {confirmed.display_name}</Text>
-        <Button title="Đổi món" secondary onPress={() => { navigate('recognition', 'back'); setConfirmed(null); setRecipes(null); setDetail(null); }} />
-      </>}
-      {page === 'recipes' && <>
-        <Text style={styles.body}>Ưu tiên nguyên liệu hoặc cách nấu (không bắt buộc)</Text>
-        <TextInput accessibilityLabel="Ưu tiên nguyên liệu hoặc cách nấu" value={query} maxLength={200} onChangeText={setQuery} placeholder="Ví dụ: thịt bò, ninh xương…" style={styles.input} />
-        <Button title="Tìm công thức" secondary disabled={!!busy || !confirmed} onPress={() => { if (confirmed) search(confirmed, query); }} />
-        {!busy && recipes?.length === 0 && <View style={styles.card}><Text style={styles.label}>Chưa có công thức phù hợp</Text><Text style={styles.body}>Bạn có thể đổi món hoặc thử tìm lại.</Text></View>}
-        {!busy && recipes?.map(recipe => <View key={recipe.id} style={styles.card}>
-          <Text style={styles.subtitle}>{recipe.title}</Text><Text style={styles.body}>{recipe.preview}</Text>
-          <Source source={recipe.source} /><Button title={`Xem công thức ${recipe.title}`} onPress={() => openRecipe(recipe)} />
-        </View>)}
-      </>}
-      {page === 'detail' && document && detail && <>
-        {cooking && <Button title="Hướng dẫn nấu" onPress={() => openCooking(document)} />}
-        <View style={styles.card}><Text style={styles.subtitle}>Nguyên liệu</Text>
-          <Text style={styles.small}>Khẩu phần: {detail.servings === null ? 'Chưa có thông tin' : `${detail.servings} người`}</Text>
-          {detail.ingredients.map((ingredient, index) => <View key={index} style={styles.ingredient}>
-            <Text style={styles.body}>{ingredient.name}{ingredient.optional ? ' (tùy chọn)' : ''}</Text>
-            <Text style={styles.label}>{ingredient.quantity === null ? 'Chưa có định lượng' : `${ingredient.quantity} ${ingredient.unit ?? ''}`}</Text>
-            {!!ingredient.note && <Text style={styles.small}>{ingredient.note}</Text>}
-          </View>)}
+      {page === 'recipes' && confirmed && <>
+        <View style={styles.chatSent}>
+          {image && <Image source={{ uri: image.uri }} accessibilityLabel="Ảnh món ăn đã gửi" style={styles.chatThumb} />}
+          <View style={styles.chatCopy}><Text style={styles.label}>{confirmed.display_name}</Text><Text style={styles.small}>Món đã xác nhận</Text></View>
         </View>
-        <View style={styles.card}><Text style={styles.subtitle}>Các bước thực hiện</Text>
-          {detail.instructions.map(step => <View key={step.step} style={styles.ingredient}><Text style={styles.label}>Bước {step.step}</Text>
-            <Text style={styles.body}>{step.text}</Text>{step.duration_minutes !== null && <Text style={styles.small}>{step.duration_minutes} phút</Text>}</View>)}
-          <Source source={detail.source} />
+        <View style={styles.chatIntro}>
+          <Text style={styles.chatMark} accessibilityElementsHidden>✦</Text>
+          <View style={styles.chatCopy}>
+            <Text style={styles.small}>CookLens</Text>
+            <Text accessibilityRole="header" style={styles.subtitle}>{recipes?.length === 1 ? 'Mình tìm được công thức.'
+              : recipes?.length ? `Mình tìm được ${recipes.length} công thức.`
+                : busy ? 'Đang tìm công thức…' : recipes ? 'Chưa có công thức phù hợp' : 'Chưa tải được công thức'}</Text>
+            {!!recipes?.length && <Text style={styles.body}>Mở công thức hoặc hỏi về cách làm ngay tại đây.</Text>}
+          </View>
         </View>
+        {recipes?.map(recipe => <Pressable key={recipe.id} accessibilityRole="button"
+          accessibilityLabel={`Xem công thức ${recipe.title}`} onPress={() => openRecipe(recipe)} style={styles.chatRecipe}>
+          <Text style={styles.chatMark} accessibilityElementsHidden>≡</Text>
+          <View style={styles.chatCopy}><Text style={styles.label}>{recipe.title}</Text>
+            <Text style={styles.small}>{recipe.source.name}{document?.recipe.id === recipe.id ? ' · Đang dùng để hỏi' : ''}</Text></View>
+          <Text style={styles.chatForward} accessibilityElementsHidden>›</Text>
+        </Pressable>)}
+        {recipes?.length === 0 && <Button title="Tìm lại công thức" secondary onPress={() => search(confirmed, query)} />}
+        {!!recipes && <Button title={showFilter ? 'Ẩn tùy chọn tìm lại' : 'Ưu tiên nguyên liệu hoặc cách nấu'}
+          onPress={() => setShowFilter(value => !value)} secondary />}
+        {showFilter && <>
+          <TextInput accessibilityLabel="Ưu tiên nguyên liệu hoặc cách nấu" value={query} maxLength={200} onChangeText={setQuery}
+            placeholder="Ví dụ: thịt bò, ninh xương…" style={styles.input} />
+          <Button title="Tìm công thức" secondary disabled={!!busy} onPress={() => search(confirmed, query)} />
+        </>}
+        {!!recipes?.length && !document && !busy && <Text style={styles.small}>Mở một công thức và chọn “Hỏi về công thức này”.</Text>}
       </>}
-      {page === 'cooking' && cooking && <CookingSessionScreen controller={cooking} Button={Button} Source={Source}
-        onStartOver={document && cookingBackTo.current === 'detail'
-          ? () => { void cooking.openRecipe(document); } : back}
-        startOverLabel={cookingBackTo.current === 'detail' ? 'Tạo phiên mới' : 'Chọn ảnh món ăn'} scrollToChat={scrollToChat} />}
-      {!!busy && <View accessibilityLiveRegion="polite" style={styles.loading}><ActivityIndicator color="#b84415" /><Text style={styles.body}>{busy}</Text></View>}
-      {!!busy && !!flight.current && <Button title="Hủy tác vụ" secondary onPress={() => { cancel(); setError(''); retry.current = null; }} />}
-      {page !== 'upload' && !!error && <View accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}><Text style={styles.body}>{error}</Text>
+      {cooking && (page === 'cooking' || (page === 'recipes' && document)) && <CookingSessionScreen controller={cooking} Button={Button}
+        Source={Source} document={page === 'recipes' ? document : null}
+        onStartOver={page === 'recipes' && document ? () => { void cooking.openRecipe(document); } : back}
+        startOverLabel={page === 'recipes' ? 'Tạo phiên mới' : 'Chọn ảnh món ăn'} scrollToChat={scrollToChat} />}
+      {!!busy && !preview && <View accessibilityLiveRegion="polite" style={styles.loading}><ActivityIndicator color="#b84415" /><Text style={styles.body}>{busy}</Text></View>}
+      {!!busy && !preview && !!flight.current && <Button title="Hủy tác vụ" secondary onPress={() => { cancel(); setError(''); retry.current = null; }} />}
+      {page !== 'upload' && !!error && !preview && <View accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}><Text style={styles.body}>{error}</Text>
         {visionIssue && <Button title="Chọn ảnh khác" onPress={() => { void pick(false, false); }} disabled={!!busy} />}
         {!!retry.current && <Button title="Thử lại" onPress={() => retry.current?.()} disabled={!!busy} />}</View>}
-      <View style={styles.footer}><Text style={styles.small}>Hỗ trợ 30 món Việt. Ảnh ngoài danh mục hoặc có nhiều món có thể cho gợi ý sai. Bộ công thức có ghi nguồn, gồm cả các công thức do AI biên soạn.</Text></View>
+      {(page === 'upload' || page === 'recognition') && <View style={styles.footer}><Text style={styles.small}>Hỗ trợ 30 món Việt. Ảnh ngoài danh mục hoặc có nhiều món có thể cho gợi ý sai. Bộ công thức có ghi nguồn, gồm cả các công thức do AI biên soạn.</Text></View>}
     </ScrollView>
+    {cooking && (page === 'cooking' || (page === 'recipes' && document)) && <CookingComposer controller={cooking} transcribe={api!.transcribe} obscured={!!preview}
+      recipeKey={page === 'recipes' && document ? `${document.recipe.id}:${document.corpus_version}:${document.recipe.updated_at}` : undefined} />}
+    </KeyboardAvoidingView>
+    <Modal visible={!!preview} animationType="slide" transparent onRequestClose={closeRecipe}>
+      <View style={styles.sheetBackdrop}>
+        <SafeAreaView style={styles.sheet} edges={['bottom']}>
+          <View style={styles.sheetHeading}><Text accessibilityRole="header" style={[styles.subtitle, styles.chatCopy]}>{preview?.title}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Đóng công thức" onPress={closeRecipe} style={styles.sheetClose}>
+              <Text style={styles.label}>×</Text>
+            </Pressable>
+          </View>
+          <ScrollView contentContainerStyle={styles.sheetContent}>
+            {preview?.document && detail ? <>
+              <Button title="Hỏi về công thức này" onPress={() => {
+                if (document?.recipe.id !== preview.document!.recipe.id) activateRecipe(preview.document!);
+                closeRecipe();
+              }} />
+              <View style={styles.card}><Text style={styles.subtitle}>Nguyên liệu</Text>
+                <Text style={styles.small}>Khẩu phần: {detail.servings === null ? 'Chưa có thông tin' : `${detail.servings} người`}</Text>
+                {detail.ingredients.map((item, index) => <View key={index} style={styles.ingredient}>
+                  <Text style={styles.body}>{item.name}{item.optional ? ' (tùy chọn)' : ''}</Text>
+                   <Text style={styles.small}>{item.quantity === null ? 'Chưa có định lượng' : `${item.quantity} ${item.unit ?? ''}`}</Text>
+                  {!!item.note && <Text style={styles.small}>{item.note}</Text>}
+                </View>)}
+              </View>
+              <View style={styles.card}><Text style={styles.subtitle}>Các bước thực hiện</Text>
+                {detail.instructions.map(step => <View key={step.step} style={styles.ingredient}>
+                  <Text style={styles.label}>Bước {step.step}</Text><Text style={styles.body}>{step.text}</Text>
+                  {step.duration_minutes != null && <Text style={styles.small}>{step.duration_minutes} phút</Text>}
+                </View>)}
+                <Source source={detail.source} />
+              </View>
+            </> : error ? <View accessibilityRole="alert" style={styles.error}><Text style={styles.body}>{error}</Text>
+              {!!retry.current && <Button title="Thử lại" onPress={() => retry.current?.()} />}</View>
+              : <Text accessibilityLiveRegion="polite" style={styles.body}>Đang mở công thức…</Text>}
+          </ScrollView>
+        </SafeAreaView>
+      </View>
+    </Modal>
   </SafeAreaView>;
 }
 
@@ -367,6 +446,24 @@ export default function App() {
   return <SafeAreaProvider><CookLens /></SafeAreaProvider>;
 }
 const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  chatHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#e5d8c5' },
+  chatBrand: { fontFamily: 'Epilogue', fontSize: 22, color: '#35271d' },
+  chatSent: { alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, paddingRight: 12,
+    borderRadius: 18, borderBottomRightRadius: 6, backgroundColor: '#f9e3d3', maxWidth: '100%' },
+  chatThumb: { width: 46, height: 46, borderRadius: 10 },
+  chatIntro: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  chatCopy: { flex: 1, flexShrink: 1, gap: 3 },
+  chatMark: { width: 33, height: 33, textAlign: 'center', lineHeight: 33, color: '#a83d0d',
+    backgroundColor: '#f7e3d1', borderRadius: 10, overflow: 'hidden', fontSize: 18 },
+  chatRecipe: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fffdf8', borderColor: '#e5d8c5',
+    borderWidth: 1, borderRadius: 17, padding: 10 },
+  chatForward: { fontSize: 23, color: '#a83d0d', paddingHorizontal: 5 },
+  sheetBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: '#30221970' },
+  sheet: { height: '88%', backgroundColor: '#fffdf8', borderTopLeftRadius: 26, borderTopRightRadius: 26, overflow: 'hidden' },
+  sheetHeading: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 14, borderBottomColor: '#e5d8c5', borderBottomWidth: 1 },
+  sheetClose: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: '#f5e8d6' },
+  sheetContent: { padding: 14, gap: 12 },
   safe: { flex: 1, backgroundColor: '#fbf7ee' }, content: { padding: 22, gap: 18, maxWidth: 700, width: '100%', alignSelf: 'center' },
   header: { paddingVertical: 16, gap: 6 }, brand: { fontSize: 29, fontFamily: 'Epilogue', color: '#30251e' },
   title: { fontSize: 32, fontFamily: 'Epilogue', color: '#35271d' }, subtitle: { fontSize: 23, fontFamily: 'Epilogue', color: '#35271d' },

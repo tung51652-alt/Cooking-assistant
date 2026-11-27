@@ -50,6 +50,7 @@ test('opening and closing recipe detail resets scroll below the sticky header', 
   const recipe = { ...detail, id: list[2].id, title: list[2].title,
     instructions: Array.from({ length: 30 }, (_, index) => ({ ...detail.instructions[0], step: index + 1 })) };
   await confirmedRecipes(page, list, recipe);
+  await page.getByRole('link', { name: 'Công thức', exact: true }).click();
   await page.getByRole('button', { name: `Xem công thức ${list[2].title}` }).scrollIntoViewIfNeeded();
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
   await page.getByRole('button', { name: `Xem công thức ${list[2].title}` }).click();
@@ -69,8 +70,16 @@ test('opening and closing recipe detail resets scroll below the sticky header', 
 
 test('confirmed dish survives recipe and assistant reloads and clears with a new image', async ({ page }) => {
   await confirmedRecipes(page);
+  await expect(page.getByRole('heading', { name: 'Trợ lý nấu ăn' })).toBeVisible();
   await page.getByRole('button', { name: `Xem công thức ${summary.title}` }).click();
-  await expect(page.locator('#ingredients')).toBeVisible();
+  const dialog = page.getByRole('dialog', { name: summary.title });
+  await expect(dialog.locator('#ingredients')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Đóng công thức' }).click();
+  await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeFocused();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Trợ lý nấu ăn' })).toBeVisible();
+  await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeVisible();
+  await page.getByRole('link', { name: 'Công thức', exact: true }).click();
   await page.reload();
   await expect(page.getByText('Món đã xác nhận:')).toContainText('Phở');
   await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeVisible();
@@ -115,13 +124,17 @@ test('upload, manual Top-3 selection, search, detail and image reset', async ({ 
   expect(searchBodies).toHaveLength(0);
   await page.getByRole('radio').first().check();
   await page.getByRole('button', { name: 'Xác nhận món' }).click();
-  await expect(page.getByRole('heading', { name: summary.title })).toBeVisible();
+  await expect(page).toHaveURL(/assistant\.html$/);
+  await expect(page.getByAltText('Ảnh món ăn đã gửi')).toBeVisible();
+  await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeVisible();
   expect(searchBodies).toEqual([{ confirmed_dish: 'pho', top_k: 3 }]);
   await page.getByRole('button', { name: `Xem công thức ${summary.title}` }).click();
-  await expect(page.getByRole('heading', { name: 'Nguyên liệu', exact: true })).toBeVisible();
-  await expect(page.getByText('Chưa có thông tin', { exact: true })).toHaveCount(3);
-  await expect(page.getByRole('link', { name: source.name })).toHaveAttribute('rel', 'noopener noreferrer');
+  const detailDialog = page.getByRole('dialog');
+  await expect(detailDialog.getByRole('heading', { name: 'Nguyên liệu', exact: true })).toBeVisible();
+  await expect(detailDialog.getByText('Chưa có thông tin', { exact: true })).toHaveCount(3);
+  await expect(detailDialog.getByRole('link', { name: source.name })).toHaveAttribute('rel', 'noopener noreferrer');
   if (testInfo.project.name === 'desktop') await captureBaseline(page, 'recipe-desktop');
+  await detailDialog.getByRole('button', { name: 'Đóng công thức' }).click();
   await page.getByRole('link', { name: 'Trang chủ', exact: true }).click();
   await page.getByRole('button', { name: 'Xóa ảnh' }).click();
   await page.getByRole('link', { name: 'Nhận diện', exact: true }).click();
@@ -251,13 +264,17 @@ test('recipe content is escaped and unsafe source links are not clickable', asyn
   const unsafe = { ...summary, title: '<img src=x onerror=alert(1)>', source: { ...source, url: 'javascript:alert(1)' } };
   await page.route('**/api/vision/predict', route => route.fulfill(json({ predictions })));
   await page.route('**/api/recipes/search', route => route.fulfill(json({ recipes: [unsafe] })));
+  await page.route('**/api/recipes/test_pho', route => route.fulfill(json({ recipe: { ...detail, title: unsafe.title, source: unsafe.source } })));
   await upload(page);
   await page.locator('#predictBtn').click();
   await page.getByRole('radio').first().check();
   await page.getByRole('button', { name: 'Xác nhận món' }).click();
-  await expect(page.getByRole('heading', { name: unsafe.title, exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: source.name })).toHaveCount(0);
-  await expect(page.locator('.recipe-list img')).toHaveCount(0);
+  await page.getByRole('button', { name: `Xem công thức ${unsafe.title}` }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('heading', { name: unsafe.title, exact: true })).toBeVisible();
+  await expect(dialog.getByText(source.name, { exact: true })).toBeVisible();
+  await expect(dialog.getByRole('link', { name: source.name })).toHaveCount(0);
+  await expect(page.locator('.recipe-chat-cards img')).toHaveCount(0);
 });
 
 test('AI-authored recipe credit is visible without linking to the pull request', async ({ page }) => {
@@ -271,13 +288,13 @@ test('AI-authored recipe credit is visible without linking to the pull request',
   await page.getByRole('radio').first().check();
   await page.getByRole('button', { name: 'Xác nhận món' }).click();
 
-  const credit = page.locator('.source-info');
-  await expect(credit).toContainText(aiSource.name);
-  await expect(credit).toContainText(aiSource.license);
-  await expect(credit.getByRole('link')).toHaveCount(0);
+  const card = page.getByRole('button', { name: `Xem công thức ${summary.title}` });
+  await expect(card).toContainText(aiSource.name);
+  await expect(card).toContainText(aiSource.license);
 
-  await page.getByRole('button', { name: `Xem công thức ${summary.title}` }).click();
+  await card.click();
   await expect(page.getByRole('heading', { name: 'Nguyên liệu', exact: true })).toBeVisible();
+  const credit = page.getByRole('dialog').locator('.source-info');
   await expect(credit).toContainText(aiSource.name);
   await expect(credit.getByRole('link')).toHaveCount(0);
   await credit.locator('summary').click();
@@ -340,7 +357,7 @@ test('changing the confirmed dish discards a late recipe response', async ({ pag
   await page.getByRole('radio').first().check(); await page.locator('#confirmButton').click(); await ready;
   await page.getByRole('link', { name: 'Nhận diện', exact: true }).click();
   await page.getByRole('radio').nth(1).check(); await page.locator('#confirmButton').click();
-  await expect(page.getByRole('heading', { name: other.title })).toBeVisible();
+  await expect(page.getByRole('button', { name: `Xem công thức ${other.title}` })).toBeVisible();
   release();
   await expect(page.getByRole('heading', { name: summary.title })).toHaveCount(0);
 });
@@ -481,8 +498,8 @@ test('low-confidence recognition keeps defensive guard while allowing manual dis
   await page.getByLabel('Tìm món ăn theo tên').fill('pho');
   await page.getByRole('group', { name: 'Danh mục 30 món Việt' }).getByRole('button', { name: 'Phở', exact: true }).click();
   await page.getByRole('button', { name: 'Xác nhận món' }).click();
-  await expect(page).toHaveURL(/recipe\.html$/);
-  await expect(page.getByRole('heading', { name: summary.title })).toBeVisible();
+  await expect(page).toHaveURL(/assistant\.html$/);
+  await expect(page.getByRole('button', { name: `Xem công thức ${summary.title}` })).toBeVisible();
 });
 
 test('blurry and low-confidence upload errors allow continuing via the 30-dish catalog', async ({ page }) => {

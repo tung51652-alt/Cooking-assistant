@@ -10,7 +10,7 @@ const otherId = '22222222-2222-4222-8222-222222222222';
 const [recipe, otherRecipe] = JSON.parse(readFileSync(new URL('../../../data/recipes/corpus.json', import.meta.url)));
 const document = { recipe, corpus_version: 'cooklens-recipes-v1' };
 const state = (version = 0, extra = {}) => ({
-  id, recipe, corpus_version: document.corpus_version, status: version ? 'cooking' : 'ready',
+  id, recipe, corpus_version: document.corpus_version, recipe_version: recipe.updated_at, status: version ? 'cooking' : 'ready',
   version, current_step: version ? 1 : 0, total_steps: recipe.instructions.length, history: [], messages: [],
   ...extra,
 });
@@ -42,6 +42,27 @@ test('creates from recipe identity and accepts a replay that already started', a
   assert.deepEqual(body, { recipe_id: recipe.id, corpus_version: document.corpus_version, operation_id: 'operation-1' });
   assert.equal(controller.getSnapshot().session.version, 1);
   assert.deepEqual(pointer(), { gateway, sessionId: id });
+});
+
+test('selecting a recipe waits for the first send and preserves its typed draft', async () => {
+  let sent;
+  const { controller, calls } = fixture({
+    sessionMessage: async (_id, body) => {
+      sent = body;
+      return state(1, { status: 'ready', current_step: 0, messages: [
+        { role: 'user', text: body.text }, { role: 'assistant', text: 'Theo công thức.' },
+      ] });
+    },
+  });
+  await controller.prepareRecipe(document);
+  assert.equal(controller.getSnapshot().session, null);
+  assert.equal(controller.getSnapshot().canSend, true);
+  assert.deepEqual(calls, []);
+  controller.setDraft('Cần bao nhiêu đậu phụ?');
+  await controller.sendMessage();
+  assert.equal(calls[0][0], 'create');
+  assert.equal(sent.text, 'Cần bao nhiêu đậu phụ?');
+  assert.equal(controller.getSnapshot().draft, '');
 });
 
 test('rapid duplicate taps send one action and explicit retry reuses its exact body', async () => {

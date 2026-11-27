@@ -234,34 +234,34 @@ test('recipe entry resumes an active session and starts fresh after finishing or
   await page.locator('#imageInput').setInputFiles({ name: 'fixture.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNQTPf6DwADUQHSSaoLLQAAAABJRU5ErkJggg==', 'base64') });
   await page.locator('#predictBtn').click(); await page.getByRole('radio').first().check(); await page.locator('#confirmButton').click();
   await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
-  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
+  await page.getByRole('button', { name: 'Hỏi về công thức này' }).click();
+  expect(creates).toHaveLength(0);
+  await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
   await expect(page.getByRole('heading', { name: recipe.title })).toBeVisible(); const original = current.id;
   expect(creates[0].corpus_version).toBe('test-corpus'); expect(creates[0].recipe_id).toBe(recipe.id);
-  await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
-  await expect(page.getByRole('heading', { name: 'Công thức', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
-  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
-  await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
+  await page.reload();
   await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
   expect(current.id).toBe(original);
   expect(creates).toHaveLength(1);
 
   await page.getByRole('button', { name: 'Kết thúc nấu', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Đã kết thúc phiên nấu' })).toBeVisible();
-  await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
-  await page.getByRole('button', { name: `Xem công thức ${recipe.title}` }).click();
-  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
+  await page.reload();
   await expect(page.getByRole('button', { name: 'Bắt đầu nấu', exact: true })).toBeEnabled();
+  expect(creates).toHaveLength(1);
+  await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
+  await expect(page.getByText('Bước 1/3', { exact: true })).toBeVisible();
   expect(current.id).not.toBe(original);
   expect(creates.map(body => body.recipe_id)).toEqual([recipe.id, recipe.id]);
   expect(creates[1].operation_id).not.toBe(creates[0].operation_id);
 
-  await page.getByRole('button', { name: '← Chọn công thức khác' }).click();
-  await expect(page.getByRole('heading', { name: 'Công thức', exact: true })).toBeVisible();
   await page.getByRole('button', { name: `Xem công thức ${other.title}` }).click();
-  await page.getByRole('button', { name: 'Hỏi CookLens & bắt đầu nấu' }).click();
+  await page.getByRole('button', { name: 'Hỏi về công thức này' }).click();
+  expect(creates).toHaveLength(2);
+  await page.getByRole('button', { name: 'Bắt đầu nấu', exact: true }).click();
   await expect(page.getByRole('heading', { name: other.title })).toBeVisible(); expect(current.id).not.toBe(original);
   expect(current.messages).toEqual([]);
+  expect(creates.map(body => body.recipe_id)).toEqual([recipe.id, recipe.id, other.id]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
@@ -430,4 +430,50 @@ test('LLM settings modal moves focus inside on open, traps Tab and Shift+Tab, an
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(opener).toBeFocused();
+});
+test('voice fills an editable draft and only sends when requested', async ({ page }) => {
+  const state = await restored(page);
+  let sent = 0;
+  await page.addInitScript(() => {
+    let released = false;
+    Object.defineProperty(navigator, 'mediaDevices', { value: {
+      getUserMedia: async () => ({ getTracks: () => [{ stop: () => { released = true; } }] }),
+    } });
+    Object.defineProperty(window, 'MediaRecorder', { value: class {
+      static isTypeSupported() { return true; }
+      state = 'inactive';
+      mimeType = 'audio/webm';
+      ondataavailable?: (event: { data: Blob }) => void;
+      onstop?: () => void;
+      start() { this.state = 'recording'; }
+      stop() {
+        this.state = 'inactive';
+        this.ondataavailable?.({ data: new Blob(['fixture'], { type: this.mimeType }) });
+        this.onstop?.();
+      }
+    } });
+    Object.defineProperty(window, 'micReleased', { get: () => released });
+  });
+  await page.route('**/api/assistant/transcriptions', route => {
+    expect(route.request().headers()['content-type']).toContain('multipart/form-data');
+    return route.fulfill(json({ text: 'cần bao nhiêu đậu phụ?' }));
+  });
+  await page.route('**/api/assistant/sessions/*/messages', route => {
+    const body = route.request().postDataJSON();
+    sent++;
+    message(state, body.text);
+    return route.fulfill(json({ session: state }));
+  });
+  await open(page);
+  await question(page).fill('Cho mình hỏi');
+  await page.getByRole('button', { name: 'Nhập bằng giọng nói' }).click();
+  await expect(page.getByText('Đang nghe tiếng Việt…')).toBeVisible();
+  await page.getByRole('button', { name: 'Dừng ghi âm' }).click();
+  await expect(question(page)).toHaveValue('Cho mình hỏi cần bao nhiêu đậu phụ?');
+  expect(await page.evaluate(() => Reflect.get(window, 'micReleased'))).toBe(true);
+  expect(sent).toBe(0);
+  await question(page).fill('Cần bao nhiêu bìa đậu phụ?');
+  await page.getByRole('button', { name: 'Gửi câu hỏi' }).click();
+  await expect(page.getByRole('log')).toContainText('Cần bao nhiêu bìa đậu phụ?');
+  expect(sent).toBe(1);
 });

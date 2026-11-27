@@ -33,6 +33,9 @@ public class ApiFailure extends RuntimeException {
             case "ASSISTANT_CONTEXT_TOO_LARGE" -> "Ngữ cảnh hỏi đáp quá dài. Hãy rút ngắn câu hỏi hoặc chọn công thức khác.";
             case "ASSISTANT_STORAGE_UNAVAILABLE" -> "Kho lưu phiên chưa sẵn sàng. Vui lòng thử lại sau.";
             case "ASSISTANT_NOT_CONFIGURED" -> "Hỏi đáp chưa được cấu hình. Bạn vẫn có thể điều khiển bước nấu.";
+            case "INVALID_AUDIO" -> "Không đọc được bản ghi âm.";
+            case "AUDIO_TOO_LONG" -> "Hãy nói trong tối đa 15 giây.";
+            case "NO_SPEECH_DETECTED" -> "Chưa nghe rõ lời nói. Hãy thử lại hoặc gõ câu hỏi.";
             case "INVALID_IMAGE" -> "Không đọc được ảnh. Vui lòng chọn ảnh JPG hoặc PNG hợp lệ.";
             case "IMAGE_BLURRY" -> "Ảnh bị mờ, không đủ rõ nét để nhận diện món ăn. Vui lòng chụp hoặc chọn ảnh rõ nét hơn.";
             case "LOW_CONFIDENCE_PREDICTION" -> "Ảnh có vấn đề hoặc không nhận diện được món ăn Việt phù hợp (độ tin cậy dưới 50%). Vui lòng chọn ảnh món ăn rõ nét hơn.";

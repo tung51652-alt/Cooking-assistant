@@ -72,6 +72,7 @@ export function createCookingSessionController({ api, store, gateway, operationI
   api: SessionApi; store: SessionPointerStore; gateway: string; operationId: () => string;
 }) {
   let snapshot = empty;
+  let selectedDocument: RecipeDocument | null = null;
   let flight: AbortController | null = null;
   let pending: Mutation | null = null;
   let needsRefresh = false;
@@ -81,7 +82,8 @@ export function createCookingSessionController({ api, store, gateway, operationI
 
   function update(change: Partial<Snapshot>) {
     const next = { ...snapshot, ...change };
-    next.canAct = !!next.session && next.session.status !== 'finished' && !next.busy && !pending && !needsRefresh;
+    next.canAct = !!(next.session || selectedDocument) && next.session?.status !== 'finished'
+      && !next.busy && !pending && !needsRefresh;
     next.canSend = next.canAct && (next.session?.messages.length ?? 0) < 60;
     next.canDiscardMessage = pending?.kind === 'message' && !next.busy && !needsRefresh;
     next.refreshRequired = needsRefresh;
@@ -272,6 +274,7 @@ export function createCookingSessionController({ api, store, gateway, operationI
   }
 
   function leave() {
+    selectedDocument = null;
     suspend();
     pending = null;
     needsRefresh = false;
@@ -280,12 +283,17 @@ export function createCookingSessionController({ api, store, gateway, operationI
     update(empty);
   }
 
-  function openRecipe(document: RecipeDocument, allowCreate = true) {
+  function openRecipe(document: RecipeDocument, allowCreate = true, lazy = false) {
     if (flight || pending) return Promise.resolve();
+    const draft = lazy && selectedDocument === document ? snapshot.draft : '';
     leave();
+    if (lazy) {
+      selectedDocument = document;
+      update({ draft });
+    }
     return run('restore', async request => {
-      retryWork = () => openRecipe(document);
-      foregroundRestore = () => openRecipe(document, false);
+      retryWork = () => openRecipe(document, allowCreate, lazy);
+      foregroundRestore = () => openRecipe(document, false, lazy);
       let pointer;
       try {
         pointer = await store.read(gateway);
@@ -298,7 +306,8 @@ export function createCookingSessionController({ api, store, gateway, operationI
           const saved = await api.getSession(pointer.sessionId, request.signal, 0);
           if (!request.active()) return;
           if (saved.id !== pointer.sessionId) throw Error('Chưa tải được phiên đã lưu.');
-          if (saved.recipe.id === document.recipe.id && saved.status !== 'finished') {
+          if (saved.recipe.id === document.recipe.id && saved.corpus_version === document.corpus_version
+            && saved.recipe_version === document.recipe.updated_at && saved.status !== 'finished') {
             retryWork = null;
             update({ session: saved });
             return;
@@ -312,6 +321,7 @@ export function createCookingSessionController({ api, store, gateway, operationI
         }
       }
       if (!allowCreate) {
+        if (lazy) return;
         update({ error: { message: 'Phiên chưa được mở. Hãy thử lại để bắt đầu nấu.', retryable: true } });
         return;
       }
@@ -347,6 +357,7 @@ export function createCookingSessionController({ api, store, gateway, operationI
 
   return {
     openRecipe,
+    prepareRecipe: (document: RecipeDocument) => { leave(); return openRecipe(document, false, true); },
     resume,
     foreground: () => {
       if (flight) return Promise.resolve();
@@ -358,10 +369,13 @@ export function createCookingSessionController({ api, store, gateway, operationI
     setDraft: (draft: string) => {
       if (snapshot.canSend) update({ draft: draft.slice(0, messageLimit) });
     },
-    sendMessage: () => {
-      const { session, canSend, draft } = snapshot;
-      const text = draft.trim();
-      if (!session || !canSend || !text) return Promise.resolve();
+    sendMessage: async () => {
+      const text = snapshot.draft.trim();
+      if (!snapshot.canSend || !text) return;
+      const document = selectedDocument;
+      if (!snapshot.session && document) await openRecipe(document, true, true);
+      const { session, canSend } = snapshot;
+      if (!session || !canSend || document !== selectedDocument) return;
       return mutate({ kind: 'message', sessionId: session.id, body: {
         text, expected_version: session.version, operation_id: operationId(),
       } });
@@ -372,9 +386,12 @@ export function createCookingSessionController({ api, store, gateway, operationI
       retryWork = null;
       update({ error: null });
     },
-    act: (action: AssistantAction) => {
+    act: async (action: AssistantAction) => {
+      if (!snapshot.canAct) return;
+      const document = selectedDocument;
+      if (!snapshot.session && document && action === 'start') await openRecipe(document, true, true);
       const { session, canAct } = snapshot;
-      if (!session || !canAct) return Promise.resolve();
+      if (!session || !canAct || document !== selectedDocument) return;
       return mutate({ kind: 'action', sessionId: session.id, body: {
         action, expected_version: session.version, operation_id: operationId(),
       } });
