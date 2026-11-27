@@ -36,6 +36,19 @@ function canonicalUuid(value: string): string {
   return value.toLowerCase();
 }
 
+export function recipeSourceHref(value: string): string | null {
+  try {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
+    // Show attribution alone for GitHub pull requests.
+    if (['github.com', 'www.github.com'].includes(url.hostname)
+      && /^\/[^/]+\/[^/]+\/pull\/\d+(?:\/|$)/i.test(url.pathname)) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
 export function createApi(baseUrl: string, requestId: () => string, nativeFileUploader?: NativeFileUploader) {
   baseUrl = normalizeBaseUrl(baseUrl);
 async function request(path: string, signal: AbortSignal, init: RequestInit = {}, timeoutMs = 10_000) {

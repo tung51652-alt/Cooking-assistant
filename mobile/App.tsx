@@ -6,7 +6,7 @@ import { randomUUID } from 'expo-crypto';
 import { File, UploadType } from 'expo-file-system';
 import { useFonts } from 'expo-font';
 import * as SecureStore from 'expo-secure-store';
-import { ApiError, createApi, normalizeBaseUrl, type NativeFileUploader } from '../packages/cooklens-api';
+import { ApiError, createApi, normalizeBaseUrl, recipeSourceHref, type NativeFileUploader } from '../packages/cooklens-api';
 import type { Dish, Prediction, RecipeDocument, RecipeSummary, RecipeSource } from '../packages/cooklens-api/types';
 import { chooseImage, discardImage, uploadBody, type UploadImage } from './src/image';
 import { CookingSessionScreen } from './src/assistant/CookingSessionScreen';
@@ -47,13 +47,12 @@ function Button({ title, onPress, disabled = false, secondary = false }: {
 }
 
 function Source({ source }: { source: RecipeSource }) {
-  let href: string | null = null;
-  try { const url = new URL(source.url); if (['https:', 'http:'].includes(url.protocol) && !url.username && !url.password) href = url.href; } catch { /* Plain attribution remains visible. */ }
+  const href = recipeSourceHref(source.url);
   return <View style={styles.source}>
     <Text style={styles.label}>Nguồn: {source.name}</Text>
     <Text style={styles.small}>{source.license}</Text><Text style={styles.body}>{source.attribution}</Text>
     {!!source.modifications && <Text style={styles.small}>{source.modifications}</Text>}
-    {!!href && <Button title="Mở nguồn công thức" secondary onPress={() => { Linking.openURL(href!).catch(() => Alert.alert('Chưa mở được nguồn', 'Hãy kiểm tra kết nối rồi thử lại.')); }} />}
+    {href && <Button title="Mở nguồn công thức" secondary onPress={() => { Linking.openURL(href).catch(() => Alert.alert('Chưa mở được nguồn', 'Hãy kiểm tra kết nối rồi thử lại.')); }} />}
   </View>;
 }
 
