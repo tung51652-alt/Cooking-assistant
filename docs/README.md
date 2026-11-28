@@ -16,4 +16,5 @@ Mỗi chủ đề có một tài liệu chính:
 
 Khi đổi chức năng, cập nhật tài liệu chủ đề tương ứng và [CHANGELOG](../CHANGELOG.md).
 Kế hoạch chỉ mô tả việc còn mở; kết quả đã kiểm chứng ghi trong `acceptance.md`.
+Ảnh giới thiệu sản phẩm cho README nằm ở `images/` (WebP, chụp từ bản đang phát triển).
 Không đưa dataset, trọng số, secret, log thô, ảnh chụp kiểm chứng hoặc build output vào docs.
