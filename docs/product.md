@@ -21,12 +21,12 @@ rồi hỏi đáp và nấu theo từng bước với trợ lý.
 | Web | Responsive desktop/mobile; nhận diện, chọn món, công thức, hỏi đáp và bước nấu |
 | Expo Go | Chụp/chọn ảnh và cùng luồng với web qua API dùng chung |
 | Nhận diện | EfficientNet-B2, 30 lớp món Việt, trả Top-3 kèm confidence |
-| Công thức | Corpus `cooklens-recipes-v3`: 90 công thức cho 30 món, gồm 42 từ Wikibooks, 37 từ nguồn tiếng Việt khác và 11 công thức có nhãn AI |
-| Trợ lý | Hỏi đáp theo công thức đã chọn qua Gemini hoặc key riêng của người dùng trên web; nút bước nấu chạy bằng logic ứng dụng |
+| Công thức | Corpus `cooklens-recipes-v3-1`: 90 công thức cho 30 món, gồm 42 từ Wikibooks, 37 từ nguồn tiếng Việt khác và 11 công thức có nhãn AI |
+| Trợ lý | Hỏi đáp theo công thức đã chọn qua Gemini hoặc key riêng của người dùng; nút bước nấu chạy bằng logic ứng dụng |
 | Triển khai | Một Docker Compose; model, corpus và vector nằm trong image |
 
 Bản phát hành `2.0.0` dùng corpus v1 với 33 công thức và luồng công thức → trợ lý tách màn hình.
-Corpus v3, màn hình Trợ lý gộp và ngưỡng 65% có trên `develop`, chuẩn bị cho `2.1.0`.
+Corpus v3, màn hình Trợ lý gộp, ngưỡng 65%, key riêng và Gemini 3.5 Flash-Lite có trên `develop`, chuẩn bị cho `2.1.0`.
 
 ## Giới hạn
 
@@ -36,7 +36,7 @@ Corpus v3, màn hình Trợ lý gộp và ngưỡng 65% có trên `develop`, chu
 - Không tạo thêm kết quả cho đủ ba; giá trị thiếu như thời gian/khẩu phần giữ `null`.
 - Server không lưu ảnh; phiên nấu (snapshot công thức, bước, hội thoại) lưu 24 giờ trong SQLite.
 - Không có tài khoản hoặc lịch sử dài hạn.
-- Trợ lý cần key Google AI Studio ở backend; Gemini có thể bị rate limit hoặc timeout.
+- Trợ lý cần key Google AI Studio ở backend hoặc key riêng của người dùng; Gemini có thể bị rate limit hoặc timeout (mỗi câu chờ tối đa 8 s).
   Thiếu key hoặc provider lỗi, ảnh, công thức và nút bước nấu vẫn dùng được.
 - Trợ lý không tự chuyển bước theo lời model và không bảo đảm an toàn dị ứng.
 - Android thật và iOS chưa được nghiệm thu đầy đủ.

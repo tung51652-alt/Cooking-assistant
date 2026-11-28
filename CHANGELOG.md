@@ -18,7 +18,7 @@ Nó phản ánh kết quả đang có trong repository, không thay thế issue,
 - Sau khi xác nhận món từ ảnh hoặc danh mục, mở hội thoại CookLens để xem công thức, hỏi cách làm hoặc bắt đầu nấu trên web và Expo.
   Phiên nấu đã lưu mở lại trong cùng giao diện. [#55](https://github.com/tung51652-alt/Cooking-assistant/issues/55)
 - Chọn món trực tiếp từ danh mục 30 món mà không cần ảnh. [#48](https://github.com/tung51652-alt/Cooking-assistant/issues/48)
-- Người dùng web có thể nhập API key LLM riêng trong Cài đặt trợ lý; key lưu trên trình duyệt và không tính vào ngân sách server. [#36](https://github.com/tung51652-alt/Cooking-assistant/issues/36)
+- Người dùng web và Expo có thể nhập API key LLM riêng trong Cài đặt trợ lý; web lưu theo phiên trình duyệt, Expo lưu bằng SecureStore; không tính vào ngân sách server. [#36](https://github.com/tung51652-alt/Cooking-assistant/issues/36) [#71](https://github.com/tung51652-alt/Cooking-assistant/issues/71)
 - Corpus `cooklens-recipes-v3` với 90 công thức cho 30 món, chuẩn hóa định lượng và rà soát nguồn. [#32](https://github.com/tung51652-alt/Cooking-assistant/issues/32) [#60](https://github.com/tung51652-alt/Cooking-assistant/pull/60)
 
 ### Changed
@@ -26,10 +26,14 @@ Nó phản ánh kết quả đang có trong repository, không thay thế issue,
 - Ảnh mờ hoặc có điểm cao nhất dưới 65% không hiện gợi ý; người dùng đổi ảnh hoặc chọn món theo tên. [#37](https://github.com/tung51652-alt/Cooking-assistant/issues/37) [#49](https://github.com/tung51652-alt/Cooking-assistant/issues/49)
 - Làm rõ cài đặt trợ lý, thông báo khi máy chủ chưa bật hỏi đáp và bỏ thuật ngữ kỹ thuật ở gợi ý món, ghi chú nguồn. [#47](https://github.com/tung51652-alt/Cooking-assistant/issues/47) [#51](https://github.com/tung51652-alt/Cooking-assistant/issues/51)
 - Trang đầu Expo chỉ mời tiếp tục khi có phiên nấu đã lưu. [#50](https://github.com/tung51652-alt/Cooking-assistant/issues/50)
-- Gộp tài liệu theo chủ đề, bỏ kế hoạch đã hoàn tất và thư mục ảnh kiểm chứng.
+- Trợ lý mặc định dùng Gemini 3.5 Flash-Lite; mỗi câu hỏi chờ tối đa 8 s với một lần thử lại khi timeout, 502/503 hoặc lỗi kết nối. [#68](https://github.com/tung51652-alt/Cooking-assistant/issues/68)
+- Thêm lint/format cho Java, TypeScript và Python; bỏ thư mục khung và cấu hình công cụ không dùng. [#70](https://github.com/tung51652-alt/Cooking-assistant/issues/70)
+- Gộp tài liệu theo chủ đề, viết lại README kèm ảnh giới thiệu; bỏ kế hoạch đã hoàn tất và thư mục ảnh kiểm chứng.
 
 ### Fixed
 
+- Chặn endpoint LLM tùy chỉnh trỏ tới địa chỉ nội bộ. [#66](https://github.com/tung51652-alt/Cooking-assistant/issues/66)
+- Bỏ ghi chú biên tập nội bộ và từ nước ngoài khỏi nội dung công thức (`cooklens-recipes-v3-1`). [#69](https://github.com/tung51652-alt/Cooking-assistant/issues/69)
 - Chấp nhận phản hồi Gemini hợp lệ khi chạm giới hạn token và thử lại một lần khi provider trả 502/503; web hiện lỗi ngay trong hội thoại kèm nút gửi lại. [#28](https://github.com/tung51652-alt/Cooking-assistant/issues/28) [#29](https://github.com/tung51652-alt/Cooking-assistant/issues/29) [#35](https://github.com/tung51652-alt/Cooking-assistant/issues/35)
 - Cuộn về đầu khi mở chi tiết công thức, giữ món đã chọn qua reload và tránh header dính che nội dung. [#33](https://github.com/tung51652-alt/Cooking-assistant/issues/33) [#35](https://github.com/tung51652-alt/Cooking-assistant/issues/35)
 - Sửa lỗi ảnh mờ, nút đổi ảnh bị khuất, focus bàn phím thoát khỏi hộp cấu hình và tìm "pho" không ra Phở. [#45](https://github.com/tung51652-alt/Cooking-assistant/issues/45) [#46](https://github.com/tung51652-alt/Cooking-assistant/issues/46) [#52](https://github.com/tung51652-alt/Cooking-assistant/issues/52)

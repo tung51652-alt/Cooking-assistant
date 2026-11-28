@@ -59,27 +59,28 @@ Mẫu ngoài danh mục nhỏ và chủ yếu là ảnh nền, nên ảnh ngoài
 
 ## Corpus công thức v3
 
-`cooklens-recipes-v3` (90 công thức) trên Recipes API và Qdrant 1.19.2 local, 259 query/30 món:
+`cooklens-recipes-v3` (90 công thức, nay là `v3-1` sau khi sửa ghi chú biên tập ở #69) trên Recipes API và Qdrant 1.19.2 local, 259 query/30 món:
 Hit@1 93,05%, Hit@3 100%, MRR 0,9646, không sai món.
 Gói runtime v3, nghiệm thu ngoài nhóm và thử nấu chưa thực hiện.
 Chi tiết và lịch sử đo ở [đánh giá truy xuất](../ai/rag/evaluation/REVIEW.md); rà soát nguồn ở [corpus](../data/recipes/README.md).
 
 ## Trợ lý
 
-Các lần đo dùng cùng [fixture 50 request](testing.md#đánh-giá-trợ-lý), tuần tự, không retry.
+Các lần đo dùng cùng [fixture 50 request](testing.md#đánh-giá-trợ-lý), tuần tự; evaluator không tự gửi lại, chỉ retry nội bộ của adapter nằm trong deadline.
 
-| Provider/model | Kết quả |
-| --- | --- |
-| NVIDIA Nemotron 3 Ultra | 50/50 HTTP/state, usage đạt; latency trượt (p95 14,07 s, sau sửa prompt 8,48 s) |
-| NVIDIA Nemotron 3.5 Super (`2.0.0-rc.16` local) | 50/50; p50/p95/max 0,87/2,08/4,16 s; input TB 2.176, output TB 77 token |
-| Gemma 4, Nemotron 3.5 Lightning | Loại ở vòng sàng lọc do timeout |
-| Nemotron 3.5 Bolt | Qua latency nhưng trả lời sai về lịch sử hội thoại |
-| Gemini 3.5 Flash-Lite | Có pacing: 50/50, đạt latency/usage; sau sửa prompt dừng ở 21/22 do Google 503; flow web thật gặp 503/504 |
-| Gemini 3.1 Flash-Lite (mặc định) | Dừng ở 30/31 do timeout ~20 s; 2/2 flow web thật desktop/mobile qua |
+| Ngày | Provider/model | Kết quả |
+| --- | --- | --- |
+| 22/11 | NVIDIA Nemotron 3 Ultra | 50/50 HTTP/state, usage đạt; latency trượt (p95 14,07 s, sau sửa prompt 8,48 s) |
+| 22/11 | NVIDIA Nemotron 3.5 Super (`2.0.0-rc.16` local) | 50/50; p50/p95/max 0,87/2,08/4,16 s; input TB 2.176, output TB 77 token |
+| 22/11 | Gemma 4, Nemotron 3.5 Lightning, Bolt | Loại ở vòng sàng lọc: timeout hoặc trả lời sai lịch sử hội thoại |
+| 25/11 | Gemini 3.1 Flash-Lite, deadline 20 s | Dừng ở 30/31 do timeout; 2/2 flow web thật qua |
+| 27/11 | Gemini 3.1 Flash-Lite, deadline 8 s + retry | Dừng sau 2 request do 504; 2/2 flow web thật qua |
+| **27/11** | **Gemini 3.5 Flash-Lite (mặc định)** | **50/50 HTTP/state; p50/p95/max 1,10/1,51/1,71 s; input TB 2.112 (p95 2.390), output TB 59 (max 225) token; 4/4 lỗi kiểm soát; 2/2 flow web thật** |
 
-Restart/replay hội thoại 8 lượt giữ nguyên và không gọi thêm provider; key chỉ xuất hiện ở backend.
-Human review chất lượng chưa hoàn tất cho model nào, nên chưa có model đạt toàn bộ gate trợ lý.
+Gemini 3.5 Flash-Lite qua các gate HTTP/state, latency và usage; human review chất lượng câu trả lời vẫn chưa hoàn tất.
+Restart/replay hội thoại giữ nguyên và không gọi thêm provider; key chỉ xuất hiện ở backend.
 Latency gồm gateway, mạng và provider; usage lấy từ số provider báo, không phải hóa đơn.
+Giá Gemini 3.5 Flash-Lite theo trần Standard $0,30 input / $2,50 output mỗi triệu token; mỗi câu giữ chỗ $0,631706 cho hai lần thử.
 
 ## Hồi quy source
 

@@ -37,7 +37,7 @@ CookLens giải quyết bài toán theo ba bước, mỗi bước có kiểm so�
 
 1. **Nhận diện** — mô hình EfficientNet-B2 gợi ý ba món trong danh mục 30 món Việt; ảnh mờ hoặc không đủ tin cậy bị từ chối thay vì đoán bừa.
 2. **Xác nhận và tra cứu** — người dùng luôn xác nhận món; hệ thống tìm công thức bằng tìm kiếm ngữ nghĩa chỉ trong món đã xác nhận, kèm nguồn và giấy phép.
-3. **Trợ lý nấu ăn** — hỏi đáp dựa trên công thức đang chọn qua LLM (mặc định Gemini) và điều khiển từng bước nấu bằng logic ứng dụng; phiên được lưu để quay lại sau.
+3. **Trợ lý nấu ăn** — hỏi đáp dựa trên công thức đang chọn qua LLM (mặc định Gemini 3.5 Flash-Lite) và điều khiển từng bước nấu bằng logic ứng dụng; phiên được lưu để quay lại sau.
 
 Nguyên tắc thiết kế: không bịa dữ liệu (thiếu thì để trống), không để model tự thay đổi trạng thái nấu, và mọi phần ảnh/công thức vẫn hoạt động khi LLM không sẵn sàng.
 
@@ -47,10 +47,10 @@ Nguyên tắc thiết kế: không bịa dữ liệu (thiếu thì để trống
 | --- | --- |
 | 📷 Nhận diện ảnh | Top-3 kèm độ tin cậy; chặn ảnh mờ và ảnh có điểm cao nhất dưới 65%; chọn món theo tên khi không có ảnh |
 | 📚 Công thức | 90 công thức tiếng Việt cho 30 món; tối đa ba kết quả, lọc theo nguyên liệu hoặc cách nấu; ghi rõ nguồn, giấy phép và công thức do AI biên soạn |
-| 💬 Trợ lý | Hỏi đáp theo công thức và bước hiện tại; phân biệt dữ kiện công thức với gợi ý thêm; người dùng web có thể dùng API key riêng |
+| 💬 Trợ lý | Hỏi đáp theo công thức và bước hiện tại; phân biệt dữ kiện công thức với gợi ý thêm; người dùng có thể dùng API key riêng trên web và Expo |
 | 👩‍🍳 Nấu từng bước | Bắt đầu, bước tiếp/trước, kết thúc; tiến độ và hội thoại khôi phục sau khi tải lại trang hoặc khởi động lại server |
 | 📱 Đa nền tảng | Web responsive và app Expo Go dùng chung API và client TypeScript |
-| 🛡️ Vận hành | Một lệnh `docker compose up`; model, corpus và vector nằm sẵn trong image; giới hạn request, ngân sách LLM và rollback dữ liệu |
+| 🛡️ Vận hành | Một lệnh `docker compose up`; model, corpus và vector nằm sẵn trong image; giới hạn request, ngân sách LLM, chặn endpoint nội bộ và rollback dữ liệu |
 
 ## Hình ảnh sản phẩm
 
@@ -112,6 +112,7 @@ Chi tiết ở [kiến trúc](docs/architecture.md) và [API contract](docs/cont
 | Tìm công thức (corpus v3) | 259 truy vấn, 30 món | Hit@1 **93,05%** · Hit@3 100% · MRR 0,965 · không lẫn món |
 | Độ trễ API | 100 mẫu/API, CPU | P95 nhận diện 0,16 s · tìm kiếm 0,09 s |
 | Ngưỡng 65% | 240 ảnh món, 14 ảnh ngoài danh mục | Chặn 14/14 ảnh ngoài danh mục, 73,8% ảnh món có gợi ý đúng |
+| Trợ lý (Gemini 3.5 Flash-Lite) | 50 câu cố định | 50/50 đúng trạng thái · p95 1,51 s · output TB 59 token |
 
 Cách đo, cấu hình máy và giới hạn diễn giải ở [nghiệm thu](docs/acceptance.md).
 
@@ -161,6 +162,7 @@ Cooking-assistant/
 | Mobile | `npm --prefix mobile run test:assistant` · `npm --prefix mobile run typecheck` |
 | Client dùng chung | `node --experimental-strip-types --test packages/cooklens-api/client.test.mjs` |
 | Dữ liệu và phát hành | `python3 -m unittest discover -s data/tests` · `python3 -m unittest discover -s deploy/tests` |
+| Lint/format | `ruff check ai data deploy` · `npm --prefix frontend run lint` · `mvn -f backend/pom.xml spotless:check` |
 
 Build từ source ở [phát triển](docs/development.md); toàn bộ lớp kiểm thử, tiêu chí đạt và bộ đánh giá trợ lý ở [kiểm thử](docs/testing.md).
 Quy ước làm việc và Git ở [WORKFLOW](docs/WORKFLOW.md).
@@ -169,8 +171,8 @@ Quy ước làm việc và Git ở [WORKFLOW](docs/WORKFLOW.md).
 
 - Chỉ nhận diện 30 món; ảnh nhiều món hoặc ngoài danh mục có thể bị từ chối hoặc gợi ý sai, người dùng luôn là người xác nhận.
 - Ngưỡng 65% đôi khi chặn cả ảnh món hợp lệ; khi đó chọn món theo tên.
-- Gemini có thể bị giới hạn tần suất hoặc phản hồi chậm; trợ lý không thay thế tư vấn dị ứng hay an toàn thực phẩm.
-- Android thật, iOS và đánh giá chất lượng trả lời bởi người chưa được nghiệm thu đầy đủ.
+- Gemini có thể bị giới hạn tần suất hoặc phản hồi chậm (mỗi câu chờ tối đa 8 s); trợ lý không thay thế tư vấn dị ứng hay an toàn thực phẩm.
+- Android thật, iOS và đánh giá chất lượng câu trả lời bởi người chưa được nghiệm thu đầy đủ.
 
 Danh sách đầy đủ ở [sản phẩm](docs/product.md#giới-hạn) và các [issue đang mở](https://github.com/tung51652-alt/Cooking-assistant/issues).
 

@@ -169,7 +169,8 @@ Shared client chuẩn hóa UUID phiên và operation thành chữ thường trư
 Chưa cấu hình key hoặc pricing policy hợp lệ thì không nhận operation/call mới; cooking commands vẫn hoạt động.
 
 `/messages` nhận thêm key của người dùng qua header tùy chọn `X-LLM-Api-Key`, `X-LLM-Provider` (`gemini`, `openai`, `nvidia`, `custom`), `X-LLM-Model` và `X-LLM-Base-Url`.
-Preset dùng đúng base URL đã định; `custom` cần HTTPS (HTTP chỉ cho loopback), không credential/query/fragment và path kết thúc `/v1`, `/openai` hoặc `/v1beta/openai`.
+Preset dùng đúng base URL đã định; `custom` cần HTTPS, không credential/query/fragment, path kết thúc `/v1`, `/openai` hoặc `/v1beta/openai`.
+Host `custom` phải phân giải ra địa chỉ public; địa chỉ loopback, private, link-local hoặc multicast trả 503 `ASSISTANT_PROVIDER_UNAVAILABLE` và kết nối được pin vào IP đã kiểm tra.
 Header sai trả 422 `VALIDATION_ERROR`; khi có key người dùng, backend không lưu key, không áp ngân sách server, vẫn áp rate limit phiên.
 
 ### State và hội thoại
@@ -198,8 +199,8 @@ State cuối có version 3, hai action với version `[1, 3]`, hai message và b
 1. Trong transaction ngắn: validate dữ liệu lưu/expiry, kiểm tra replay trước expected_version/status/quota, sau đó nhận operation mới và snapshot state.
    Chỉ cho một provider call đang chờ trên mỗi phiên; operation khác gặp pending trả 409 `ASSISTANT_REQUEST_IN_PROGRESS`.
    Cooking actions và GET không bị pending chat chặn; chúng vẫn có thể làm snapshot chat cũ đi.
-2. Gọi provider ngoài transaction SQLite, với deadline tổng 20 s và connect timeout 2 s.
-   Chỉ thử lại một lần khi provider trả 502/503 và còn deadline; không fallback provider hoặc giữ writer lock trong thời gian chờ.
+2. Gọi provider ngoài transaction SQLite trong deadline chung `LLM_TIMEOUT_SECONDS` (mặc định 8 s, tối đa 20 s), connect timeout 2 s.
+   Tối đa hai lần thử, mỗi lần ≤4 s; chỉ thử lại một lần khi timeout, 502/503 hoặc lỗi kết nối và còn đủ thời gian; không fallback provider hoặc giữ writer lock trong thời gian chờ.
 3. Khi có kết quả: transaction mới validate lại phiên/expiry và expected_version trước khi commit nguyên tử cặp message, kết quả operation, version và updated_at.
    Operation phải vẫn pending và còn deadline; completion đến sau khi operation đã thành lỗi cuối không được mở lại hoặc commit, kể cả version phiên chưa đổi.
    Nếu state đã đổi, trả 409 `SESSION_VERSION_CONFLICT`; nếu hết hạn trả 410; không lưu câu trả lời vào hội thoại.
@@ -252,7 +253,7 @@ Giới hạn 12 provider attempts được nhận trong sliding window 60 s/phi�
 Tháng UTC cảnh báo tại $5 (một marker bền vững/tháng), từ chối khi tổng đã đạt $10 hoặc reservation mới làm vượt $10.
 Tổng dùng charge đã biết hoặc reservation còn giữ; thiếu một trong input/output usage thì không hoàn reservation về 0.
 Usage được settle trước khi commit reply, kể cả khi reply bị loại vì stale/expiry; settlement lặp không ghi đè charge đã xác nhận.
-Pricing runtime chỉ nhận endpoint/model có policy giá đã xác minh: Gemini 3.1 Flash-Lite qua Google và các model trial NVIDIA đã pin; cấu hình khác trả `ASSISTANT_NOT_CONFIGURED` trước admission.
+Pricing runtime chỉ nhận endpoint/model có policy giá đã xác minh: Gemini 3.5 và 3.1 Flash-Lite qua Google và các model trial NVIDIA đã pin; cấu hình khác trả `ASSISTANT_NOT_CONFIGURED` trước admission.
 Các profile/operational alias được pin rõ trong `LlmSettings`, không chấp nhận model tùy ý hoặc wildcard; chat turn giữ reported model thực tế, ledger model là selector dùng khi admission.
 Policy giá trả phí phải có đơn giá và giới hạn billing bảo đảm được trước khi bật; ước lượng admission không được coi là tokenizer billing.
 

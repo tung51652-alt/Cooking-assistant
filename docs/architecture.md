@@ -61,10 +61,12 @@ Giao diện dùng font/icon local, không tải CDN.
 ## Trợ lý
 
 Backend gọi LLM qua interface `ChatProvider` với adapter Chat Completions tương thích OpenAI.
-Mặc định là Gemini 3.1 Flash-Lite qua endpoint OpenAI-compatible của Google; NVIDIA trial vẫn dùng được khi cấu hình đúng endpoint/model đã pin.
+Mặc định là Gemini 3.5 Flash-Lite qua endpoint OpenAI-compatible của Google; Gemini 3.1 Flash-Lite và NVIDIA trial vẫn dùng được khi cấu hình đúng endpoint/model đã pin.
 Chỉ một provider hoạt động, không tự fallback; chưa có adapter Anthropic.
-Trên web, người dùng có thể nhập key riêng (Gemini, OpenAI, NVIDIA hoặc endpoint tương thích OpenAI) trong Cài đặt trợ lý.
-Key này lưu trong `localStorage` của trình duyệt và gửi kèm từng câu hỏi qua header `X-LLM-*`; backend dùng nó thay cấu hình server, không lưu key và không tính vào ngân sách server.
+Trên web và Expo, người dùng có thể nhập key riêng (Gemini, OpenAI, NVIDIA hoặc endpoint tương thích OpenAI) trong Cài đặt trợ lý.
+Web lưu key trong `sessionStorage` (chỉ lưu lâu dài ở `localStorage` khi người dùng chọn), Expo lưu bằng SecureStore; key gửi kèm từng câu hỏi qua header `X-LLM-*`.
+Backend dùng key này thay cấu hình server, không lưu key và không tính vào ngân sách server.
+Endpoint tùy chỉnh phải là HTTPS tới host phân giải ra địa chỉ public; backend kết nối đúng IP đã kiểm tra để chặn truy cập mạng nội bộ.
 
 - Backend lấy công thức từ corpus và lưu snapshot vào phiên; không nhận recipe/state do client gửi.
 - Context gồm công thức, bước hiện tại và tối đa 6 cặp hỏi đáp gần nhất; dữ liệu người dùng tách khỏi system instruction; không gửi ảnh.
@@ -76,7 +78,7 @@ Key này lưu trong `localStorage` của trình duyệt và gửi kèm từng c�
 | --- | --- |
 | Phiên | 24 giờ cố định; 100 action; 30 cặp hỏi đáp; 10.000 record |
 | Request | Body 8 KiB; câu hỏi ≤2.000 ký tự; 4 request nghiệp vụ đồng thời/instance |
-| Gọi LLM | 12 lượt/phút/phiên; timeout 20 s (proxy 25 s); output ≤512 token; input ước lượng ≤6.000 token |
+| Gọi LLM | 12 lượt/phút/phiên; deadline 8 s, tối đa 2 lần thử mỗi lần ≤4 s (proxy 25 s); output ≤512 token; input ước lượng ≤6.000 token |
 | Ngân sách | Cảnh báo $5, chặn $10 mỗi tháng UTC; tính theo trần giá đã xác minh |
 
 SQLite schema 3 trong volume `assistant-sessions` lưu phiên, hội thoại, operation và ledger chi phí.

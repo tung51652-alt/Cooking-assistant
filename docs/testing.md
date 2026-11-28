@@ -34,6 +34,39 @@ Suite web chạy `flow.spec.ts` và `assistant.spec.ts` với API mô phỏng tr
 thêm `COOKLENS_REAL_ASSISTANT=1` khi backend có key, và `COOKLENS_LIGHTBULB_IMAGE` để chạy ca ảnh ngoài danh mục.
 Kiểm tra native theo [mobile README](../mobile/README.md); browser emulation không thay thế thiết bị thật.
 
+### Lint và format
+
+```sh
+ruff check ai data deploy
+npm --prefix frontend run lint
+npm --prefix frontend run format:check
+mvn -B -q -f backend/pom.xml spotless:check
+```
+
+### AI services
+
+Test chạy bằng Python 3.12 trong venv riêng với artifact đã staging theo [development.md](development.md), giống [vision.yml](../.github/workflows/vision.yml) và [recipes.yml](../.github/workflows/recipes.yml).
+
+```sh
+python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 torchvision==0.29.1
+python -m pip install -r ai/cv/inference/requirements-test.txt -r ai/rag/requirements.txt
+python -m unittest discover -s ai/cv/inference/tests -v
+```
+
+`ai/rag/tests/test_runtime.py` cần một Qdrant riêng (không dùng volume của stack đang chạy):
+
+```sh
+docker run -d --name cooklens-recipes-test-qdrant -p 127.0.0.1:6333:6333 qdrant/qdrant:v1.19.2
+QDRANT_URL=http://127.0.0.1:6333 \
+RECIPES_BUNDLE_DIR=deploy/artifacts/staging/recipes \
+EMBEDDING_MODEL_DIR=deploy/artifacts/staging/embedding \
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+python -m unittest discover -s ai/rag/tests -v
+docker rm -f cooklens-recipes-test-qdrant
+```
+
+Smoke image đã build: `deploy/scripts/smoke_vision_container.py --image cooklens-vision:local` và `deploy/scripts/smoke_recipes_container.py`.
+
 ## Nghiệm thu bộ image
 
 [Workflow acceptance](../.github/workflows/acceptance.yml) chạy thủ công với manifest và query từ tag phát hành, cùng phiên bản image đang kiểm tra.
@@ -76,7 +109,7 @@ Giữ nguyên fixture, rubric và ngưỡng trong một lần đo; sửa fixture
 
 ```sh
 python3 deploy/scripts/evaluate_assistant.py                       # chỉ in kế hoạch
-python3 deploy/scripts/evaluate_assistant.py --execute --base-url http://127.0.0.1:8080 --request-pause-seconds 5
+python3 deploy/scripts/evaluate_assistant.py --execute --base-url http://127.0.0.1:8080 --request-pause-seconds 6
 ```
 
 Runner tạo phiên riêng cho mỗi ca, không retry POST và dừng khi API/contract sai hoặc gặp 429.

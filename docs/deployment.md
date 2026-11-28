@@ -30,7 +30,7 @@ Các biến tùy chọn ghi trong `.env.example`.
 ## Cấu hình trợ lý
 
 Sao chép `.env.example` thành `.env` (không track) và điền Google AI Studio key vào `LLM_API_KEY`.
-Mặc định: `LLM_PROVIDER=openai`, `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`, `LLM_MODEL=gemini-3.1-flash-lite`.
+Mặc định: `LLM_PROVIDER=openai`, `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`, `LLM_MODEL=gemini-3.5-flash-lite`, `LLM_TIMEOUT_SECONDS=8`.
 Compose chỉ forward bảy biến `LLM_*` vào backend; key không vào Dockerfile, build args, client hoặc log.
 Bảng biến, giới hạn và policy giá ở [backend README](../backend/README.md).
 
