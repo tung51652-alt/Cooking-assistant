@@ -426,8 +426,11 @@ class LifecycleTests(unittest.TestCase):
             mapping['labels'][0]['original_label'] = 'Wrong label'
             taxonomy = root / 'mapping.json'
             taxonomy.write_text(json.dumps(mapping))
-            with patch.dict(os.environ, {'FOOD_TAXONOMY_PATH': str(taxonomy)}):
-                with self.assertRaises(ValueError):
+            with patch.dict(os.environ, {
+                'FOOD_MODEL_PATH': str(LEGACY_CHECKPOINT),
+                'FOOD_TAXONOMY_PATH': str(taxonomy),
+            }):
+                with self.assertRaisesRegex(ValueError, 'Taxonomy training labels mismatch'):
                     load_model()
 
 
