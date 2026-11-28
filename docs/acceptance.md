@@ -59,7 +59,7 @@ Mẫu ngoài danh mục nhỏ và chủ yếu là ảnh nền, nên ảnh ngoài
 
 ## Đánh giá checkpoint epoch 5 (#67)
 
-So sánh trên cùng manifest Test sạch gồm 5.004 ảnh và 30 nhãn món Việt.
+Chạy lại cả hai checkpoint trên cùng manifest Test sạch gồm 5.004 ảnh và 30 nhãn món Việt.
 Các số đo dùng điểm classifier trước bộ lọc ảnh mờ và quy tắc hiển thị gợi ý.
 Hai lớp fallback của epoch 5 vẫn tham gia xếp hạng và được tính là dự đoán sai nếu đứng đầu trên ảnh món.
 
@@ -76,7 +76,8 @@ Chạy lại 13 ảnh ngoài danh mục có sẵn từ các [gói ảnh nền Ub
 Cả hai checkpoint đều trả về 0 gợi ý. Epoch 5 trả `NON_FOOD` cho 7 ảnh, gồm ảnh bóng đèn của #49. Năm ảnh bị bộ lọc ảnh mờ chặn và một ảnh bị từ chối khi kiểm tra đầu vào.
 
 API epoch 5 đã được kiểm tra cục bộ với file hỏng, rỗng, sai định dạng, quá lớn, ảnh 1×1, PNG trống trong suốt và ảnh có thẻ xoay EXIF.
-Chưa chạy lại ảnh Cơm tấm gốc của #67, stack Docker với checkpoint epoch 5, hoặc Expo Go trên điện thoại thật cho checkpoint này.
+CI đã kiểm tra [image vision epoch 5](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/46122447046/job/140909680220) và [luồng browser qua stack Docker epoch 5](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/46122447045/job/140909714284).
+Chưa chạy lại ảnh Cơm tấm gốc của #67 hoặc Expo Go trên điện thoại thật cho checkpoint này.
 
 ## Corpus công thức v3
 
