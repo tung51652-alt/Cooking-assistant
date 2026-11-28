@@ -84,17 +84,20 @@ Giá Gemini 3.5 Flash-Lite theo trần Standard $0,30 input / $2,50 output mỗi
 
 ## Hồi quy source
 
-| Kiểm tra | Trước `2.0.0` (25/11) | `develop` trước `2.1.0` (27/11) |
+| Kiểm tra | Trước `2.0.0` (25/11) | `develop` trước `2.1.0` (28/11) |
 | --- | --- | --- |
-| Backend Java 21 | 76 | 85 |
+| Backend Java 21 | 76 | 93, Spotless sạch |
 | Deploy/release tooling | 65 | 70 |
-| Dữ liệu | 7 | 11 |
+| Dữ liệu | 7 | 15; 90 công thức đủ 30 món |
 | Client dùng chung | 14 | 18 |
+| Vision / RAG | — | 18 / 19 (RAG với Qdrant riêng) |
 | Playwright, API mô phỏng | 44 | 74 |
-| Playwright, stack Docker thật | — | 8 (4 ca cần ảnh ngoài danh mục/nhiều món bị bỏ qua) |
-| Expo | 22 | 27, kèm typecheck và bundle Android/iOS |
+| Playwright, stack Docker thật | — | 12, gồm trợ lý Gemini 3.5 và ảnh bóng đèn của #49; 2 ca cần ảnh nhiều món bị bỏ qua |
+| Expo | 22 | 37, typecheck và kiểm tra dependency Expo |
+| Lint/format | — | ESLint, Prettier, Ruff đạt |
 
-Tất cả ca đã chạy đều qua. Số liệu `develop` lấy từ [PR #64](https://github.com/tung51652-alt/Cooking-assistant/pull/64).
+Tất cả ca đã chạy đều qua; stack dùng image build từ source với corpus `cooklens-recipes-v3-1`.
+Trên cùng stack, năm câu hỏi liên tiếp về Phở gà trả lời trong 1,1–1,8 s, và endpoint tùy chỉnh trỏ tới địa chỉ nội bộ bị từ chối ngay (#66).
 
 ## Giới hạn diễn giải
 
