@@ -79,6 +79,18 @@ API epoch 5 đã được kiểm tra cục bộ với file hỏng, rỗng, sai �
 CI đã kiểm tra [image vision epoch 5](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/46122447046/job/140909680220) và [luồng browser qua stack Docker epoch 5](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/46122447045/job/140909714284).
 Chưa chạy lại ảnh Cơm tấm gốc của #67 hoặc Expo Go trên điện thoại thật cho checkpoint này.
 
+Đánh giá độc lập trên image build từ nhánh này (28/11), cùng stack Docker và cùng bộ ảnh cho cả hai checkpoint:
+
+- Test 5.004 ảnh: Top-1 87,11%, Macro F1 0,8755, khớp bảng trên.
+  Tính theo kết quả người dùng thấy (ảnh bị xếp fallback đứng đầu thì không có gợi ý), Top-3 là 95,20%.
+  59 ảnh món (1,2%) bị xếp `other_food` (34) hoặc `non_food` (25), nhiều nhất ở Bánh đúc (6).
+- 18 ảnh ngoài danh mục không bị lọc mờ (ruộng lúa, ảnh nền, bóng đèn của #49, nhiễu, hóa đơn, ảnh chụp màn hình): 17 trả `NON_FOOD`, checkpoint 30 lớp trả `LOW_CONFIDENCE_PREDICTION`.
+- Ảnh pizza được gợi ý Bánh tráng nướng 54,7%, đủ ngưỡng "Món gợi ý"; checkpoint 30 lớp từ chối ảnh này.
+- Ảnh Cơm tấm hai đĩa và 4 biến thể (cắt, mờ nhẹ, tối, xoay): Cơm tấm đứng đầu ở 4/5 ảnh với 25–49%, nên hiện trong "món có thể" thay vì bị từ chối như checkpoint 30 lớp.
+- Ảnh Bún đậu mắm tôm và biến thể cắt, xoay, EXIF vẫn nhận đúng (52–90%); bản tối 25% chuyển từ `LOW_CONFIDENCE_PREDICTION` sang `NON_FOOD` hoặc gợi ý 27%.
+- 11 file lỗi (rỗng, hỏng, GIF/WebP giả đuôi, ảnh động, 1×1, PNG trong suốt, ảnh xám, >10 MiB, >25 MP) trả cùng mã lỗi với checkpoint 30 lớp.
+- `real-flow.spec.ts` trên stack epoch 5: 8/8 ca đã chạy, gồm ảnh bóng đèn của #49 trên desktop và mobile.
+
 ## Corpus công thức v3
 
 `cooklens-recipes-v3` (90 công thức, nay là `v3-1` sau khi sửa ghi chú biên tập ở #69) trên Recipes API và Qdrant 1.19.2 local, 259 query/30 món:
