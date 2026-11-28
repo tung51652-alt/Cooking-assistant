@@ -134,6 +134,19 @@ class GatewayIntegrationTest {
         mode="busy"; error(image(new byte[]{1},"image/png",""),503,"SERVICE_BUSY");
         mode="empty"; var r=search("{\"confirmed_dish\":\"pho\"}"); assertEquals(200,r.statusCode()); assertTrue(body(r).path("recipes").isEmpty());
     }
+    @Test void candidateAcceptsSupportedScoresAndPreservesFallbackCodes() throws Exception {
+        mode="candidate";
+        var result=image(new byte[]{1},"image/png","");
+        assertEquals(200,result.statusCode(),result.body());
+        assertEquals(contract.candidateModelVersion,body(result).path("model_version").asText());
+        assertEquals(0.631,body(result).path("predictions").get(0).path("confidence").asDouble());
+        Thread.sleep(1100);
+        assertEquals(200,get("/api/health").statusCode());
+        for (String code:List.of("OTHER_FOOD","NON_FOOD")) {
+            mode=code;
+            error(image(new byte[]{1},"image/png",""),422,code);
+        }
+    }
     @Test void timeoutsAreBoundedAndNeverRetried() throws Exception {
         mode="slow"; long start=System.nanoTime();
         error(search("{\"confirmed_dish\":\"pho\"}"),504,"DEPENDENCY_TIMEOUT");
@@ -207,15 +220,18 @@ class GatewayIntegrationTest {
             else if(current.equals("invalid-image")) { status=400; result=Map.of("code","INVALID_IMAGE","message","provider-private-detail"); }
             else if(current.equals("blurry-image")) { status=422; result=Map.of("code","IMAGE_BLURRY","message","provider-private-detail"); }
             else if(current.equals("low-confidence-error")) { status=422; result=Map.of("code","LOW_CONFIDENCE_PREDICTION","message","provider-private-detail"); }
+            else if(current.equals("OTHER_FOOD") || current.equals("NON_FOOD")) { status=422; result=Map.of("code",current,"message","provider-private-detail"); }
             else if(current.equals("busy")) { status=503; result=Map.of("code","SERVICE_BUSY"); }
             else if(current.equals("missing")) { status=404; result=Map.of("code","RECIPE_NOT_FOUND"); }
-            else if(path.equals("/health/ready")) result=Map.of("status","ready","model_version",current.equals("version")?"wrong":contract.modelVersion,
+            else if(path.equals("/health/ready")) result=Map.of("status","ready","model_version",current.equals("version")?"wrong":
+                    current.equals("candidate")?contract.candidateModelVersion:contract.modelVersion,
                     "taxonomy_version",contract.taxonomyVersion,"embedding_version",contract.embeddingVersion,
                     "corpus_version",current.equals("version")?"wrong":contract.corpusVersion);
             else if(path.equals("/predict")) {
                 var p=prediction.deepCopy();
                 if(current.equals("version")) ((com.fasterxml.jackson.databind.node.ObjectNode)p).put("model_version","wrong");
-                if(current.equals("low-confidence-score")) {
+                if(current.equals("candidate")) ((com.fasterxml.jackson.databind.node.ObjectNode)p).put("model_version",contract.candidateModelVersion);
+                if(current.equals("low-confidence-score") || current.equals("candidate")) {
                     var preds=(com.fasterxml.jackson.databind.node.ArrayNode)p.path("predictions");
                     ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(0)).put("confidence",0.631);
                     ((com.fasterxml.jackson.databind.node.ObjectNode)preds.get(1)).put("confidence",0.23);

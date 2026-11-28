@@ -110,6 +110,7 @@ main { min-height: calc(100dvh - 167px); scroll-margin-top: 104px; }
 .recognition-photo > span { font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
 .recognition-photo .text-btn { margin-left: auto; flex-shrink: 0; }
 .recognition-container { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.recognition-container > .result-card:only-child { grid-column: 1 / -1; }
 .result-card { padding: 25px; }
 .result-card h2 { font-size: 17px; }
 .prediction-choice { display: flex; align-items: center; gap: 13px; padding: 20px 15px; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; cursor: pointer; }

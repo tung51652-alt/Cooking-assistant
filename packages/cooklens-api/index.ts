@@ -7,6 +7,48 @@ import type {
 export type { LlmProviderPreset, LlmUserConfig, LlmTestResult };
 
 export const MIN_VISION_CONFIDENCE = 0.65;
+const FALLBACK_MODEL_VERSION = 'efficientnet-b2-32class-epoch5';
+const MIN_POSSIBILITY_SCORE = 0.07;
+const MIN_SUGGESTION_SCORE = 0.54;
+const HIGH_SUGGESTION_SCORE = 0.70;
+const VERY_HIGH_SUGGESTION_SCORE = 0.90;
+const visionErrors: Record<string, string> = {
+  IMAGE_BLURRY: 'Ảnh bị mờ, không đủ rõ nét để nhận diện món ăn. Vui lòng chụp hoặc chọn ảnh rõ nét hơn.',
+  LOW_CONFIDENCE_PREDICTION: 'Chưa xác định được món từ ảnh này. Hãy chọn ảnh khác hoặc chọn món theo tên.',
+  OTHER_FOOD: 'Món trong ảnh nằm ngoài danh mục CookLens. Bạn có thể chọn món theo tên.',
+  NON_FOOD: 'Ảnh này có vẻ không phải ảnh món ăn. Hãy thử ảnh khác hoặc chọn món theo tên.',
+};
+
+export interface VisionPredictionResult { modelVersion: string; predictions: Prediction[] }
+export function isVisionRecoveryCode(code: string | null | undefined): boolean {
+  return typeof code === 'string' && Object.hasOwn(visionErrors, code);
+}
+export function hasLegacyLowConfidence(result: VisionPredictionResult | null): boolean {
+  return !!result && result.modelVersion !== FALLBACK_MODEL_VERSION
+    && result.predictions.length > 0 && result.predictions[0].confidence < MIN_VISION_CONFIDENCE;
+}
+
+type VisionSuggestion = { prediction: Prediction; badge: string | null; showScore: boolean };
+type VisionPresentation = { kind: 'empty' } | { kind: 'uncertain' }
+  | { kind: 'results'; suggestion: VisionSuggestion | null; possibilities: Prediction[] };
+
+export function presentVisionResult(result: VisionPredictionResult | null): VisionPresentation {
+  if (!result || result.predictions.length === 0) return { kind: 'empty' };
+  const [prediction, ...alternatives] = result.predictions;
+  if (result.modelVersion !== FALLBACK_MODEL_VERSION) {
+    if (hasLegacyLowConfidence(result)) return { kind: 'uncertain' };
+    return { kind: 'results', suggestion: { prediction, badge: null, showScore: true }, possibilities: alternatives };
+  }
+
+  const possibilities = result.predictions.filter(option => option.confidence >= MIN_POSSIBILITY_SCORE);
+  if (possibilities.length === 0) return { kind: 'uncertain' };
+  const score = prediction.confidence;
+  if (score < MIN_SUGGESTION_SCORE) return { kind: 'results', suggestion: null, possibilities };
+
+  const badge = score >= VERY_HIGH_SUGGESTION_SCORE ? 'Khả năng rất cao'
+    : score >= HIGH_SUGGESTION_SCORE ? 'Khả năng cao' : null;
+  return { kind: 'results', suggestion: { prediction, badge, showScore: false }, possibilities: possibilities.slice(1) };
+}
 
 export class ApiError extends Error {
   readonly status?: number;
@@ -118,13 +160,9 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
       }
       if (path === '/vision/predict') {
         const error: unknown = await response.json().catch(() => null);
-        const visionErrors: Record<string, string> = {
-          IMAGE_BLURRY: 'Ảnh bị mờ, không đủ rõ nét để nhận diện món ăn. Vui lòng chụp hoặc chọn ảnh rõ nét hơn.',
-          LOW_CONFIDENCE_PREDICTION: 'Chưa xác định được món từ ảnh này. Hãy chọn ảnh khác hoặc chọn món theo tên.',
-        };
         if (record(error) && error.api_version === '1.0.0' && uuid(error.request_id)
           && response.headers.get('X-Request-ID') === error.request_id && typeof error.code === 'string'
-          && Object.hasOwn(visionErrors, error.code)) {
+          && isVisionRecoveryCode(error.code)) {
           throw new ApiError(visionErrors[error.code], response.status, error.code);
         }
       }
@@ -143,7 +181,7 @@ async function request(path: string, signal: AbortSignal, init: RequestInit = {}
     throw new ApiError('Không kết nối được dịch vụ. Hãy kiểm tra kết nối và thử lại.');
   } finally { clearTimeout(timeout); signal.removeEventListener('abort', abort); }
 }
-async function predict(body: FormData, signal: AbortSignal): Promise<Prediction[]> {
+async function predictResult(body: FormData, signal: AbortSignal): Promise<VisionPredictionResult> {
   const data = await request('/vision/predict', signal, { method: 'POST', body }, 25_000);
   if (!text(data.model_version) || !text(data.taxonomy_version) || !Array.isArray(data.predictions) || data.predictions.length !== 3) malformed();
   const result: Prediction[] = [];
@@ -154,7 +192,10 @@ async function predict(body: FormData, signal: AbortSignal): Promise<Prediction[
   if (new Set(result.map(p => p.class_id)).size !== 3 || new Set(result.map(p => p.normalized_dish)).size !== 3
     || result.reduce((sum,p) => sum+p.confidence,0) > 1.000001
     || result.some((p,i) => i>0 && (p.confidence > result[i-1].confidence || (p.confidence === result[i-1].confidence && p.class_id < result[i-1].class_id)))) malformed();
-  return result;
+  return { modelVersion: data.model_version, predictions: result };
+}
+async function predict(body: FormData, signal: AbortSignal): Promise<Prediction[]> {
+  return (await predictResult(body, signal)).predictions;
 }
 async function getDishes(signal: AbortSignal): Promise<Dish[]> {
   const data = await request('/dishes', signal);
@@ -286,7 +327,7 @@ async function testLlmConfig(config: LlmUserConfig, signal: AbortSignal): Promis
     latency_ms: data.latency_ms,
   };
 }
-return { predict, getDishes, searchRecipes, getRecipe, getRecipeDocument, createSession, getSession, sessionAction, sessionMessage, testLlmConfig };
+return { predict, predictResult, getDishes, searchRecipes, getRecipe, getRecipeDocument, createSession, getSession, sessionAction, sessionMessage, testLlmConfig };
 }
 
 export function normalizeBaseUrl(value: string): string {

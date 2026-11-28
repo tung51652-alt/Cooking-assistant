@@ -84,7 +84,7 @@ export default function UploadPage({ image, busy, error, visionIssue, onFiles, o
       <div className="journey-heading"><span aria-hidden="true">🍳</span><div><h2 id="journey-title">Một tấm ảnh. Một bữa ngon.</h2><p>CookLens cùng bạn tìm lại hương vị yêu thích.</p></div></div>
       <ol className="journey-steps">
         <li><span className="journey-number">1</span><div><h3>Chọn ảnh của bạn</h3><p>Tải ảnh có sẵn hoặc chụp món ăn ngay tại bàn.</p></div><ArrowRight aria-hidden="true" /></li>
-        <li><span className="journey-number">2</span><div><h3>Xác nhận món ăn</h3><p>Chọn trong ba gợi ý hoặc sửa từ danh mục 30 món Việt.</p></div><ArrowRight aria-hidden="true" /></li>
+        <li><span className="journey-number">2</span><div><h3>Xác nhận món ăn</h3><p>Chọn món từ kết quả nhận diện hoặc từ danh mục 30 món Việt.</p></div><ArrowRight aria-hidden="true" /></li>
         <li><span className="journey-number">3</span><div><h3>Mang vị ngon về bếp</h3><p>Xem nguyên liệu, cách nấu và nguồn công thức rõ ràng.</p></div></li>
       </ol>
     </section>

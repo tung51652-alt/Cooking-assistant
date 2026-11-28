@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { IconContext, BowlFood, ArrowRight, Key } from '@phosphor-icons/react';
-import type { Dish, LlmUserConfig, Prediction, RecipeSummary, SelectedImage, View } from './types';
+import type { Dish, LlmUserConfig, RecipeSummary, SelectedImage, View } from './types';
+import { isVisionRecoveryCode, type VisionPredictionResult } from '../../packages/cooklens-api';
 import * as api from './lib/api';
 import { clearLlmConfig, LLM_PRESETS, loadLlmConfig, saveLlmConfig } from './lib/llmConfig';
 import { loadConfirmedDish, saveConfirmedDish, saveRecipeSelection } from './lib/recipeContext';
@@ -21,7 +22,8 @@ export default function App() {
   const [view, setView] = useState<View>(currentView);
   const [image, setImage] = useState<SelectedImage | null>(null);
   const imageRef = useRef<SelectedImage | null>(null);
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [visionResult, setVisionResult] = useState<VisionPredictionResult | null>(null);
+  const predictions = visionResult?.predictions ?? [];
   const [confirmed, setConfirmed] = useState<Dish | null>(loadConfirmedDish);
   const [chosen, setChosen] = useState<Dish | null>(confirmed);
   const [dishes, setDishes] = useState<Dish[] | null>(null);
@@ -75,7 +77,7 @@ export default function App() {
   function cancel() { request.current?.abort(); request.current = null; setBusy(null); }
   function resetRecipes() { setConfirmed(null); setRecipes(null); saveRecipeSelection(); }
   function replaceImage(next: SelectedImage | null) {
-    cancel(); imageRef.current = next; setImage(next); setPredictions([]); setChosen(null); resetRecipes(); setError(null); setErrorCode(null);
+    cancel(); imageRef.current = next; setImage(next); setVisionResult(null); setChosen(null); resetRecipes(); setError(null); setErrorCode(null);
   }
   function filesChanged(files: FileList | null) {
     if (!files?.length) return;
@@ -102,10 +104,10 @@ export default function App() {
   }
   async function recognize() {
     if (!image) return;
-    setPredictions([]); setChosen(null); resetRecipes();
+    setVisionResult(null); setChosen(null); resetRecipes();
     await run('predict', async signal => {
       const result = await api.predict(image.file, signal);
-      if (!signal.aborted) { setPredictions(result); navigate('recognition'); }
+      if (!signal.aborted) { setVisionResult(result); navigate('recognition'); }
     });
   }
   function choose(dish: Dish | null) { cancel(); setChosen(dish); setError(null); setErrorCode(null); }
@@ -126,14 +128,14 @@ export default function App() {
   function confirmDish(dish: Dish | null = chosen, fromPhoto = true) {
     if (!dish) return;
     if (dish.normalized_dish !== confirmed?.normalized_dish) setRecipes(null);
-    if (!fromPhoto) { imageRef.current = null; setImage(null); setPredictions([]); }
+    if (!fromPhoto) { imageRef.current = null; setImage(null); setVisionResult(null); }
     setConfirmed(dish); setChosen(dish); navigate('assistant');
     void searchRecipes(dish);
   }
   function goToUpload() {
     cancel(); setError(null); setErrorCode(null); navigate('upload');
   }
-  const visionIssue = errorCode === 'IMAGE_BLURRY' || errorCode === 'LOW_CONFIDENCE_PREDICTION';
+  const visionIssue = isVisionRecoveryCode(errorCode);
   return <IconContext.Provider value={{ weight: 'regular', size: 22 }}>
     <a className="skip-link" href="#main">Đến nội dung chính</a>
     <header className="header"><nav className="navbar" aria-label="Điều hướng chính">
@@ -153,7 +155,7 @@ export default function App() {
         <button className="text-btn" onClick={() => { setError(null); setErrorCode(null); }}>Đóng thông báo</button>
       </div></div>}
       {view === 'upload' && <UploadPage image={image} busy={busy === 'predict'} error={error} visionIssue={visionIssue} onFiles={filesChanged} onRemove={() => replaceImage(null)} onPredict={recognize} onInvalid={invalidImage} onDismissError={() => { setError(null); setErrorCode(null); }} onOpenCatalog={openDishCatalog} />}
-      {view === 'recognition' && <RecognitionPage image={image} predictions={predictions} chosen={chosen} dishes={dishes} busy={busy === 'dishes'}
+      {view === 'recognition' && <RecognitionPage image={image} result={visionResult} chosen={chosen} dishes={dishes} busy={busy === 'dishes'}
         onChoose={choose} onConfirm={() => confirmDish()} onConfirmDish={dish => confirmDish(dish, !!image)}
         onEdit={editDish} onUpload={goToUpload} />}
       {view === 'recipes' && <section className="section" aria-labelledby="catalog-title">

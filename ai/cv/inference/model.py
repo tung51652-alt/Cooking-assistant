@@ -26,17 +26,26 @@ class LoadedModel:
     model_version: str
     taxonomy_version: str
 
+    @property
+    def supports_fallback(self) -> bool:
+        return len(self.classes) > len(self.dishes)
+
 
 def load_model() -> LoadedModel:
-    manifest = json.loads(MANIFEST.read_text())
+    manifest = json.loads(MANIFEST.read_text(encoding='utf-8'))
     vision = manifest['vision']
-    path = Path(os.environ.get('FOOD_MODEL_PATH', str(DEFAULT_CHECKPOINT)))
+    candidate = manifest['vision_candidate']
+    candidate_path = DEFAULT_CHECKPOINT.with_name(candidate['filename'])
+    default_path = candidate_path if candidate_path.is_file() else DEFAULT_CHECKPOINT
+    path = Path(os.environ.get('FOOD_MODEL_PATH', str(default_path)))
+    using_candidate = path.name == candidate['filename']
+    artifact = candidate if using_candidate else vision
     taxonomy_path = Path(os.environ.get('FOOD_TAXONOMY_PATH', str(DEFAULT_TAXONOMY)))
     threads = int(os.environ.get('TORCH_NUM_THREADS', '4'))
     if not 1 <= threads <= 32:
         raise ValueError('Invalid CPU thread configuration')
     torch.set_num_threads(threads)
-    if path.stat().st_size != vision['size_bytes']:
+    if path.stat().st_size != artifact['size_bytes']:
         raise ValueError('Checkpoint size mismatch')
     checkpoint = torch.load(path, map_location='cpu', weights_only=True)
     if not isinstance(checkpoint, dict) or checkpoint.get('architecture') != vision['architecture']:
@@ -45,17 +54,22 @@ def load_model() -> LoadedModel:
     if checkpoint.get('image_size') != preset.crop_size[0]:
         raise ValueError('Unexpected checkpoint image size')
     classes = checkpoint.get('classes')
-    if classes != vision['class_labels'] or len(classes) != 30 or len(set(classes)) != 30:
+    dish_labels = vision['class_labels']
+    expected_classes = dish_labels + candidate['fallback_labels'] if using_candidate else dish_labels
+    if classes != expected_classes or len(set(classes)) != len(expected_classes):
         raise ValueError('Checkpoint class order mismatch')
+    if using_candidate and (checkpoint.get('epoch') != candidate['checkpoint_epoch']
+                            or checkpoint.get('smoke') is not False):
+        raise ValueError('Unexpected candidate checkpoint epoch')
     recorded = vision['transform']
     if (preset.crop_size != recorded['crop_size'][:1] or preset.resize_size != [recorded['resize_short_edge']]
             or preset.mean != recorded['mean'] or preset.std != recorded['std']
             or preset.interpolation.value != recorded['interpolation'] or not preset.antialias):
         raise ValueError('Evaluation preprocessing mismatch')
-    dishes = load_taxonomy(taxonomy_path, classes, manifest['taxonomy_version'])
+    dishes = load_taxonomy(taxonomy_path, dish_labels, manifest['taxonomy_version'])
     network = efficientnet_b2(weights=None)
     network.classifier[1] = nn.Linear(network.classifier[1].in_features, len(classes))
     network.load_state_dict(checkpoint['model_state_dict'], strict=True)
     network.eval()
     return LoadedModel(network, torch.device('cpu'), tuple(classes), dishes,
-                       vision['model_version'], manifest['taxonomy_version'])
+                       artifact['model_version'], manifest['taxonomy_version'])

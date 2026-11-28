@@ -38,7 +38,7 @@ public class DependencyHealth implements HealthIndicator {
         DependencyState value = null;
         if (result.isDone() && !result.isCompletedExceptionally() && !result.isCancelled()) value = result.getNow(null);
         if (value != null && "ready".equals(value.status()) && contract.taxonomyVersion.equals(value.taxonomyVersion())
-                && (isVision ? contract.modelVersion.equals(value.modelVersion())
+                && (isVision ? contract.supportsVisionModel(value.modelVersion())
                 : contract.corpusVersion.equals(value.corpusVersion()) && contract.embeddingVersion.equals(value.embeddingVersion())))
             return isVision ? new DependencyState("ready", null, value.modelVersion(), value.taxonomyVersion(), null, null)
                     : new DependencyState("ready", null, null, value.taxonomyVersion(), value.corpusVersion(), value.embeddingVersion());

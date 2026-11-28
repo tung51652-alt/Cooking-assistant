@@ -89,7 +89,7 @@ def create_app() -> FastAPI:
         image = decode_upload(file)
         try:
             predictions = predict_image(image, runtime.model)
-            if predictions[0]['confidence'] < CONFIDENCE_THRESHOLD:
+            if not runtime.model.supports_fallback and predictions[0]['confidence'] < CONFIDENCE_THRESHOLD:
                 raise VisionError(
                     422,
                     'LOW_CONFIDENCE_PREDICTION',

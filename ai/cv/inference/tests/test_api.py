@@ -26,7 +26,7 @@ from ai.cv.inference.images import BLUR_LAPLACIAN_THRESHOLD, laplacian_variance
 from ai.cv.inference.inference import evaluation_transform, predict_image
 from ai.cv.inference.main import CONFIDENCE_THRESHOLD, create_app
 from ai.cv.inference.schemas import PredictionResponse
-from ai.cv.inference.model import ROOT, load_model
+from ai.cv.inference.model import DEFAULT_CHECKPOINT, ROOT, load_model
 
 FIXTURE = Path(__file__).parent / 'fixtures/food.png'
 
@@ -40,7 +40,8 @@ class FoodApiTests(unittest.TestCase):
         cls.app = create_app()
         cls.client = TestClient(cls.app)
         try:
-            cls.client.__enter__()
+            with patch.dict(os.environ, {'FOOD_MODEL_PATH': str(DEFAULT_CHECKPOINT)}):
+                cls.client.__enter__()
         except Exception:
             cls.load_patch.stop()
             raise
@@ -264,6 +265,28 @@ class FoodApiTests(unittest.TestCase):
         spec = self.client.get('/openapi.json').json()
         self.assertIn('multipart/form-data', spec['paths']['/predict']['post']['requestBody']['content'])
         self.assertEqual(self.client.get('/docs').status_code, 200)
+
+    def test_candidate_routes_fallbacks_and_returns_supported_dishes_without_cutoff(self):
+        model = replace(self.model, classes=self.model.classes + ('other_food', 'non_food'))
+        with patch.object(self.app.state.runtime, 'model', model):
+            for winner, code in [(30, 'OTHER_FOOD'), (31, 'NON_FOOD')]:
+                with self.subTest(code=code):
+                    values = torch.zeros((1, 32))
+                    values[0, winner] = 2
+                    with patch.object(model.network, 'forward', return_value=values):
+                        response = self.upload()
+                    self.assertEqual(response.status_code, 422)
+                    self.assertEqual(response.json()['code'], code)
+
+            values = torch.zeros((1, 32))
+            values[0, [28, 31, 30, 23, 9]] = torch.tensor([3., 2.5, 2., 1.5, 1.])
+            with patch.object(model.network, 'forward', return_value=values):
+                response = self.upload()
+            self.assertEqual(response.status_code, 200)
+            predictions = response.json()['predictions']
+            self.assertEqual([p['class_id'] for p in predictions], [28, 23, 9])
+            self.assertAlmostEqual(predictions[0]['confidence'], values.softmax(dim=1)[0, 28].item())
+            self.assertLess(predictions[0]['confidence'], CONFIDENCE_THRESHOLD)
 
     def test_inference_failure_is_safe_and_next_request_recovers(self):
         with patch('ai.cv.inference.main.predict_image', side_effect=RuntimeError('internal-only-detail')):

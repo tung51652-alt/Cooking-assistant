@@ -6,7 +6,7 @@ import { randomUUID } from 'expo-crypto';
 import { File, UploadType } from 'expo-file-system';
 import { useFonts } from 'expo-font';
 import * as SecureStore from 'expo-secure-store';
-import { ApiError, createApi, MIN_VISION_CONFIDENCE, normalizeBaseUrl, recipeSourceHref, type NativeFileUploader } from '../packages/cooklens-api';
+import { ApiError, createApi, isVisionRecoveryCode, normalizeBaseUrl, presentVisionResult, recipeSourceHref, type NativeFileUploader, type VisionPredictionResult } from '../packages/cooklens-api';
 import type { Dish, Prediction, RecipeDocument, RecipeSummary, RecipeSource } from '../packages/cooklens-api/types';
 import { chooseImage, discardImage, uploadBody, type UploadImage } from './src/image';
 import { CookingComposer, CookingSessionScreen } from './src/assistant/CookingSessionScreen';
@@ -18,7 +18,7 @@ type Page = 'upload' | 'recognition' | 'assistant';
 const configuredUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 const sessionStore = createSessionPointerStore(SecureStore);
 const confidenceFormat = new Intl.NumberFormat('vi-VN', {
-  style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1,
+  style: 'percent', maximumFractionDigits: 1,
 });
 let api: ReturnType<typeof createApi> | null = null;
 let gateway: string | null = null;
@@ -94,7 +94,7 @@ function Source({ source }: { source: RecipeSource }) {
 function CookLens() {
   const [page, setPage] = useState<Page>('upload');
   const [image, setImage] = useState<UploadImage | null>(null);
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [visionResult, setVisionResult] = useState<VisionPredictionResult | null>(null);
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [selected, setSelected] = useState<Dish | null>(null);
   const [confirmed, setConfirmed] = useState<Dish | null>(null);
@@ -138,7 +138,7 @@ function CookLens() {
     cooking?.leave();
     discardImage(imageRef.current);
     imageRef.current = null;
-    setImage(null); setPredictions([]); setSelected(null); setConfirmed(null); setRecipes(null); setDetail(null);
+    setImage(null); setVisionResult(null); setSelected(null); setConfirmed(null); setRecipes(null); setDetail(null);
     setManual(false); setFilter(''); setQuery('');
   }
   function newPhoto() {
@@ -192,7 +192,7 @@ function CookLens() {
     } catch (caught) {
       if (mounted.current && current === generation.current && !controller.signal.aborted) {
         const code = caught instanceof ApiError ? caught.code : undefined;
-        if (code === 'IMAGE_BLURRY' || code === 'LOW_CONFIDENCE_PREDICTION') {
+        if (isVisionRecoveryCode(code)) {
           retry.current = null;
           setVisionIssue(true);
         }
@@ -215,7 +215,7 @@ function CookLens() {
       if (chosen) {
         discardImage(imageRef.current); imageRef.current = chosen; setImage(chosen);
         setError(''); setVisionIssue(false); retry.current = null;
-        setPredictions([]); setSelected(null); setConfirmed(null); setRecipes(null); setDetail(null);
+        setVisionResult(null); setSelected(null); setConfirmed(null); setRecipes(null); setDetail(null);
         setManual(false); setFilter(''); setQuery(''); transitionTo('upload', 'forward');
       }
     } catch (caught) {
@@ -228,8 +228,8 @@ function CookLens() {
   }
   function recognize() {
     if (!image || !api) return;
-    void perform('Đang nhận diện món…', signal => api!.predict(uploadBody(image), signal), value => {
-      setPredictions(value); setSelected(null); setManual(false); transitionTo('recognition', 'forward');
+    void perform('Đang nhận diện món…', signal => api!.predictResult(uploadBody(image), signal), value => {
+      setVisionResult(value); setSelected(null); setManual(false); transitionTo('recognition', 'forward');
     });
   }
   function chooseDish(dish: Dish) {
@@ -305,7 +305,7 @@ function CookLens() {
       {!api && <View style={styles.error}><Text style={styles.body}>Chưa cấu hình được máy chủ CookLens. Hãy làm theo phần kết nối trong hướng dẫn mobile rồi khởi động lại ứng dụng.</Text></View>}
       <Text accessibilityRole="header" style={chat ? styles.subtitle : styles.title}>{chat ? 'Trợ lý nấu ăn' : page === 'upload' ? 'Hôm nay, mình nấu gì?' : image ? 'Đây có phải món của bạn?' : 'Chọn món'}</Text>
       {page === 'upload' && <>
-        <Text style={styles.body}>Chụp hoặc chọn ảnh một món ăn Việt. Xem ba gợi ý, xác nhận món rồi khám phá công thức.</Text>
+        <Text style={styles.body}>Chụp hoặc chọn ảnh một món ăn Việt. Xác nhận món để xem công thức.</Text>
         {image ? <Image accessibilityLabel="Ảnh món ăn đã chọn" source={{ uri: image.uri }} style={styles.preview} resizeMode="contain" />
           : <View style={styles.placeholder}><Text style={styles.placeholderIcon}>✦</Text><Text style={styles.label}>Bắt đầu từ một món ngon</Text><Text style={styles.small}>Một món rõ nét, ánh sáng đầy đủ</Text></View>}
         {!!error && <View accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.error}><Text style={styles.body}>{error}</Text>
@@ -322,25 +322,36 @@ function CookLens() {
         <Text style={styles.small}>Ảnh được chuyển sang JPEG, tối đa 10 MiB và 25 triệu pixel. Ảnh và lựa chọn không được lưu thành lịch sử.</Text>
       </>}
       {page === 'recognition' && (() => {
-        const lowConfidence = predictions.length > 0 && predictions[0].confidence < MIN_VISION_CONFIDENCE;
+        const presentation = presentVisionResult(visionResult);
+        function choice(prediction: Prediction, showScore = true, badge: string | null = null) {
+          const checked = selected?.class_id === prediction.class_id;
+          return <Pressable key={prediction.class_id} accessibilityRole="radio"
+            accessibilityState={{ checked }} onPress={() => chooseDish(prediction)}
+            style={[styles.card, checked && styles.selected]}>
+            <Text style={styles.label}>{prediction.display_name}{badge && ` (${badge})`}</Text>
+            {showScore && <Text style={styles.small}>{confidenceFormat.format(prediction.confidence)}</Text>}
+          </Pressable>;
+        }
         return <>
           {image && <Image source={{ uri: image.uri }} style={styles.thumbnail} accessibilityLabel="Ảnh đang nhận diện" resizeMode="contain" />}
-          {lowConfidence ? <View accessibilityRole="alert" style={styles.error}>
+          {presentation.kind === 'uncertain' && <View accessibilityRole="alert" style={styles.error}>
             <Text style={styles.label}>Chưa xác định được món</Text>
             <Text style={styles.body}>Hãy thử ảnh khác hoặc chọn món theo tên trong danh mục 30 món Việt.</Text>
             <View style={styles.row}>
               <Button title="Chọn ảnh khác" onPress={() => { void pick(false, false); }} disabled={!!busy} />
               <Button title="Chụp ảnh mới" secondary onPress={() => { void pick(true, false); }} disabled={!!busy} />
             </View>
-          </View> : !!predictions.length && <>
-            <Text style={styles.body}>CookLens gợi ý món từ ảnh. Hãy chọn món đúng trước khi xem công thức.</Text>
+          </View>}
+          {presentation.kind === 'results' && <>
             <View accessibilityRole="radiogroup" style={{ gap: 12 }}>
-              {predictions.map(prediction => <Pressable key={prediction.class_id} accessibilityRole="radio"
-                accessibilityState={{ checked: selected?.class_id === prediction.class_id }} onPress={() => chooseDish(prediction)}
-                style={[styles.card, selected?.class_id === prediction.class_id && styles.selected]}>
-                <Text style={styles.label}>{prediction.rank}. {prediction.display_name}</Text>
-                <Text style={styles.small}>Độ tin cậy của gợi ý: {confidenceFormat.format(prediction.confidence)}</Text>
-              </Pressable>)}
+              {presentation.suggestion && <>
+                <Text accessibilityRole="header" style={styles.label}>Món gợi ý</Text>
+                {choice(presentation.suggestion.prediction, presentation.suggestion.showScore, presentation.suggestion.badge)}
+              </>}
+              {presentation.possibilities.length > 0 && <>
+                <Text accessibilityRole="header" style={styles.label}>{presentation.suggestion ? 'Các món có khả năng khác' : 'Các món có khả năng'}</Text>
+                {presentation.possibilities.map(option => choice(option))}
+              </>}
             </View>
           </>}
           {!manual && <Button title="Chọn món từ danh mục" secondary onPress={showCatalog} />}
@@ -358,7 +369,7 @@ function CookLens() {
               </View>}
             </View>;
           })()}
-          {(!lowConfidence || manual) && <Button title={selected ? `Xác nhận ${selected.display_name}` : 'Chọn món để tiếp tục'} disabled={!selected || !!busy || !api}
+          {(presentation.kind === 'results' || manual) && <Button title={selected ? `Xác nhận ${selected.display_name}` : 'Chọn món để tiếp tục'} disabled={!selected || !!busy || !api}
             onPress={() => { if (selected) search(selected, ''); }} />}
         </>;
       })()}

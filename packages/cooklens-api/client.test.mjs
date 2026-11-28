@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { createApi, normalizeBaseUrl, recipeSourceHref } from './index.ts';
+import { createApi, hasLegacyLowConfidence, normalizeBaseUrl, recipeSourceHref } from './index.ts';
 
 const requestId = () => '11111111-1111-4111-8111-111111111111';
 const taxonomy = JSON.parse(readFileSync(new URL('../../data/processed/30vnfoods-label-map.json', import.meta.url)));
+const modelManifest = JSON.parse(readFileSync(new URL('../../deploy/artifacts/manifest.json', import.meta.url)));
 const corpus = JSON.parse(readFileSync(new URL('../../data/recipes/corpus.json', import.meta.url)));
 const api = createApi('http://localhost:8080/api', requestId);
 const envelope = value => ({ api_version: '1.0.0', request_id: requestId(), ...value });
@@ -150,8 +151,53 @@ test('testLlmConfig posts config and validates response shape', async t => {
   await assert.rejects(api.testLlmConfig({ provider: 'gemini', model: 'gemini-2.5-flash', api_key: 'AIzaTestKey12345' }, new AbortController().signal), /đúng định dạng/);
 });
 
-test('vision predict maps IMAGE_BLURRY and LOW_CONFIDENCE_PREDICTION to Vietnamese messages and preserves code', async t => {
-  for (const [code, pattern] of [['IMAGE_BLURRY', /Ảnh bị mờ/], ['LOW_CONFIDENCE_PREDICTION', /Chưa xác định được món/]]) {
+test('only the legacy vision model applies the UI confidence cutoff', async t => {
+  const predictions = taxonomy.labels.slice(0, 3).map((dish, i) => ({
+    class_id: dish.class_id, normalized_dish: dish.normalized_dish, display_name: dish.display_name,
+    confidence: [0.49, 0.15, 0.11][i], rank: i + 1,
+  }));
+  let modelVersion = modelManifest.vision_candidate.model_version;
+  t.mock.method(globalThis, 'fetch', async () => response({
+    model_version: modelVersion, taxonomy_version: taxonomy.taxonomy_version, predictions,
+  }));
+  const signal = new AbortController().signal;
+  const result = await api.predictResult(new FormData(), signal);
+  assert.equal(result.modelVersion, modelVersion);
+  assert.equal(hasLegacyLowConfidence(result), false);
+  modelVersion = modelManifest.vision.model_version;
+  assert.equal(hasLegacyLowConfidence(await api.predictResult(new FormData(), signal)), true);
+});
+
+test('epoch 5 presentation uses inclusive display thresholds', async () => {
+  const { presentVisionResult } = await import('./index.ts');
+  assert.equal(typeof presentVisionResult, 'function');
+  const modelVersion = modelManifest.vision_candidate.model_version;
+  const result = (...scores) => ({ modelVersion, predictions: scores.map((confidence, i) => ({
+    class_id: i, rank: i + 1, confidence,
+  })) });
+  const below = presentVisionResult(result(0.0699, 0.04, 0.03));
+  assert.equal(below.kind, 'uncertain');
+  const options = presentVisionResult(result(0.5399, 0.07, 0.0699));
+  assert.equal(options.suggestion, null);
+  assert.deepEqual(options.possibilities.map(p => p.rank), [1, 2]);
+  for (const [score, badge] of [
+    [0.54, null], [0.6999, null], [0.70, 'Khả năng cao'], [0.8999, 'Khả năng cao'], [0.90, 'Khả năng rất cao'],
+  ]) {
+    const presented = presentVisionResult(result(score, 0.07, 0.03));
+    assert.equal(presented.suggestion.badge, badge);
+    assert.equal(presented.suggestion.showScore, false);
+    assert.deepEqual(presented.possibilities.map(p => p.rank), [2]);
+  }
+  const legacy = presentVisionResult({ ...result(0.65, 0.07, 0.03), modelVersion: modelManifest.vision.model_version });
+  assert.equal(legacy.suggestion.showScore, true);
+  assert.equal(legacy.possibilities.length, 2);
+});
+
+test('vision predict preserves typed image and fallback outcomes', async t => {
+  for (const [code, pattern] of [
+    ['IMAGE_BLURRY', /Ảnh bị mờ/], ['LOW_CONFIDENCE_PREDICTION', /Chưa xác định được món/],
+    ['OTHER_FOOD', /ngoài danh mục/], ['NON_FOOD', /không phải ảnh món ăn/],
+  ]) {
     t.mock.method(globalThis, 'fetch', async () => response({ code, message: 'raw' }, 422));
     await assert.rejects(api.predict(new FormData(), new AbortController().signal), error => error.code === code && error.status === 422 && pattern.test(error.message));
   }

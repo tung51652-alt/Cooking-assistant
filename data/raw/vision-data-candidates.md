@@ -1,6 +1,6 @@
 # CookLens vision data candidates
 
-Review record for [issue #67](https://github.com/tung51652-alt/Cooking-assistant/issues/67). Last updated 2026-11-27.
+Review record for [issue #67](https://github.com/tung51652-alt/Cooking-assistant/issues/67). Last updated 2026-11-28.
 
 The reported Cơm tấm photo ranked the correct dish first at 53.7% and received no suggestion under the 65% cutoff. The data work starts with finding usable sources, then training and measuring on the resulting classes. Keep the issue photo and its crop as regression examples. [Existing threshold evaluation](../../docs/plan/2026-11-27-issue-49-vision-confidence.md)
 
@@ -48,6 +48,18 @@ I checked the [Open Images Extended labels](https://storage.googleapis.com/open-
 - The first street-food review batch contains 30 annotated photos, with original archive paths in its manifest.
 - The fallback review batch has 35 source records and 16 viewable photos. It contains five `other_food` previews from WorldCuisines, nine proposed `non_food` previews from SEA-VL, and two CC BY 4.0 `non_food` previews retrieved from the original Open Images Extended archive. Two SEA-VL photos are flagged because food might be visible.
 - The first bulk fallback batch collected 400 `non_food` photos from Open Images Extended and 200 `other_food` photos from WorldCuisines, representing 182 original dish keys. It checks source labels, accepted photo license metadata, image decoding, minimum resolution, and exact and perceptual duplicates within the intake. Local contact sheets provided a visual screen. Eight `non_food` and sixteen `other_food` photos are on hold, including three food photos that need source metadata confirmation.
-- The local draft selection is 368 `non_food` and 184 `other_food`. It preserves a 2:1 ratio in each split, with 278/139 for training, 46/23 for validation, and 44/22 for testing. The manifest retains held photos and reserves with their original source and split records. Cross-checking against the original 30VNFoods image pixels is pending.
+- The audited pilot selection is 368 `non_food` and 184 `other_food`. It preserves a 2:1 ratio in each split, with 278/139 for training, 46/23 for validation, and 44/22 for testing. The manifest retains held photos and reserves with their original source and split records. No exact or likely visual duplicates were found between the screened fallback photos and the 25,032 original split images. [Training and verification](../../docs/plan/2026-11-27-issue-67-vision-pilot.md)
+
+## Second other-food review batch
+
+The epoch 4 candidate identified 11 of 22 held-out `other_food` photos and predicted `other_food` for 30 supported-dish photos.
+The new intake targets unsupported Vietnamese meals with shapes and presentation similar to supported dishes, including bún chả and bún cá.
+
+The intake collected 86 Wikimedia Commons photos with individual source and license records.
+The review set holds 46 visually screened photos across 19 dish keys. It excludes same-meal variants, unclear labels and compositions, and a possible duplicate in the original held-out Hủ tiếu split.
+The proposed allocation is 25 for training, 10 for validation, and 11 for a fresh test, with photographers kept within a single split and matched to prior split assignments where available.
+The manifests and numbered review sheets are stored locally under the ignored `ai/cv/runs/issue-67/other-food-round-2/` directory pending review.
+The local Colab add-on pairs the 46 food photos with 24 previously screened non-food reserves and 68 newly screened non-food photos.
+The add-on preserves the 2:1 ratio in each split and leaves the existing Colab base archive unchanged.
 
 These are candidate samples. Record decisions after viewing the photos and checking duplicate groups. Compare the existing model and the model trained on accepted data on held-out supported dishes, `other_food`, and `non_food` before changing the confidence policy.

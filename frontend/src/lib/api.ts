@@ -6,5 +6,5 @@ export const { getDishes, searchRecipes, getRecipe, getRecipeDocument, createSes
 export function predict(file: File, signal: AbortSignal) {
   const body = new FormData();
   body.append('file', file);
-  return api.predict(body, signal);
+  return api.predictResult(body, signal);
 }

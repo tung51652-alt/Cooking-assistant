@@ -21,6 +21,7 @@ const source = { retrieved_at: '2026-10-19', revision_url: null, modifications: 
 const summary = { language: 'vi', cuisine: 'vietnamese', rank: 1, retrieval_score: .8, id: 'test_pho', title: 'Phở bò · fixture kiểm thử', normalized_dish: 'pho', servings: null, prep_time_minutes: null, cook_time_minutes: null, preview: 'Nội dung chỉ phục vụ kiểm thử giao diện.', source };
 const detail = { ...summary, tags: ['test-only'], created_at: '2026-10-19', updated_at: '2026-10-19', ingredients: [{ normalized_name: 'nguyen_lieu_fixture', optional: false, name: 'Nguyên liệu fixture', quantity: null, unit: null, note: null }], instructions: [{ step: 1, text: 'Bước fixture để kiểm tra layout, không phải hướng dẫn nấu.', duration_minutes: null }] };
 const taxonomy = JSON.parse(readFileSync('../data/processed/30vnfoods-label-map.json', 'utf8')).labels.map(({ class_id, normalized_dish, display_name }: { class_id: number; normalized_dish: string; display_name: string }) => ({ class_id, normalized_dish, display_name }));
+const visionManifest = JSON.parse(readFileSync('../deploy/artifacts/manifest.json', 'utf8'));
 const json = (data: object) => {
   const identifier = randomUUID();
   return { contentType: 'application/json', headers: { 'X-Request-ID': identifier }, body: JSON.stringify({ api_version: '1.0.0', request_id: identifier,
@@ -355,8 +356,11 @@ test('changing the confirmed dish discards a late recipe response', async ({ pag
   await expect(page.getByRole('heading', { name: summary.title })).toHaveCount(0);
 });
 
-test('blurry and low-confidence vision errors hide dish suggestions and offer re-upload', async ({ page }) => {
-  for (const [code, text] of [['IMAGE_BLURRY', 'Ảnh bị mờ'], ['LOW_CONFIDENCE_PREDICTION', 'Chưa xác định được món']] as const) {
+test('vision recovery errors hide dish suggestions and offer re-upload', async ({ page }) => {
+  for (const [code, text] of [
+    ['IMAGE_BLURRY', 'Ảnh bị mờ'], ['LOW_CONFIDENCE_PREDICTION', 'Chưa xác định được món'],
+    ['OTHER_FOOD', 'ngoài danh mục'], ['NON_FOOD', 'không phải ảnh món ăn'],
+  ] as const) {
     await page.route('**/api/vision/predict', route => route.fulfill({ status: 422, ...json({ code }) }));
     await upload(page);
     await page.locator('#predictBtn').scrollIntoViewIfNeeded();
@@ -378,6 +382,54 @@ test('blurry and low-confidence vision errors hide dish suggestions and offer re
     await expect(alert).toHaveCount(0);
     await expect(page.locator('#predictBtn')).toBeEnabled();
   }
+});
+
+test('epoch 5 lists plausible dishes with percentages and without a primary suggestion below 54%', async ({ page }) => {
+  await page.route('**/api/vision/predict', route => route.fulfill(json({
+    model_version: visionManifest.vision_candidate.model_version,
+    predictions: predictions.map((prediction, index) => ({ ...prediction, confidence: [0.49, 0.15, 0.05][index] })),
+  })));
+  await upload(page);
+  await page.locator('#predictBtn').click();
+  await expect(page.getByRole('heading', { name: 'Các món có khả năng', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Món gợi ý', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('radio')).toHaveCount(2);
+  await expect(page.getByText('49%', { exact: true })).toBeVisible();
+  await expect(page.getByText('15%', { exact: true })).toBeVisible();
+  await expect(page.locator('#confirmButton')).toBeDisabled();
+  await page.getByRole('radio').first().check();
+  await expect(page.locator('#confirmButton')).toBeEnabled();
+});
+
+test('epoch 5 shows a parenthesized label on the primary dish and a percentage on alternatives', async ({ page }) => {
+  for (const [score, label] of [[0.54, 'Phở'], [0.70, 'Phở (Khả năng cao)'], [0.90, 'Phở (Khả năng rất cao)']] as const) {
+    await page.route('**/api/vision/predict', route => route.fulfill(json({
+      model_version: visionManifest.vision_candidate.model_version,
+      predictions: predictions.map((prediction, index) => ({ ...prediction, confidence: [score, 0.07, 0.02][index] })),
+    })));
+    await upload(page);
+    await page.locator('#predictBtn').click();
+    await expect(page.getByRole('heading', { name: 'Món gợi ý', exact: true })).toBeVisible();
+    await expect(page.locator('#mainResult')).toContainText(label);
+    await expect(page.locator('#mainResult')).not.toContainText('%');
+    await expect(page.locator('#topResults')).toContainText('7%');
+    await expect(page.getByRole('radio')).toHaveCount(2);
+    await page.unroute('**/api/vision/predict');
+  }
+});
+
+test('epoch 5 offers the manual catalog when all dishes score below 7%', async ({ page }) => {
+  await page.route('**/api/vision/predict', route => route.fulfill(json({
+    model_version: visionManifest.vision_candidate.model_version,
+    predictions: predictions.map((prediction, index) => ({ ...prediction, confidence: [0.069, 0.05, 0.049][index] })),
+  })));
+  await page.route('**/api/dishes', route => route.fulfill(json({ dishes: taxonomy })));
+  await upload(page);
+  await page.locator('#predictBtn').click();
+  await expect(page.getByRole('alert')).toContainText('Chưa xác định được món');
+  await expect(page.getByRole('radio')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Chọn món từ danh mục' }).click();
+  await expect(page.getByRole('group', { name: 'Danh mục 30 món Việt' })).toBeVisible();
 });
 
 test('defensive UI guard hides suggestions and confirmation when top-1 confidence is below 65%', async ({ page }, testInfo) => {
