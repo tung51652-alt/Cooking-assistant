@@ -58,7 +58,7 @@ python -m pip install -r ai/cv/inference/requirements-test.txt
 python -m unittest discover -s ai/cv/inference/tests -v
 ```
 
-Để kiểm tra thêm image offline read-only sau khi build `cooklens-vision:local`:
+Để kiểm tra image epoch 5 offline, đặt checkpoint nội bộ vào staging theo [hướng dẫn build từ source](development.md#chuẩn-bị-artifact). Sau đó chạy:
 
 ```sh
 docker build -f ai/cv/Dockerfile -t cooklens-vision:local .

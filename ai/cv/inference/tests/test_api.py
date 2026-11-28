@@ -25,10 +25,11 @@ from ai.cv.inference.guard import RequestGuard, Runtime
 from ai.cv.inference.images import BLUR_LAPLACIAN_THRESHOLD, laplacian_variance
 from ai.cv.inference.inference import evaluation_transform, predict_image
 from ai.cv.inference.main import CONFIDENCE_THRESHOLD, create_app
-from ai.cv.inference.model import DEFAULT_CHECKPOINT, MANIFEST, ROOT, load_model
+from ai.cv.inference.model import CHECKPOINT_DIR, MANIFEST, ROOT, load_model
 from ai.cv.inference.schemas import PredictionResponse
 
 FIXTURE = Path(__file__).parent / 'fixtures/food.png'
+LEGACY_CHECKPOINT = CHECKPOINT_DIR / 'efficientnet_b2_best.pt'
 
 
 class FoodApiTests(unittest.TestCase):
@@ -40,7 +41,7 @@ class FoodApiTests(unittest.TestCase):
         cls.app = create_app()
         cls.client = TestClient(cls.app)
         try:
-            with patch.dict(os.environ, {'FOOD_MODEL_PATH': str(DEFAULT_CHECKPOINT)}):
+            with patch.dict(os.environ, {'FOOD_MODEL_PATH': str(LEGACY_CHECKPOINT)}):
                 cls.client.__enter__()
         except Exception:
             cls.load_patch.stop()
@@ -377,7 +378,8 @@ class LifecycleTests(unittest.TestCase):
 
             write_checkpoint()
             with (patch('ai.cv.inference.model.MANIFEST', local_manifest),
-                  patch.dict(os.environ, {'FOOD_MODEL_PATH': str(path)})):
+                  patch('ai.cv.inference.model.CHECKPOINT_DIR', path.parent), patch.dict(os.environ)):
+                os.environ.pop('FOOD_MODEL_PATH', None)
                 model = load_model()
                 self.assertEqual(model.model_version, candidate['model_version'])
                 self.assertEqual(model.classes, tuple(classes))
@@ -388,6 +390,12 @@ class LifecycleTests(unittest.TestCase):
                 write_checkpoint()
                 with self.assertRaisesRegex(ValueError, 'Unexpected candidate checkpoint epoch'):
                     load_model()
+
+                path.unlink()
+                (path.parent / LEGACY_CHECKPOINT.name).touch()
+                with self.assertRaises(FileNotFoundError) as missing:
+                    load_model()
+                self.assertEqual(Path(missing.exception.filename), path)
 
     def test_unstarted_app_is_live_but_not_ready(self):
         client = TestClient(create_app())

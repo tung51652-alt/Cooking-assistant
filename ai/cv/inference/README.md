@@ -9,7 +9,8 @@ Python 3.12; từ root repo, dùng môi trường Python riêng:
 ```bash
 python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 torchvision==0.29.1
 python -m pip install -r ai/cv/inference/requirements.txt
-python3 deploy/scripts/fetch_vision_checkpoint.py
+mkdir -p deploy/artifacts/staging/vision
+cp "/path/to/team/efficientnet_b2_epoch5.pt" deploy/artifacts/staging/vision/efficientnet_b2_epoch5.pt
 python -m uvicorn ai.cv.inference.main:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
@@ -17,7 +18,7 @@ Mở [Swagger local](http://127.0.0.1:8000/docs), chọn `POST /predict` → **T
 
 Có thể đặt `FOOD_MODEL_PATH` trỏ file checkpoint đã có thay vì dùng staging mặc định. `FOOD_TAXONOMY_PATH` tùy chọn trỏ mapping bundle; phải khớp checkpoint/manifest. `TORCH_NUM_THREADS` mặc định 4, phạm vi 1–32, CPU là runtime mặc định. Không dùng nhiều workers để tránh nhân bộ nhớ/model và thay đổi concurrency đã nghiệm thu. Development có thể dùng `--reload`; mỗi process mới load lại một lần.
 
-Để dùng model 32 lớp, chép checkpoint epoch 5 đã được nhóm cung cấp vào `deploy/artifacts/staging/vision/efficientnet_b2_epoch5.pt` trước khi khởi động service. Khi có file này, inference chạy từ repo sẽ ưu tiên checkpoint epoch 5. Để chọn rõ phiên bản, đặt `FOOD_MODEL_PATH` trỏ trực tiếp đến file cần dùng.
+Inference từ repo cần checkpoint epoch 5 ở đường dẫn staging trên. Có thể dùng `FOOD_MODEL_PATH` để chỉ định checkpoint 30 lớp khi cần kiểm tra bản cũ.
 `GET /health/ready` trả `model_version: "efficientnet-b2-32class-epoch5"` sau khi tải thành công.
 
 ## Hành vi
@@ -41,10 +42,12 @@ docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
 python3 deploy/scripts/smoke_vision_container.py
 ```
 
-Để thử model epoch 5 đã được stage trong một image cục bộ, build bằng lệnh sau.
+Build mặc định đóng gói epoch 5 từ file staging nội bộ. Để kiểm tra bản 30 lớp đã công bố, tải checkpoint cũ và chỉ định khi build.
 
 ```bash
-docker build -f ai/cv/Dockerfile --build-arg VISION_CHECKPOINT=efficientnet_b2_epoch5.pt -t cooklens-vision:epoch5 .
+python deploy/scripts/fetch_vision_checkpoint.py
+docker build -f ai/cv/Dockerfile --build-arg VISION_CHECKPOINT=efficientnet_b2_best.pt -t cooklens-vision:legacy .
+python deploy/scripts/smoke_vision_container.py --legacy --image cooklens-vision:legacy
 ```
 
 Image chứa đúng runtime, checkpoint, mapping, manifest và notices; checkpoint được copy read-only cho user runtime độc lập với permission file staging; chạy non-root, một worker, không có tests/notebook/dataset/frontend. Smoke chạy network `none`, root filesystem read-only, tmpfs cho upload, giới hạn 4 CPU/2 GiB RAM, kiểm tra health và ảnh thật; tự xóa container test. Tag `local` dùng khi build source; mặc định `docker compose up` dùng image đã đóng gói trên Docker Hub.

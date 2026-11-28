@@ -1,6 +1,6 @@
 FROM python:3.12.15-slim-bookworm
 
-ARG VISION_CHECKPOINT=efficientnet_b2_best.pt
+ARG VISION_CHECKPOINT=efficientnet_b2_epoch5.pt
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FOOD_MODEL_PATH=/opt/cooklens/models/${VISION_CHECKPOINT} \

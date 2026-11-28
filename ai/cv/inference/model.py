@@ -12,7 +12,7 @@ from torchvision.models import EfficientNet_B2_Weights, efficientnet_b2
 from .taxonomy import Dish, load_taxonomy
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_CHECKPOINT = ROOT / 'deploy/artifacts/staging/vision/efficientnet_b2_best.pt'
+CHECKPOINT_DIR = ROOT / 'deploy/artifacts/staging/vision'
 DEFAULT_TAXONOMY = ROOT / 'data/processed/30vnfoods-label-map.json'
 MANIFEST = ROOT / 'deploy/artifacts/manifest.json'
 
@@ -35,8 +35,7 @@ def load_model() -> LoadedModel:
     manifest = json.loads(MANIFEST.read_text(encoding='utf-8'))
     vision = manifest['vision']
     candidate = manifest['vision_candidate']
-    candidate_path = DEFAULT_CHECKPOINT.with_name(candidate['filename'])
-    default_path = candidate_path if candidate_path.is_file() else DEFAULT_CHECKPOINT
+    default_path = CHECKPOINT_DIR / candidate['filename']
     path = Path(os.environ.get('FOOD_MODEL_PATH', str(default_path)))
     using_candidate = path.name == candidate['filename']
     artifact = candidate if using_candidate else vision

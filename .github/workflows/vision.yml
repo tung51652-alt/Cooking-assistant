@@ -54,6 +54,6 @@ jobs:
           python -m unittest discover -s ai/cv/inference/tests -v
           python -m unittest discover -s ai/cv/training/tests -v
       - name: Build experimental CPU image
-        run: docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
+        run: docker build -f ai/cv/Dockerfile --build-arg VISION_CHECKPOINT=efficientnet_b2_best.pt -t cooklens-vision:local .
       - name: Verify offline read-only image
-        run: python3 deploy/scripts/smoke_vision_container.py --image cooklens-vision:local
+        run: python3 deploy/scripts/smoke_vision_container.py --legacy --image cooklens-vision:local

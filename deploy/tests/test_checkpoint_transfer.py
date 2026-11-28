@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from fetch_vision_checkpoint import download, release_validation
+from fetch_vision_checkpoint import ROOT, download, release_validation
 
 
 class CheckpointTransferTests(unittest.TestCase):
@@ -56,6 +56,15 @@ class CheckpointTransferTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     download("unused", target, 4, hashlib.sha256(b"good").hexdigest())
                 self.assertEqual(target.read_bytes(), payload)
+
+
+class SourceBuildTests(unittest.TestCase):
+    def test_source_build_defaults_to_the_private_epoch_five_file(self):
+        manifest = json.loads((ROOT / "deploy/artifacts/manifest.json").read_text(encoding="utf-8"))
+        filename = manifest["vision_candidate"]["filename"]
+        dockerfile = (ROOT / "ai/cv/Dockerfile").read_text(encoding="utf-8").splitlines()
+        args = [line for line in dockerfile if line.startswith("ARG VISION_CHECKPOINT=")]
+        self.assertEqual(args, [f"ARG VISION_CHECKPOINT={filename}"])
 
 
 class ReleaseMetadataTests(unittest.TestCase):
