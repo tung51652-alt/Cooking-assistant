@@ -31,7 +31,7 @@ Release dùng cùng origin; mặc định CORS trống. Nếu chạy Vite khác 
 
 ## Phiên nấu (source Phase 9)
 
-`/api/assistant/sessions`, `/{id}`, `/{id}/actions` và `/{id}/messages` được mô tả trong [contract](../docs/contracts/mvp-v1.md#phiên-trợ-lý-phase-89).
+`/api/assistant/sessions`, `/{id}`, `/{id}/actions` và `/{id}/messages` được mô tả trong [contract](../docs/contracts/mvp-v1.md#phiên-trợ-lý).
 Phiên lấy snapshot công thức từ gateway, tồn tại 24 giờ và giữ tối đa 100 action có operation ID/version.
 Hỏi đáp dùng provider khi có key/config/pricing hợp lệ; thiếu cấu hình trả `ASSISTANT_NOT_CONFIGURED`, điều khiển bước không cần key/LLM.
 Web/Expo chưa có giao diện phiên; dùng client chung `getRecipeDocument`, `createSession`, `getSession`, `sessionAction`, `sessionMessage`.
@@ -94,7 +94,7 @@ Ledger tính theo trần giá đã xác minh, không thay hóa đơn Google ho�
 Không gửi tools, ảnh hoặc caching trong request chat; chỉ recipe snapshot và hội thoại text.
 
 Pricing còn cho phép HTTPS `integrate.api.nvidia.com/v1/chat/completions` và whitelist trial: Ultra, Gemma 4 31B, Bolt E4B (canonical/staging alias), Lightning 30B-A3B và Super VL 120B-A12B.
-Whitelist billing không đồng nghĩa đã đạt chất lượng/latency: Gemma/Lightning có screen timeout, Bolt nhanh nhưng còn yếu history; xem [Phase 10](../docs/plan/phase-10-llm.md).
+Whitelist billing không đồng nghĩa đã đạt chất lượng/latency: Gemma/Lightning có screen timeout, Bolt nhanh nhưng còn yếu history; xem [acceptance](../docs/acceptance.md#trợ-lý).
 Super endpoint báo model `private/nvidia/nemotron-3.5-super-120b-a12b`; chỉ pin cặp request/reported này và ghi đúng reported model, không khẳng định checkpoint/VL tương đương khi NVIDIA chưa xác nhận.
 Không tự fallback; mọi endpoint/model khác cần policy billing đã xác minh trước khi dùng chat HTTP.
 Ledger `llm_calls` lưu micro-USD và usage nullable, không prompt/reply/key; dùng key đã hash và tồn tại độc lập việc purge phiên.

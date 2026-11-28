@@ -2,7 +2,7 @@
 
 Review record for [issue #67](https://github.com/tung51652-alt/Cooking-assistant/issues/67). Last updated 2026-11-28.
 
-The reported Cơm tấm photo ranked the correct dish first at 53.7% and received no suggestion under the 65% cutoff. The data work starts with finding usable sources, then training and measuring on the resulting classes. Keep the issue photo and its crop as regression examples. [Existing threshold evaluation](../../docs/plan/2026-11-27-issue-49-vision-confidence.md)
+The reported Cơm tấm photo ranked the correct dish first at 53.7% and received no suggestion under the 65% cutoff. The data work starts with finding usable sources, then training and measuring on the resulting classes. Keep the issue photo and its crop as regression examples. [Existing threshold evaluation](../../docs/acceptance.md#ngưỡng-nhận-diện-65)
 
 ## What to collect
 

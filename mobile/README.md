@@ -77,4 +77,4 @@ npm run export
 Lệnh export chỉ kiểm chứng bundling Android/iOS, không phát hành bundle hoặc native app. Output `dist`, Metro cache và metadata tự sinh không commit/upload làm release. Font Epilogue/Plus Jakarta Sans được đóng gói local; giấy phép tại `notices/`.
 
 Từ root repo, chạy `node --experimental-strip-types --test packages/cooklens-api/client.test.mjs` để kiểm tra contract dùng chung.
-Xem ma trận Android thật trong [kế hoạch hoàn tất](../docs/plan/2026-11-23-phase12-13-completion.md#3-hoàn-tất-màn-hình-và-chạy-native-acceptance) và cập nhật kết quả trong [Phase 12](../docs/plan/phase-12-mobile.md).
+Ma trận Android thật nằm trong [kế hoạch phát hành](../docs/plan/2026-11-27-release-2.1.0.md); kết quả ghi vào [acceptance](../docs/acceptance.md).
