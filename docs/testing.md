@@ -66,7 +66,7 @@ python -m unittest discover -s ai/rag/tests -v
 docker rm -f cooklens-recipes-test-qdrant
 ```
 
-Smoke vision epoch 5 dùng image build từ checkpoint nội bộ theo [hướng dẫn build từ source](development.md#chuẩn-bị-artifact).
+Smoke vision epoch 5 dùng image build theo [hướng dẫn build từ source](development.md#chuẩn-bị-artifact).
 Dùng `python deploy/scripts/smoke_vision_container.py --image cooklens-vision:local` để xác nhận phiên bản model.
 Smoke recipes dùng `python deploy/scripts/smoke_recipes_container.py`.
 

@@ -15,7 +15,7 @@ Quy ước thực hiện và xác minh theo [WORKFLOW.md](WORKFLOW.md).
 
 ## Chuẩn bị artifact
 
-Build từ source dùng checkpoint 32 lớp epoch 5. Lấy file weights qua kênh nội bộ của nhóm.
+Build từ source dùng checkpoint 32 lớp epoch 5 có sẵn trong repository.
 
 Tạo venv riêng, rồi chuẩn bị artifacts từ root repo.
 
@@ -24,8 +24,6 @@ python3.12 -m venv .venv-build
 . .venv-build/bin/activate
 python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
 python -m pip install -r ai/rag/requirements.txt
-mkdir -p deploy/artifacts/staging/vision
-cp "/path/to/team/efficientnet_b2_epoch5.pt" deploy/artifacts/staging/vision/efficientnet_b2_best.pt
 python deploy/scripts/fetch_embedding_model.py
 python deploy/scripts/verify_mvp_inputs.py --checkpoint deploy/artifacts/staging/vision/efficientnet_b2_best.pt
 python -m ai.rag.ingestion.bundle --model deploy/artifacts/staging/embedding --output deploy/artifacts/staging/recipes
@@ -48,7 +46,7 @@ docker build -f frontend/Dockerfile -t cooklens-frontend:local .
 COOKLENS_IMAGE_PREFIX=cooklens COOKLENS_IMAGE_TAG=local docker compose up
 ```
 
-Kiểm tra `/api/health` sau khi khởi động. `dependencies.vision.model_version` phải là `efficientnet-b2-32class-epoch5`. Image vision cục bộ chứa weights nội bộ của nhóm.
+Kiểm tra `/api/health` sau khi khởi động. `dependencies.vision.model_version` phải là `efficientnet-b2-32class-epoch5`.
 
 Vẫn dùng project `cooklens`, không có Compose hoặc project phát triển riêng.
 Khi build lại cùng tag, thêm `--force-recreate` vào lệnh `up` để thay container.

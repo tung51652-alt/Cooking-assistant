@@ -57,6 +57,27 @@ So với 50%, ảnh có gợi ý đúng giảm từ 82,9% xuống 73,8% trên m�
 Trên 30 ảnh cố định của flow runner qua Docker, 23 ảnh có gợi ý, 7 ảnh bị từ chối vì điểm thấp; cả 30 món tra được công thức.
 Mẫu ngoài danh mục nhỏ và chủ yếu là ảnh nền, nên ảnh ngoài danh mục khác vẫn có thể được gợi ý.
 
+## Đánh giá checkpoint epoch 5 (#67)
+
+So sánh trên cùng manifest Test sạch gồm 5.004 ảnh và 30 nhãn món Việt.
+Các số đo dùng điểm classifier trước bộ lọc ảnh mờ và quy tắc hiển thị gợi ý.
+Hai lớp fallback của epoch 5 vẫn tham gia xếp hạng và được tính là dự đoán sai nếu đứng đầu trên ảnh món.
+
+| Checkpoint | Top-1 | Top-3 | Macro F1 (30 món) |
+| --- | ---: | ---: | ---: |
+| 30 lớp, bản `2.0.0` | 87,57% | 96,08% | 0,8766 |
+| Epoch 5, 32 lớp | 87,11% | 95,66% | 0,8755 |
+
+Epoch 5 đạt ngưỡng Top-3 ≥95% đã có. Top-1 và Top-3 giảm lần lượt 0,46 và 0,42 điểm phần trăm so với checkpoint 30 lớp.
+Trên tập held-out mở rộng, epoch 5 nhận đúng `other_food` ở 17/33 ảnh và `non_food` ở 64/66 ảnh.
+Độ phủ lớp `other_food` còn hạn chế trên mẫu này.
+
+Chạy lại 13 ảnh ngoài danh mục có sẵn từ các [gói ảnh nền Ubuntu Noble](https://archive.ubuntu.com/ubuntu/pool/main/u/ubuntu-wallpapers/) và [ảnh chó của PyTorch](https://github.com/pytorch/hub/blob/master/images/dog.jpg).
+Cả hai checkpoint đều trả về 0 gợi ý. Epoch 5 trả `NON_FOOD` cho 7 ảnh, gồm ảnh bóng đèn của #49. Năm ảnh bị bộ lọc ảnh mờ chặn và một ảnh bị từ chối khi kiểm tra đầu vào.
+
+API epoch 5 đã được kiểm tra cục bộ với file hỏng, rỗng, sai định dạng, quá lớn, ảnh 1×1, PNG trống trong suốt và ảnh có thẻ xoay EXIF.
+Chưa chạy lại ảnh Cơm tấm gốc của #67, stack Docker với checkpoint epoch 5, hoặc Expo Go trên điện thoại thật cho checkpoint này.
+
 ## Corpus công thức v3
 
 `cooklens-recipes-v3` (90 công thức, nay là `v3-1` sau khi sửa ghi chú biên tập ở #69) trên Recipes API và Qdrant 1.19.2 local, 259 query/30 món:

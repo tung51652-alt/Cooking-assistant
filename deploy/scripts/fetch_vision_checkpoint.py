@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage the pinned public legacy checkpoint without changing the active checkpoint."""
+"""Stage the pinned legacy checkpoint for compatibility tests and rollback."""
 
 import argparse
 import hashlib

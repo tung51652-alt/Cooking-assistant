@@ -9,8 +9,6 @@ Python 3.12; từ root repo, dùng môi trường Python riêng:
 ```bash
 python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 torchvision==0.29.1
 python -m pip install -r ai/cv/inference/requirements.txt
-mkdir -p deploy/artifacts/staging/vision
-cp "/path/to/team/efficientnet_b2_epoch5.pt" deploy/artifacts/staging/vision/efficientnet_b2_best.pt
 python -m uvicorn ai.cv.inference.main:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
@@ -18,7 +16,7 @@ Mở [Swagger local](http://127.0.0.1:8000/docs), chọn `POST /predict` → **T
 
 Có thể đặt `FOOD_MODEL_PATH` trỏ file checkpoint đã có thay vì dùng staging mặc định. `FOOD_TAXONOMY_PATH` tùy chọn trỏ mapping bundle; phải khớp checkpoint/manifest. `TORCH_NUM_THREADS` mặc định 4, phạm vi 1–32, CPU là runtime mặc định. Không dùng nhiều workers để tránh nhân bộ nhớ/model và thay đổi concurrency đã nghiệm thu. Development có thể dùng `--reload`; mỗi process mới load lại một lần.
 
-Inference từ repo cần checkpoint epoch 5 ở đường dẫn staging trên. Có thể dùng `FOOD_MODEL_PATH` để chỉ định checkpoint 30 lớp khi cần kiểm tra bản cũ.
+Inference mặc định dùng checkpoint epoch 5 trong `deploy/artifacts/staging/vision/efficientnet_b2_best.pt`. Có thể dùng `FOOD_MODEL_PATH` để chỉ định checkpoint 30 lớp khi cần kiểm tra bản cũ.
 `GET /health/ready` trả `model_version: "efficientnet-b2-32class-epoch5"` sau khi tải thành công.
 
 ## Hành vi
@@ -42,7 +40,7 @@ docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
 python3 deploy/scripts/smoke_vision_container.py
 ```
 
-Build mặc định đóng gói epoch 5 từ file staging nội bộ. Để kiểm tra bản 30 lớp đã công bố, tải checkpoint cũ và chỉ định khi build.
+Build mặc định đóng gói checkpoint epoch 5 từ repository. Để kiểm tra bản 30 lớp đã công bố, tải checkpoint cũ và chỉ định khi build.
 
 ```bash
 python deploy/scripts/fetch_vision_checkpoint.py

@@ -36,16 +36,15 @@ jobs:
           node-version: '22'
       - run: python deploy/scripts/check_public_metadata.py
       - run: mvn -B -q -f backend/pom.xml test
-      - name: Stage both verified public model artifacts
+      - name: Stage verified embedding model
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          python deploy/scripts/fetch_vision_checkpoint.py
           python deploy/scripts/fetch_embedding_model.py
       - run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
       - run: python -m pip install -r ai/rag/requirements.txt
       - run: python -m ai.rag.ingestion.bundle --model deploy/artifacts/staging/embedding --output deploy/artifacts/staging/recipes
-      - run: docker build -f ai/cv/Dockerfile --build-arg VISION_CHECKPOINT=efficientnet_b2_legacy.pt -t cooklens-vision:local .
+      - run: docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
       - run: docker build -f ai/rag/Dockerfile -t cooklens-recipes:local .
       - run: docker build -f backend/Dockerfile -t cooklens-backend:local .
       - run: docker build -f frontend/Dockerfile -t cooklens-frontend:local .
