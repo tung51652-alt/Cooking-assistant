@@ -67,7 +67,7 @@ Dùng cùng biến image khi chạy `up`/`down`; `down` giữ volume công thứ
 
 1. Lập kế hoạch trong [plan/](plan/README.md) khi công việc có nhiều bước.
 2. Chạy [kiểm thử](testing.md) phù hợp và `python3 deploy/scripts/check_public_metadata.py`.
-3. Rà diff, file thừa và tài liệu bị ảnh hưởng; không commit dataset, weights, secret,
-   log, cache hoặc build output. Giữ notices và provenance cần thiết.
+3. Rà diff, file thừa và tài liệu bị ảnh hưởng; giữ dataset, secret, log, cache và build output ngoài Git.
+   Checkpoint runtime được quản lý theo [manifest và tài liệu artifact](../deploy/artifacts/README.md).
 4. Giữ credential và hash bị cấm ngoài Git. Giữ giá trị npm integrity do npm sinh tại trường `packages.*.integrity` hợp lệ trong `mobile/package-lock.json`.
 5. Gửi PR kèm kết quả kiểm tra; người dùng review/merge theo phạm vi đã giao.
