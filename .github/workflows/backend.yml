@@ -36,11 +36,10 @@ jobs:
           node-version: '22'
       - run: python deploy/scripts/check_public_metadata.py
       - run: mvn -B -q -f backend/pom.xml test
-      - name: Stage both verified public model artifacts
+      - name: Stage verified embedding model
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          python deploy/scripts/fetch_vision_checkpoint.py
           python deploy/scripts/fetch_embedding_model.py
       - run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
       - run: python -m pip install -r ai/rag/requirements.txt

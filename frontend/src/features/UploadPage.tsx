@@ -240,7 +240,7 @@ export default function UploadPage({
             <span className="journey-number">2</span>
             <div>
               <h3>Xác nhận món ăn</h3>
-              <p>Chọn trong ba gợi ý hoặc sửa từ danh mục 30 món Việt.</p>
+              <p>Chọn món từ kết quả nhận diện hoặc từ danh mục 30 món Việt.</p>
             </div>
             <ArrowRight aria-hidden="true" />
           </li>

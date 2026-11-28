@@ -631,6 +631,9 @@ main {
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
+.recognition-container > .result-card:only-child {
+  grid-column: 1 / -1;
+}
 .result-card {
   padding: 25px;
 }

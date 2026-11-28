@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage the pinned public model release for builds; verify before atomic replacement."""
+"""Stage the pinned legacy checkpoint for compatibility tests and rollback."""
 
 import argparse
 import hashlib
@@ -72,7 +72,7 @@ def main():
     parser.add_argument("--output", type=Path, help="Defaults to the manifest build staging path")
     args = parser.parse_args()
     try:
-        manifest = json.loads((ROOT / "deploy/artifacts/manifest.json").read_text())
+        manifest = json.loads((ROOT / "deploy/artifacts/manifest.json").read_text(encoding="utf-8"))
         vision = manifest["vision"]
         url = vision["ci_source_uri"]
         expected_url = (
@@ -81,11 +81,14 @@ def main():
         )
         if url != expected_url:
             raise ValueError("Unexpected artifact release URL")
-        verify()
         destination = args.output or ROOT / vision["build_staging_path"]
+        active_filename = manifest["vision_candidate"]["filename"].casefold()
+        if any(path.name.casefold() == active_filename for path in (destination, destination.resolve())):
+            raise ValueError("The active checkpoint slot is reserved for epoch 5")
+        verify()
         download(url, destination, vision["size_bytes"], release_validation(vision))
         verify(destination)
-        print("PASS: pinned checkpoint staged for build")
+        print("PASS: pinned legacy checkpoint staged")
     except (OSError, ValueError, KeyError, TypeError) as error:
         print("FAIL: " + str(error), file=sys.stderr)
         return 1

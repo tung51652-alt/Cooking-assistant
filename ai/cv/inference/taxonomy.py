@@ -16,7 +16,7 @@ class Dish:
 
 
 def load_taxonomy(path: Path, expected_labels: list[str], version: str) -> tuple[Dish, ...]:
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding='utf-8'))
     if data['taxonomy_version'] != version or len(data['labels']) != 30:
         raise ValueError('Taxonomy version or class count mismatch')
     dishes = []

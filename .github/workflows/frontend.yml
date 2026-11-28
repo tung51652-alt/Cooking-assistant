@@ -37,11 +37,10 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: frontend
       - run: npm --prefix frontend run test:e2e
-      - name: Stage verified public models
+      - name: Stage verified embedding model
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          python deploy/scripts/fetch_vision_checkpoint.py
           python deploy/scripts/fetch_embedding_model.py
       - run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
       - run: python -m pip install -r ai/rag/requirements.txt
@@ -68,6 +67,7 @@ jobs:
         env:
           COOKLENS_REAL_API: '1'
           COOKLENS_BASE_URL: http://127.0.0.1:8080
+          COOKLENS_VISION_MODEL_VERSION: efficientnet-b2-32class-epoch5
         run: npm --prefix frontend run test:e2e
       - run: python deploy/scripts/smoke_frontend_container.py --project cooklens-web-ci
       - if: always()

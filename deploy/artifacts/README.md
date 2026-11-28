@@ -4,21 +4,24 @@
 
 ## Checkpoint vision
 
-Nguồn: [GitHub Release vision-model-v1](https://github.com/tung51652-alt/Cooking-assistant/releases/tag/vision-model-v1). Tác giả/quyền public và license implementation: [provenance](vision-model-v1.md), [torchvision notice](notices/torchvision-LICENSE.txt).
+Build từ source dùng checkpoint epoch 5 trong `staging/vision/efficientnet_b2_best.pt`. Tập huấn luyện và báo cáo Colab được quản lý riêng. Xem [quá trình huấn luyện](../../docs/plan/2026-11-27-issue-67-vision-pilot.md) và [kết quả đánh giá](../../docs/acceptance.md#đánh-giá-checkpoint-epoch-5-67).
+
+Checkpoint 30 lớp dùng cho kiểm tra tương thích lấy từ [GitHub Release vision-model-v1](https://github.com/tung51652-alt/Cooking-assistant/releases/tag/vision-model-v1). Xem [nguồn gốc](vision-model-v1.md) và [giấy phép torchvision](notices/torchvision-LICENSE.txt).
 
 Từ root repo với Python 3.11+ (không cần torch hoặc token):
 
 ```bash
-python3 deploy/scripts/fetch_vision_checkpoint.py
 python3 deploy/scripts/verify_mvp_inputs.py --checkpoint deploy/artifacts/staging/vision/efficientnet_b2_best.pt
+python3 deploy/scripts/fetch_vision_checkpoint.py  # Chỉ cần cho kiểm tra checkpoint 30 lớp
+python3 deploy/scripts/verify_mvp_inputs.py --checkpoint deploy/artifacts/staging/vision/efficientnet_b2_legacy.pt
 python3 -m unittest discover -s deploy/tests -v
 ```
 
 Script chỉ dùng release/tag cố định, không `latest`; kiểm tra kích thước và toàn vẹn nội bộ từ metadata release upstream trước khi đặt file vào staging. File đang có hợp lệ được dùng lại; nếu sai, script dừng, không ghi đè file của người dùng. Di chuyển file sai ra ngoài staging sau khi kiểm tra rồi chạy lại. Mạng lỗi hoặc bytes sai không để lại file build nửa chừng. Không dùng `--output` để ghi lên file đang được service sử dụng.
 
-CI chạy cùng lệnh qua `.github/workflows/mvp-inputs.yml`. Staging được Git ignore, chỉ được Docker context cho phép đúng artifact cần đóng gói; Dockerfile service sẽ copy checkpoint và notices vào image ở phase sở hữu service. Người dùng cuối chỉ chạy Compose/pull image từ Docker Hub, không cần lấy checkpoint, Python hoặc GitHub token. Runtime không tải checkpoint từ GitHub.
+CI chạy cùng lệnh tải checkpoint 30 lớp qua `.github/workflows/mvp-inputs.yml`. Dockerfile copy checkpoint được chọn và notices vào image. Git bỏ qua các file staging phát sinh khi build. Runtime đọc checkpoint trong image.
 
-Khi có model mới: tạo release/tag mới, cập nhật model version, URL trong manifest qua PR, giữ bản cũ để rollback. Không thay bytes asset dưới tag đã công bố. Giá trị dùng cho kiểm tra toàn vẹn chỉ tồn tại trong bộ nhớ lúc chạy; không ghi vào manifest, code, docs, asset hay log.
+Khi cập nhật checkpoint runtime, cập nhật model version và kích thước trong manifest qua PR. Các asset thuộc tag đã công bố giữ nguyên bytes. Giá trị dùng cho kiểm tra toàn vẹn chỉ tồn tại trong bộ nhớ lúc chạy; không ghi vào manifest, code, docs, asset hay log.
 
 ## Các artifact khác
 

@@ -3,9 +3,11 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { resolve } from 'node:path';
 import { mkdir } from 'node:fs/promises';
+import { isVisionRecoveryCode, presentVisionResult } from '../../packages/cooklens-api/index.ts';
 import type { components } from '../src/generated/api';
 
 type RecipeSearch = components['schemas']['SearchResponse'];
+type VisionResponse = components['schemas']['PredictionResponse'];
 
 const photo = resolve('../ai/cv/inference/tests/fixtures/food.png');
 async function capture(page: Page, name: string) {
@@ -29,15 +31,29 @@ async function submitPhoto(page: Page, imagePath: string) {
 async function recognize(page: Page) {
   const result = await submitPhoto(page, photo);
   expect(result.status()).toBe(200);
-  const data = await result.json();
+  const data: VisionResponse = await result.json();
   expect(data.model_version).toBeTruthy();
+  if (process.env.COOKLENS_VISION_MODEL_VERSION) {
+    expect(data.model_version).toBe(process.env.COOKLENS_VISION_MODEL_VERSION);
+  }
   expect(data.request_id).toBe(result.headers()['x-request-id']);
-  await expect(page.getByRole('radio')).toHaveCount(3);
-  return data;
+  expect(data.predictions).toHaveLength(3);
+  const visible = visiblePredictions(data);
+  expect(visible.length).toBeGreaterThan(0);
+  await expect(page.getByRole('radio')).toHaveCount(visible.length);
+  return visible;
 }
 
-test('real photo, explicit second prediction, recipes and complete detail', async ({ page }, info) => {
-  const data = await recognize(page);
+function visiblePredictions(data: VisionResponse) {
+  const presentation = presentVisionResult({ modelVersion: data.model_version, predictions: data.predictions });
+  if (presentation.kind !== 'results') return [];
+  return presentation.suggestion
+    ? [presentation.suggestion.prediction, ...presentation.possibilities]
+    : presentation.possibilities;
+}
+
+test('real photo, explicit dish selection, recipes and complete detail', async ({ page }, info) => {
+  const visible = await recognize(page);
   expect(
     await page
       .getByRole('radio')
@@ -45,8 +61,9 @@ test('real photo, explicit second prediction, recipes and complete detail', asyn
   ).toBe(true);
   await expect(page.locator('#confirmButton')).toBeDisabled();
   if (info.project.name === 'desktop') await capture(page, 'recognition-desktop');
-  const selected = data.predictions[1];
-  await page.getByRole('radio').nth(1).check();
+  const selectedIndex = visible.length > 1 ? 1 : 0;
+  const selected = visible[selectedIndex];
+  await page.getByRole('radio').nth(selectedIndex).check();
   const searchRequest = page.waitForRequest((r) => r.url().endsWith('/api/recipes/search'));
   await page.locator('#confirmButton').click();
   expect((await searchRequest).postDataJSON().confirmed_dish).toBe(selected.normalized_dish);
@@ -81,16 +98,21 @@ for (const [name, variable] of [
     const result = await submitPhoto(page, process.env[variable]!);
     if (result.status() === 422) {
       const { code } = await result.json();
-      expect(['IMAGE_BLURRY', 'LOW_CONFIDENCE_PREDICTION']).toContain(code);
+      expect(isVisionRecoveryCode(code)).toBe(true);
       await expect(page.getByRole('radio')).toHaveCount(0);
       await verifyManualCatalog(page);
       return;
     }
     expect(result.status()).toBe(200);
-    await expect(page.getByRole('radio')).toHaveCount(3);
+    const data: VisionResponse = await result.json();
+    const visible = visiblePredictions(data);
+    await expect(page.getByRole('radio')).toHaveCount(visible.length);
+    if (!visible.length) {
+      await verifyManualCatalog(page);
+      return;
+    }
     await expect(page.locator('.privacy-note')).toContainText('CookLens hỗ trợ 30 món Việt');
     await expect(page.locator('.privacy-note')).toContainText('ngoài danh mục');
-    await expect(page.locator('#confidence')).toContainText('Đây là gợi ý từ ảnh');
     await expect(page.locator('#confirmButton')).toBeDisabled();
     await page.getByRole('button', { name: 'Sửa món trong danh mục' }).click();
     await expect(page.locator('#dishSelect option')).toHaveCount(31);
@@ -107,8 +129,8 @@ test('the #49 lightbulb photo is rejected and offers manual dish selection', asy
   test.skip(!imagePath, 'The Ubuntu wallpaper is supplied by the acceptance runner');
   const result = await submitPhoto(page, imagePath!);
   expect(result.status()).toBe(422);
-  expect((await result.json()).code).toBe('LOW_CONFIDENCE_PREDICTION');
-  await expect(page.getByRole('alert')).toContainText('Chưa xác định được món');
+  expect(['LOW_CONFIDENCE_PREDICTION', 'NON_FOOD']).toContain((await result.json()).code);
+  await expect(page.getByRole('alert')).toBeVisible();
   await verifyManualCatalog(page);
 });
 

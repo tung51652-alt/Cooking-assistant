@@ -60,6 +60,10 @@ public class ApiFailure extends RuntimeException {
                             + " nét hơn.";
             case "LOW_CONFIDENCE_PREDICTION" ->
                     "Chưa xác định được món từ ảnh này. Hãy chọn ảnh khác hoặc chọn món theo tên.";
+            case "OTHER_FOOD" ->
+                    "Món trong ảnh nằm ngoài danh mục CookLens. Bạn có thể chọn món theo tên.";
+            case "NON_FOOD" ->
+                    "Ảnh này có vẻ không phải ảnh món ăn. Hãy thử ảnh khác hoặc chọn món theo tên.";
             case "UPLOAD_TOO_LARGE" -> "Yêu cầu vượt quá giới hạn dung lượng.";
             case "UNSUPPORTED_MEDIA_TYPE" -> "Định dạng yêu cầu không được hỗ trợ.";
             case "INVALID_DISH" -> "Món ăn không thuộc danh mục hỗ trợ.";

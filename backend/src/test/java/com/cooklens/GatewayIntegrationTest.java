@@ -272,6 +272,21 @@ class GatewayIntegrationTest {
     }
 
     @Test
+    void candidateAcceptsSupportedScoresAndPreservesFallbackCodes() throws Exception {
+        mode = "candidate";
+        var result = image(new byte[] {1}, "image/png", "");
+        assertEquals(200, result.statusCode(), result.body());
+        assertEquals(contract.candidateModelVersion, body(result).path("model_version").asText());
+        assertEquals(0.631, body(result).path("predictions").get(0).path("confidence").asDouble());
+        Thread.sleep(1100);
+        assertEquals(200, get("/api/health").statusCode());
+        for (String code : List.of("OTHER_FOOD", "NON_FOOD")) {
+            mode = code;
+            error(image(new byte[] {1}, "image/png", ""), 422, code);
+        }
+    }
+
+    @Test
     void healthChecksBothVersionsWithinDeadlineAndLivenessSurvives() throws Exception {
         Thread.sleep(1100);
         mode = "normal";
@@ -426,6 +441,9 @@ class GatewayIntegrationTest {
                                 "LOW_CONFIDENCE_PREDICTION",
                                 "message",
                                 "provider-private-detail");
+            } else if (current.equals("OTHER_FOOD") || current.equals("NON_FOOD")) {
+                status = 422;
+                result = Map.of("code", current, "message", "provider-private-detail");
             } else if (current.equals("busy")) {
                 status = 503;
                 result = Map.of("code", "SERVICE_BUSY");
@@ -438,7 +456,11 @@ class GatewayIntegrationTest {
                                 "status",
                                 "ready",
                                 "model_version",
-                                current.equals("version") ? "wrong" : contract.modelVersion,
+                                current.equals("version")
+                                        ? "wrong"
+                                        : current.equals("candidate")
+                                                ? contract.candidateModelVersion
+                                                : contract.modelVersion,
                                 "taxonomy_version",
                                 contract.taxonomyVersion,
                                 "embedding_version",
@@ -450,7 +472,10 @@ class GatewayIntegrationTest {
                 if (current.equals("version"))
                     ((com.fasterxml.jackson.databind.node.ObjectNode) p)
                             .put("model_version", "wrong");
-                if (current.equals("low-confidence-score")) {
+                if (current.equals("candidate"))
+                    ((com.fasterxml.jackson.databind.node.ObjectNode) p)
+                            .put("model_version", contract.candidateModelVersion);
+                if (current.equals("low-confidence-score") || current.equals("candidate")) {
                     var preds =
                             (com.fasterxml.jackson.databind.node.ArrayNode) p.path("predictions");
                     ((com.fasterxml.jackson.databind.node.ObjectNode) preds.get(0))

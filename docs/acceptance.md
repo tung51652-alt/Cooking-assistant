@@ -57,6 +57,40 @@ So với 50%, ảnh có gợi ý đúng giảm từ 82,9% xuống 73,8% trên m�
 Trên 30 ảnh cố định của flow runner qua Docker, 23 ảnh có gợi ý, 7 ảnh bị từ chối vì điểm thấp; cả 30 món tra được công thức.
 Mẫu ngoài danh mục nhỏ và chủ yếu là ảnh nền, nên ảnh ngoài danh mục khác vẫn có thể được gợi ý.
 
+## Đánh giá checkpoint epoch 5 (#67)
+
+Chạy lại cả hai checkpoint trên cùng manifest Test sạch gồm 5.004 ảnh và 30 nhãn món Việt.
+Các số đo dùng điểm classifier trước bộ lọc ảnh mờ và quy tắc hiển thị gợi ý.
+Hai lớp fallback của epoch 5 vẫn tham gia xếp hạng và được tính là dự đoán sai nếu đứng đầu trên ảnh món.
+
+| Checkpoint | Top-1 | Top-3 | Macro F1 (30 món) |
+| --- | ---: | ---: | ---: |
+| 30 lớp, bản `2.0.0` | 87,57% | 96,08% | 0,8766 |
+| Epoch 5, 32 lớp | 87,11% | 95,66% | 0,8755 |
+
+Epoch 5 đạt ngưỡng Top-3 ≥95% đã có. Top-1 và Top-3 giảm lần lượt 0,46 và 0,42 điểm phần trăm so với checkpoint 30 lớp.
+Trên tập held-out mở rộng, epoch 5 nhận đúng `other_food` ở 17/33 ảnh và `non_food` ở 64/66 ảnh.
+Độ phủ lớp `other_food` còn hạn chế trên mẫu này.
+
+Chạy lại 13 ảnh ngoài danh mục có sẵn từ các [gói ảnh nền Ubuntu Noble](https://archive.ubuntu.com/ubuntu/pool/main/u/ubuntu-wallpapers/) và [ảnh chó của PyTorch](https://github.com/pytorch/hub/blob/master/images/dog.jpg).
+Cả hai checkpoint đều trả về 0 gợi ý. Epoch 5 trả `NON_FOOD` cho 7 ảnh, gồm ảnh bóng đèn của #49. Năm ảnh bị bộ lọc ảnh mờ chặn và một ảnh bị từ chối khi kiểm tra đầu vào.
+
+API epoch 5 đã được kiểm tra cục bộ với file hỏng, rỗng, sai định dạng, quá lớn, ảnh 1×1, PNG trống trong suốt và ảnh có thẻ xoay EXIF.
+CI đã kiểm tra [image vision epoch 5](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/46122447046/job/140909680220) và [luồng browser qua stack Docker epoch 5](https://github.com/tung51652-alt/Cooking-assistant/actions/runs/46122447045/job/140909714284).
+Chưa chạy lại ảnh Cơm tấm gốc của #67 hoặc Expo Go trên điện thoại thật cho checkpoint này.
+
+Đánh giá độc lập trên image build từ nhánh này (28/11), cùng stack Docker và cùng bộ ảnh cho cả hai checkpoint:
+
+- Test 5.004 ảnh: Top-1 87,11%, Macro F1 0,8755, khớp bảng trên.
+  Tính theo kết quả người dùng thấy (ảnh bị xếp fallback đứng đầu thì không có gợi ý), Top-3 là 95,20%.
+  59 ảnh món (1,2%) bị xếp `other_food` (34) hoặc `non_food` (25), nhiều nhất ở Bánh đúc (6).
+- 18 ảnh ngoài danh mục không bị lọc mờ (ruộng lúa, ảnh nền, bóng đèn của #49, nhiễu, hóa đơn, ảnh chụp màn hình): 17 trả `NON_FOOD`, checkpoint 30 lớp trả `LOW_CONFIDENCE_PREDICTION`.
+- Ảnh pizza được gợi ý Bánh tráng nướng 54,7%, đủ ngưỡng "Món gợi ý"; checkpoint 30 lớp từ chối ảnh này.
+- Ảnh Cơm tấm hai đĩa và 4 biến thể (cắt, mờ nhẹ, tối, xoay): Cơm tấm đứng đầu ở 4/5 ảnh với 25–49%, nên hiện trong "món có thể" thay vì bị từ chối như checkpoint 30 lớp.
+- Ảnh Bún đậu mắm tôm và biến thể cắt, xoay, EXIF vẫn nhận đúng (52–90%); bản tối 25% chuyển từ `LOW_CONFIDENCE_PREDICTION` sang `NON_FOOD` hoặc gợi ý 27%.
+- 11 file lỗi (rỗng, hỏng, GIF/WebP giả đuôi, ảnh động, 1×1, PNG trong suốt, ảnh xám, >10 MiB, >25 MP) trả cùng mã lỗi với checkpoint 30 lớp.
+- `real-flow.spec.ts` trên stack epoch 5: 8/8 ca đã chạy, gồm ảnh bóng đèn của #49 trên desktop và mobile.
+
 ## Corpus công thức v3
 
 `cooklens-recipes-v3` (90 công thức, nay là `v3-1` sau khi sửa ghi chú biên tập ở #69) trên Recipes API và Qdrant 1.19.2 local, 259 query/30 món:

@@ -67,8 +67,8 @@
         0.225
       ]
     },
-    "build_staging_path": "deploy/artifacts/staging/vision/efficientnet_b2_best.pt",
-    "runtime_path": "/opt/cooklens/models/efficientnet_b2_best.pt",
+    "build_staging_path": "deploy/artifacts/staging/vision/efficientnet_b2_legacy.pt",
+    "runtime_path": "/opt/cooklens/models/efficientnet_b2_legacy.pt",
     "ci_source_uri": "https://github.com/tung51652-alt/Cooking-assistant/releases/download/vision-model-v1/efficientnet_b2_best.pt",
     "acquisition_status": "public_release_download_verified_without_persisting_validation_values",
     "redistribution_status": "public_distribution_authorized_by_project_owner",
@@ -101,6 +101,13 @@
     },
     "metrics_source": "ai/cv/experiments/efficientnet-b2-30vnfoods-2026-09-30/experiment_summary.json",
     "artifact_release_tag": "vision-model-v1"
+  },
+  "vision_candidate": {
+    "model_version": "efficientnet-b2-32class-epoch5",
+    "filename": "efficientnet_b2_best.pt",
+    "size_bytes": 31445923,
+    "checkpoint_epoch": 5,
+    "fallback_labels": ["other_food", "non_food"]
   },
   "embedding": {
     "embedding_version": "multilingual-e5-small-v1",

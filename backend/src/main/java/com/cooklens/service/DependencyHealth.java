@@ -58,7 +58,7 @@ public class DependencyHealth implements HealthIndicator {
                 && "ready".equals(value.status())
                 && contract.taxonomyVersion.equals(value.taxonomyVersion())
                 && (isVision
-                        ? contract.modelVersion.equals(value.modelVersion())
+                        ? contract.supportsVisionModel(value.modelVersion())
                         : contract.corpusVersion.equals(value.corpusVersion())
                                 && contract.embeddingVersion.equals(value.embeddingVersion())))
             return isVision

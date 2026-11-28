@@ -42,7 +42,7 @@ public class GatewayService {
     public PredictionResponse predict(byte[] image, String mime, String id) {
         var result = valid(vision.predict(image, mime, id));
         contract.require(
-                contract.modelVersion.equals(result.modelVersion())
+                contract.supportsVisionModel(result.modelVersion())
                         && contract.taxonomyVersion.equals(result.taxonomyVersion()));
         var seen = new HashSet<Integer>();
         double sum = 0;
@@ -65,7 +65,8 @@ public class GatewayService {
             previous = p;
         }
         contract.require(sum <= 1.000001);
-        if (result.predictions().get(0).confidence() < MIN_VISION_CONFIDENCE) {
+        if (contract.modelVersion.equals(result.modelVersion())
+                && result.predictions().get(0).confidence() < MIN_VISION_CONFIDENCE) {
             throw new ApiFailure(422, "LOW_CONFIDENCE_PREDICTION");
         }
         return new PredictionResponse(

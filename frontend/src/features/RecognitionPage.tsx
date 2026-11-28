@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { CheckSquare, PencilSimple, WarningCircle } from '@phosphor-icons/react';
+import { presentVisionResult, type VisionPredictionResult } from '../../../packages/cooklens-api';
 import type { Dish, Prediction, SelectedImage } from '../types';
-import { MIN_VISION_CONFIDENCE } from '../../../packages/cooklens-api';
 import DishCatalogPicker from './DishCatalogPicker';
 
 interface Props {
   image: SelectedImage | null;
-  predictions: Prediction[];
+  result: VisionPredictionResult | null;
   chosen: Dish | null;
   dishes: Dish[] | null;
   busy: boolean;
@@ -17,9 +17,11 @@ interface Props {
   onUpload: () => void;
 }
 
+const percentage = new Intl.NumberFormat('vi-VN', { style: 'percent', maximumFractionDigits: 1 });
+
 export default function RecognitionPage({
   image,
-  predictions,
+  result,
   chosen,
   dishes,
   busy,
@@ -29,22 +31,19 @@ export default function RecognitionPage({
   onEdit,
   onUpload,
 }: Props) {
-  const lowConfidence = predictions.length > 0 && predictions[0].confidence < MIN_VISION_CONFIDENCE;
-  const formatConfidence = (value: number) =>
-    new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(value * 100);
+  const presentation = presentVisionResult(result);
   const [catalogOpen, setCatalogOpen] = useState(false);
-  const predictionKey = predictions.map((item) => `${item.class_id}:${item.confidence}`).join(',');
 
   useEffect(() => {
     setCatalogOpen(false);
-  }, [predictionKey]);
+  }, [result]);
 
   function openManualCatalog() {
     setCatalogOpen(true);
     onEdit();
   }
 
-  function candidate(prediction: Prediction) {
+  function candidate(prediction: Prediction, showScore = true, badge: string | null = null) {
     return (
       <label
         className={`prediction-choice${chosen?.class_id === prediction.class_id ? ' is-selected' : ''}`}
@@ -57,10 +56,13 @@ export default function RecognitionPage({
           onChange={() => onChoose(prediction)}
         />
         <span className="candidate-copy">
-          <span className="rank">Khả năng {prediction.rank}</span>
-          <strong>{prediction.display_name}</strong>
+          {showScore && <span className="rank">Khả năng {prediction.rank}</span>}
+          <strong>
+            {prediction.display_name}
+            {badge && ` (${badge})`}
+          </strong>
         </span>
-        <span className="confidence">{formatConfidence(prediction.confidence)}%</span>
+        {showScore && <span className="confidence">{percentage.format(prediction.confidence)}</span>}
       </label>
     );
   }
@@ -68,13 +70,18 @@ export default function RecognitionPage({
     <section className="section" aria-labelledby="recognition-title">
       <div className="section-title">
         <h1 id="recognition-title">Kết quả nhận diện</h1>
-        <p>
-          {lowConfidence
-            ? 'CookLens chưa đủ tự tin để gợi ý món từ ảnh này.'
-            : 'Ba gợi ý từ ảnh của bạn. Hãy chọn món đúng để tìm công thức.'}
-        </p>
+        {presentation.kind === 'results' && <p>Chọn món đúng để tìm công thức.</p>}
       </div>
-      {predictions.length === 0 ? (
+      {presentation.kind !== 'empty' && image && (
+        <div className="recognition-photo">
+          <img src={image.url} alt="Ảnh món ăn đang nhận diện" />
+          <span>{image.file.name}</span>
+          <button className="text-btn" onClick={onUpload}>
+            Đổi ảnh
+          </button>
+        </div>
+      )}
+      {presentation.kind === 'empty' ? (
         <>
           <div className="empty-state">
             <h2>Chưa có kết quả nhận diện</h2>
@@ -98,17 +105,8 @@ export default function RecognitionPage({
             />
           )}
         </>
-      ) : lowConfidence ? (
+      ) : presentation.kind === 'uncertain' ? (
         <>
-          {image && (
-            <div className="recognition-photo">
-              <img src={image.url} alt="Ảnh món ăn đang nhận diện" />
-              <span>{image.file.name}</span>
-              <button className="text-btn" onClick={onUpload}>
-                Đổi ảnh
-              </button>
-            </div>
-          )}
           <div className="vision-warning-card" role="alert">
             <div className="vision-warning-copy">
               <WarningCircle size={28} aria-hidden="true" />
@@ -138,29 +136,30 @@ export default function RecognitionPage({
         </>
       ) : (
         <>
-          {image && (
-            <div className="recognition-photo">
-              <img src={image.url} alt="Ảnh món ăn đang nhận diện" />
-              <span>{image.file.name}</span>
-              <button className="text-btn" onClick={onUpload}>
-                Đổi ảnh
-              </button>
-            </div>
-          )}
-          <div className="recognition-container" role="radiogroup" aria-label="Chọn món từ ba gợi ý">
-            <div className="result-card">
-              <h2>Món gợi ý</h2>
-              <div id="mainResult">{candidate(predictions[0])}</div>
-              <p className="muted" id="confidence">
-                Đây là gợi ý từ ảnh. Hãy chọn món đúng hoặc tìm món theo tên.
-              </p>
-            </div>
-            <div className="result-card">
-              <h2>Các khả năng khác</h2>
-              <div id="topResults" className="top-results">
-                {predictions.slice(1).map(candidate)}
+          <div className="recognition-container" role="radiogroup" aria-label="Chọn món từ kết quả nhận diện">
+            {presentation.suggestion && (
+              <div className="result-card">
+                <h2>Món gợi ý</h2>
+                <div id="mainResult">
+                  {candidate(
+                    presentation.suggestion.prediction,
+                    presentation.suggestion.showScore,
+                    presentation.suggestion.badge,
+                  )}
+                </div>
+                <p className="muted" id="confidence">
+                  Đây là gợi ý từ ảnh.
+                </p>
               </div>
-            </div>
+            )}
+            {presentation.possibilities.length > 0 && (
+              <div className="result-card">
+                <h2>{presentation.suggestion ? 'Các món có khả năng khác' : 'Các món có khả năng'}</h2>
+                <div id="topResults" className="top-results">
+                  {presentation.possibilities.map((option) => candidate(option))}
+                </div>
+              </div>
+            )}
           </div>
           <div className="confirmation-panel">
             <div>

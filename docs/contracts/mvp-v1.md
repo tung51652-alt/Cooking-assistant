@@ -38,10 +38,12 @@ File ≤10 MiB, multipart body ≤11 MiB, ảnh ≤25 triệu pixel, một frame
 ảnh lỗi/bomb/animation hoặc format ngoài JPEG/PNG. Chuyển RGB trước inference.
 Mỗi prediction có `rank`, `class_id`, `normalized_dish`, `display_name`, `confidence`.
 Sort confidence giảm dần, tie-break class ID tăng dần; không trùng class.
-Confidence lấy từ softmax toàn bộ 30 lớp, không chuẩn hóa lại Top-3; tổng ≤1 với sai số 1e-6.
-Nếu confidence cao nhất dưới 65%, API trả 422 `LOW_CONFIDENCE_PREDICTION`.
+Confidence lấy từ softmax trên toàn bộ đầu ra của model và giữ nguyên giá trị trong Top-3.
+Tổng ≤1 với sai số 1e-6.
+Model `efficientnet-b2-32class-epoch5` trả 422 `OTHER_FOOD` hoặc `NON_FOOD` khi lớp tương ứng đứng đầu.
+Khi một món thuộc danh mục đứng đầu, model trả ba món được xếp cao nhất trong danh mục, không áp dụng ngưỡng 65%.
+Model công bố 30 lớp tiếp tục trả 422 `LOW_CONFIDENCE_PREDICTION` khi confidence cao nhất dưới 65%.
 UI yêu cầu xác nhận món khi có gợi ý và cho phép chọn ảnh khác hoặc tra món theo tên khi ảnh bị từ chối.
-Điểm softmax thể hiện độ tin cậy của gợi ý trong 30 lớp món thuộc danh mục.
 
 ## Truy xuất công thức
 
@@ -77,7 +79,7 @@ Proxy giữ cùng JSON envelope và request ID cho lỗi nó chủ động chặ
 | 404 | `RECIPE_NOT_FOUND` |
 | 413 | `UPLOAD_TOO_LARGE` |
 | 415 | `UNSUPPORTED_MEDIA_TYPE` |
-| 422 | `VALIDATION_ERROR`, `INVALID_DISH` |
+| 422 | `VALIDATION_ERROR`, `INVALID_DISH`, `IMAGE_BLURRY`, `LOW_CONFIDENCE_PREDICTION`, `OTHER_FOOD`, `NON_FOOD` |
 | 500 | `INTERNAL_ERROR` |
 | 503 | `DEPENDENCY_NOT_READY`, `SERVICE_BUSY` |
 | 504 | `DEPENDENCY_TIMEOUT` |

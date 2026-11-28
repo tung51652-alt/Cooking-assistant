@@ -15,14 +15,15 @@ Quy ước thực hiện và xác minh theo [WORKFLOW.md](WORKFLOW.md).
 
 ## Chuẩn bị artifact
 
-Tạo venv riêng, không thay môi trường huấn luyện đang dùng:
+Build từ source dùng checkpoint 32 lớp epoch 5 có sẵn trong repository.
+
+Tạo venv riêng, rồi chuẩn bị artifacts từ root repo.
 
 ```sh
 python3.12 -m venv .venv-build
 . .venv-build/bin/activate
 python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
 python -m pip install -r ai/rag/requirements.txt
-python deploy/scripts/fetch_vision_checkpoint.py
 python deploy/scripts/fetch_embedding_model.py
 python deploy/scripts/verify_mvp_inputs.py --checkpoint deploy/artifacts/staging/vision/efficientnet_b2_best.pt
 python -m ai.rag.ingestion.bundle --model deploy/artifacts/staging/embedding --output deploy/artifacts/staging/recipes
@@ -38,11 +39,14 @@ chỉ build source khi cần. Sau khi chuẩn bị artifact ở trên, từ root
 
 ```sh
 docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
+python deploy/scripts/smoke_vision_container.py --image cooklens-vision:local
 docker build -f ai/rag/Dockerfile -t cooklens-recipes:local .
 docker build -f backend/Dockerfile -t cooklens-backend:local .
 docker build -f frontend/Dockerfile -t cooklens-frontend:local .
 COOKLENS_IMAGE_PREFIX=cooklens COOKLENS_IMAGE_TAG=local docker compose up
 ```
+
+Kiểm tra `/api/health` sau khi khởi động. `dependencies.vision.model_version` phải là `efficientnet-b2-32class-epoch5`.
 
 Vẫn dùng project `cooklens`, không có Compose hoặc project phát triển riêng.
 Khi build lại cùng tag, thêm `--force-recreate` vào lệnh `up` để thay container.
@@ -63,7 +67,7 @@ Dùng cùng biến image khi chạy `up`/`down`; `down` giữ volume công thứ
 
 1. Lập kế hoạch trong [plan/](plan/README.md) khi công việc có nhiều bước.
 2. Chạy [kiểm thử](testing.md) phù hợp và `python3 deploy/scripts/check_public_metadata.py`.
-3. Rà diff, file thừa và tài liệu bị ảnh hưởng; không commit dataset, weights, secret,
-   log, cache hoặc build output. Giữ notices và provenance cần thiết.
+3. Rà diff, file thừa và tài liệu bị ảnh hưởng; giữ dataset, secret, log, cache và build output ngoài Git.
+   Checkpoint runtime được quản lý theo [manifest và tài liệu artifact](../deploy/artifacts/README.md).
 4. Giữ credential và hash bị cấm ngoài Git. Giữ giá trị npm integrity do npm sinh tại trường `packages.*.integrity` hợp lệ trong `mobile/package-lock.json`.
 5. Gửi PR kèm kết quả kiểm tra; người dùng review/merge theo phạm vi đã giao.

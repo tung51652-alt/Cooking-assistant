@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { IconContext, BowlFood, ArrowRight, Key } from '@phosphor-icons/react';
-import type { Dish, Prediction, RecipeSummary, SelectedImage, View } from './types';
+import type { Dish, RecipeSummary, SelectedImage, View } from './types';
+import { isVisionRecoveryCode, type VisionPredictionResult } from '../../packages/cooklens-api';
 import * as api from './lib/api';
 import {
   clearLlmConfig,
@@ -43,7 +44,8 @@ export default function App() {
   const [view, setView] = useState<View>(currentView);
   const [image, setImage] = useState<SelectedImage | null>(null);
   const imageRef = useRef<SelectedImage | null>(null);
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [visionResult, setVisionResult] = useState<VisionPredictionResult | null>(null);
+  const predictions = visionResult?.predictions ?? [];
   const [confirmed, setConfirmed] = useState<Dish | null>(loadConfirmedDish);
   const [chosen, setChosen] = useState<Dish | null>(confirmed);
   const [dishes, setDishes] = useState<Dish[] | null>(null);
@@ -128,7 +130,7 @@ export default function App() {
     cancel();
     imageRef.current = next;
     setImage(next);
-    setPredictions([]);
+    setVisionResult(null);
     setChosen(null);
     resetRecipes();
     setError(null);
@@ -183,13 +185,13 @@ export default function App() {
   }
   async function recognize() {
     if (!image) return;
-    setPredictions([]);
+    setVisionResult(null);
     setChosen(null);
     resetRecipes();
     await run('predict', async (signal) => {
       const result = await api.predict(image.file, signal);
       if (!signal.aborted) {
-        setPredictions(result);
+        setVisionResult(result);
         navigate('recognition');
       }
     });
@@ -226,7 +228,7 @@ export default function App() {
     if (!fromPhoto) {
       imageRef.current = null;
       setImage(null);
-      setPredictions([]);
+      setVisionResult(null);
     }
     setConfirmed(dish);
     setChosen(dish);
@@ -239,7 +241,7 @@ export default function App() {
     setErrorCode(null);
     navigate('upload');
   }
-  const visionIssue = errorCode === 'IMAGE_BLURRY' || errorCode === 'LOW_CONFIDENCE_PREDICTION';
+  const visionIssue = isVisionRecoveryCode(errorCode);
   return (
     <IconContext.Provider value={{ weight: 'regular', size: 22 }}>
       <a className="skip-link" href="#main">
@@ -329,7 +331,7 @@ export default function App() {
         {view === 'recognition' && (
           <RecognitionPage
             image={image}
-            predictions={predictions}
+            result={visionResult}
             chosen={chosen}
             dishes={dishes}
             busy={busy === 'dishes'}

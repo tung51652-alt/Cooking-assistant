@@ -18,17 +18,18 @@ import numpy as np
 import torch
 from fastapi.testclient import TestClient
 from PIL import Image, ImageFilter
-from torchvision.models import EfficientNet_B2_Weights
+from torchvision.models import EfficientNet_B2_Weights, efficientnet_b2
 
 from ai.cv.inference.errors import MAX_REQUEST_BYTES, MAX_UPLOAD_BYTES
 from ai.cv.inference.guard import RequestGuard, Runtime
 from ai.cv.inference.images import BLUR_LAPLACIAN_THRESHOLD, laplacian_variance
 from ai.cv.inference.inference import evaluation_transform, predict_image
 from ai.cv.inference.main import CONFIDENCE_THRESHOLD, create_app
-from ai.cv.inference.model import ROOT, load_model
+from ai.cv.inference.model import CHECKPOINT_DIR, MANIFEST, ROOT, load_model
 from ai.cv.inference.schemas import PredictionResponse
 
 FIXTURE = Path(__file__).parent / 'fixtures/food.png'
+LEGACY_CHECKPOINT = CHECKPOINT_DIR / 'efficientnet_b2_legacy.pt'
 
 
 class FoodApiTests(unittest.TestCase):
@@ -40,7 +41,8 @@ class FoodApiTests(unittest.TestCase):
         cls.app = create_app()
         cls.client = TestClient(cls.app)
         try:
-            cls.client.__enter__()
+            with patch.dict(os.environ, {'FOOD_MODEL_PATH': str(LEGACY_CHECKPOINT)}):
+                cls.client.__enter__()
         except Exception:
             cls.load_patch.stop()
             raise
@@ -265,6 +267,28 @@ class FoodApiTests(unittest.TestCase):
         self.assertIn('multipart/form-data', spec['paths']['/predict']['post']['requestBody']['content'])
         self.assertEqual(self.client.get('/docs').status_code, 200)
 
+    def test_candidate_routes_fallbacks_and_returns_supported_dishes_without_cutoff(self):
+        model = replace(self.model, classes=self.model.classes + ('other_food', 'non_food'))
+        with patch.object(self.app.state.runtime, 'model', model):
+            for winner, code in [(30, 'OTHER_FOOD'), (31, 'NON_FOOD')]:
+                with self.subTest(code=code):
+                    values = torch.zeros((1, 32))
+                    values[0, winner] = 2
+                    with patch.object(model.network, 'forward', return_value=values):
+                        response = self.upload()
+                    self.assertEqual(response.status_code, 422)
+                    self.assertEqual(response.json()['code'], code)
+
+            values = torch.zeros((1, 32))
+            values[0, [28, 31, 30, 23, 9]] = torch.tensor([3., 2.5, 2., 1.5, 1.])
+            with patch.object(model.network, 'forward', return_value=values):
+                response = self.upload()
+            self.assertEqual(response.status_code, 200)
+            predictions = response.json()['predictions']
+            self.assertEqual([p['class_id'] for p in predictions], [28, 23, 9])
+            self.assertAlmostEqual(predictions[0]['confidence'], values.softmax(dim=1)[0, 28].item())
+            self.assertLess(predictions[0]['confidence'], CONFIDENCE_THRESHOLD)
+
     def test_inference_failure_is_safe_and_next_request_recovers(self):
         with patch('ai.cv.inference.main.predict_image', side_effect=RuntimeError('internal-only-detail')):
             with self.assertLogs('ai.cv.inference.main', level='ERROR') as captured:
@@ -329,6 +353,50 @@ class FoodApiTests(unittest.TestCase):
 
 
 class LifecycleTests(unittest.TestCase):
+    def test_candidate_checkpoint_loads_32_outputs_and_rejects_wrong_epoch(self):
+        manifest = json.loads(MANIFEST.read_text(encoding='utf-8'))
+        candidate = manifest['vision_candidate']
+        classes = manifest['vision']['class_labels'] + candidate['fallback_labels']
+        network = efficientnet_b2(weights=None)
+        network.classifier[1] = torch.nn.Linear(network.classifier[1].in_features, len(classes))
+        checkpoint = {
+            'architecture': manifest['vision']['architecture'],
+            'image_size': manifest['vision']['transform']['crop_size'][0],
+            'classes': classes,
+            'model_state_dict': network.state_dict(),
+            'epoch': candidate['checkpoint_epoch'],
+            'smoke': False,
+        }
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / candidate['filename']
+            local_manifest = Path(folder) / 'manifest.json'
+
+            def write_checkpoint():
+                torch.save(checkpoint, path)
+                candidate['size_bytes'] = path.stat().st_size
+                local_manifest.write_text(json.dumps(manifest), encoding='utf-8')
+
+            write_checkpoint()
+            with (patch('ai.cv.inference.model.MANIFEST', local_manifest),
+                  patch('ai.cv.inference.model.CHECKPOINT_DIR', path.parent), patch.dict(os.environ)):
+                os.environ.pop('FOOD_MODEL_PATH', None)
+                model = load_model()
+                self.assertEqual(model.model_version, candidate['model_version'])
+                self.assertEqual(model.classes, tuple(classes))
+                self.assertEqual(model.network.classifier[1].out_features, 32)
+                self.assertEqual(len(model.dishes), 30)
+
+                checkpoint['epoch'] -= 1
+                write_checkpoint()
+                with self.assertRaisesRegex(ValueError, 'Unexpected candidate checkpoint epoch'):
+                    load_model()
+
+                path.unlink()
+                (path.parent / LEGACY_CHECKPOINT.name).touch()
+                with self.assertRaises(FileNotFoundError) as missing:
+                    load_model()
+                self.assertEqual(Path(missing.exception.filename), path)
+
     def test_unstarted_app_is_live_but_not_ready(self):
         client = TestClient(create_app())
         self.assertEqual(client.get('/health/live').status_code, 200)
@@ -358,8 +426,11 @@ class LifecycleTests(unittest.TestCase):
             mapping['labels'][0]['original_label'] = 'Wrong label'
             taxonomy = root / 'mapping.json'
             taxonomy.write_text(json.dumps(mapping))
-            with patch.dict(os.environ, {'FOOD_TAXONOMY_PATH': str(taxonomy)}):
-                with self.assertRaises(ValueError):
+            with patch.dict(os.environ, {
+                'FOOD_MODEL_PATH': str(LEGACY_CHECKPOINT),
+                'FOOD_TAXONOMY_PATH': str(taxonomy),
+            }):
+                with self.assertRaisesRegex(ValueError, 'Taxonomy training labels mismatch'):
                     load_model()
 
 

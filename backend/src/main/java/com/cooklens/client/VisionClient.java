@@ -17,7 +17,9 @@ public class VisionClient {
     private static final Map<String, Integer> VISION_ERRORS =
             Map.of(
                     "IMAGE_BLURRY", 422,
-                    "LOW_CONFIDENCE_PREDICTION", 422);
+                    "LOW_CONFIDENCE_PREDICTION", 422,
+                    "OTHER_FOOD", 422,
+                    "NON_FOOD", 422);
     private final UpstreamTransport transport;
     private final URI predict, health;
 

@@ -110,7 +110,7 @@ jobs:
       - name: Build versioned images from component Dockerfiles
         run: |
           docker compose config --quiet
-          docker build -f ai/cv/Dockerfile -t "$COOKLENS_IMAGE_PREFIX-vision:$COOKLENS_IMAGE_TAG" .
+          docker build -f ai/cv/Dockerfile --build-arg VISION_CHECKPOINT=efficientnet_b2_legacy.pt -t "$COOKLENS_IMAGE_PREFIX-vision:$COOKLENS_IMAGE_TAG" .
           docker build -f ai/rag/Dockerfile -t "$COOKLENS_IMAGE_PREFIX-recipes:$COOKLENS_IMAGE_TAG" .
           docker build -f backend/Dockerfile -t "$COOKLENS_IMAGE_PREFIX-backend:$COOKLENS_IMAGE_TAG" .
           docker build -f frontend/Dockerfile -t "$COOKLENS_IMAGE_PREFIX-frontend:$COOKLENS_IMAGE_TAG" .

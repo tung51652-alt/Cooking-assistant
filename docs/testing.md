@@ -50,6 +50,7 @@ Test chạy bằng Python 3.12 trong venv riêng với artifact đã staging the
 ```sh
 python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 torchvision==0.29.1
 python -m pip install -r ai/cv/inference/requirements-test.txt -r ai/rag/requirements.txt
+python deploy/scripts/fetch_vision_checkpoint.py
 python -m unittest discover -s ai/cv/inference/tests -v
 ```
 
@@ -65,7 +66,19 @@ python -m unittest discover -s ai/rag/tests -v
 docker rm -f cooklens-recipes-test-qdrant
 ```
 
-Smoke image đã build: `deploy/scripts/smoke_vision_container.py --image cooklens-vision:local` và `deploy/scripts/smoke_recipes_container.py`.
+Smoke vision epoch 5 dùng image build theo [hướng dẫn build từ source](development.md#chuẩn-bị-artifact).
+Dùng `python deploy/scripts/smoke_vision_container.py --image cooklens-vision:local` để xác nhận phiên bản model.
+Smoke recipes dùng `python deploy/scripts/smoke_recipes_container.py`.
+
+Đặt `COOKLENS_VISION_MODEL_VERSION=efficientnet-b2-32class-epoch5` khi chạy `real-flow.spec.ts` trên stack epoch 5 để kiểm tra đúng phiên bản.
+Để chấm lại checkpoint đang staging trên cùng tập Test, dùng:
+
+```sh
+python -m deploy.scripts.evaluate_release_vision --archive /path/to/30VNFoods/test.zip \
+  --manifest data/processed/manifests/30vnfoods_clean_split_manifest.csv --candidate local-epoch5
+```
+
+Đặt `FOOD_MODEL_PATH` trỏ tới file `efficientnet_b2_legacy.pt` khi chạy cùng lệnh với checkpoint 30 lớp.
 
 ## Nghiệm thu bộ image
 

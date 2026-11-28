@@ -1,8 +1,9 @@
 FROM python:3.12.15-slim-bookworm
 
+ARG VISION_CHECKPOINT=efficientnet_b2_best.pt
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    FOOD_MODEL_PATH=/opt/cooklens/models/efficientnet_b2_best.pt \
+    FOOD_MODEL_PATH=/opt/cooklens/models/${VISION_CHECKPOINT} \
     TORCH_NUM_THREADS=4 \
     OMP_NUM_THREADS=4 \
     MKL_NUM_THREADS=4
@@ -18,7 +19,7 @@ COPY data/processed/30vnfoods-label-map.json /app/data/processed/30vnfoods-label
 COPY deploy/artifacts/manifest.json /app/deploy/artifacts/manifest.json
 RUN mkdir -p /opt/cooklens/models /opt/cooklens/notices \
     && chmod 0755 /opt/cooklens /opt/cooklens/models /opt/cooklens/notices
-COPY --chmod=0444 deploy/artifacts/staging/vision/efficientnet_b2_best.pt /opt/cooklens/models/efficientnet_b2_best.pt
+COPY --chmod=0444 deploy/artifacts/staging/vision/${VISION_CHECKPOINT} /opt/cooklens/models/${VISION_CHECKPOINT}
 COPY deploy/artifacts/vision-model-v1.md /opt/cooklens/notices/vision-model-v1.md
 COPY deploy/artifacts/notices/torchvision-LICENSE.txt /opt/cooklens/notices/torchvision-LICENSE.txt
 

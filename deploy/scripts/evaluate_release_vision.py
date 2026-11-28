@@ -24,8 +24,9 @@ def evaluate(archive, manifest, candidate='2.0.0-rc.2'):
     if len(rows) != 5004 or {int(r['class_index']) for r in rows} != set(range(30)):
         raise ValueError('Expected the fixed 5004-image, 30-class clean test split')
     model = load_model()
-    matrix = [[0] * 30 for _ in range(30)]
-    hits = [0] * 30
+    output_count = len(model.classes)
+    matrix = [[0] * output_count for _ in model.dishes]
+    hits = [0] * len(model.dishes)
     with ZipFile(archive) as data:
         members = {}
         for name in data.namelist():
@@ -48,7 +49,7 @@ def evaluate(archive, manifest, candidate='2.0.0-rc.2'):
                 targets.append(target)
             with torch.inference_mode():
                 probabilities = torch.softmax(model.network(torch.stack(tensors)), dim=1)
-                if probabilities.shape != (len(targets), 30) or not torch.isfinite(probabilities).all():
+                if probabilities.shape != (len(targets), output_count) or not torch.isfinite(probabilities).all():
                     raise ValueError('Invalid model output')
                 predictions = torch.argsort(probabilities, dim=1, descending=True, stable=True)[:, :3].tolist()
             for target, prediction in zip(targets, predictions, strict=True):
