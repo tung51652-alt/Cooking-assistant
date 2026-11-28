@@ -46,7 +46,7 @@ jobs:
       - run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
       - run: python -m pip install -r ai/rag/requirements.txt
       - run: python -m ai.rag.ingestion.bundle --model deploy/artifacts/staging/embedding --output deploy/artifacts/staging/recipes
-      - run: docker build -f ai/cv/Dockerfile --build-arg VISION_CHECKPOINT=efficientnet_b2_best.pt -t cooklens-vision:local .
+      - run: docker build -f ai/cv/Dockerfile --build-arg VISION_CHECKPOINT=efficientnet_b2_legacy.pt -t cooklens-vision:local .
       - run: docker build -f ai/rag/Dockerfile -t cooklens-recipes:local .
       - run: docker build -f backend/Dockerfile -t cooklens-backend:local .
       - run: docker build -f frontend/Dockerfile -t cooklens-frontend:local .

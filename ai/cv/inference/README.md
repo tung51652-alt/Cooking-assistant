@@ -10,7 +10,7 @@ Python 3.12; từ root repo, dùng môi trường Python riêng:
 python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 torchvision==0.29.1
 python -m pip install -r ai/cv/inference/requirements.txt
 mkdir -p deploy/artifacts/staging/vision
-cp "/path/to/team/efficientnet_b2_epoch5.pt" deploy/artifacts/staging/vision/efficientnet_b2_epoch5.pt
+cp "/path/to/team/efficientnet_b2_epoch5.pt" deploy/artifacts/staging/vision/efficientnet_b2_best.pt
 python -m uvicorn ai.cv.inference.main:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
@@ -46,7 +46,7 @@ Build mặc định đóng gói epoch 5 từ file staging nội bộ. Để ki�
 
 ```bash
 python deploy/scripts/fetch_vision_checkpoint.py
-docker build -f ai/cv/Dockerfile --build-arg VISION_CHECKPOINT=efficientnet_b2_best.pt -t cooklens-vision:legacy .
+docker build -f ai/cv/Dockerfile --build-arg VISION_CHECKPOINT=efficientnet_b2_legacy.pt -t cooklens-vision:legacy .
 python deploy/scripts/smoke_vision_container.py --legacy --image cooklens-vision:legacy
 ```
 

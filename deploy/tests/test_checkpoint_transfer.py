@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from fetch_vision_checkpoint import ROOT, download, release_validation
+from fetch_vision_checkpoint import ROOT, download, main, release_validation
 
 
 class CheckpointTransferTests(unittest.TestCase):
@@ -64,7 +64,17 @@ class SourceBuildTests(unittest.TestCase):
         filename = manifest["vision_candidate"]["filename"]
         dockerfile = (ROOT / "ai/cv/Dockerfile").read_text(encoding="utf-8").splitlines()
         args = [line for line in dockerfile if line.startswith("ARG VISION_CHECKPOINT=")]
+        self.assertEqual(filename, "efficientnet_b2_best.pt")
         self.assertEqual(args, [f"ARG VISION_CHECKPOINT={filename}"])
+
+
+    def test_legacy_download_refuses_the_active_checkpoint_slot(self):
+        with (patch.object(sys, "argv", ["fetch_vision_checkpoint.py", "--output", "efficientnet_b2_best.pt"]),
+              patch("fetch_vision_checkpoint.release_validation") as metadata,
+              patch("fetch_vision_checkpoint.download") as download_file):
+            self.assertEqual(main(), 1)
+        metadata.assert_not_called()
+        download_file.assert_not_called()
 
 
 class ReleaseMetadataTests(unittest.TestCase):

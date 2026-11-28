@@ -16,7 +16,7 @@ from torchvision.models import EfficientNet_B2_Weights, efficientnet_b2
 
 from .pilot_data import FALLBACK_ORDER, RELEASE_MANIFEST, ROOT, file_under, sample_epoch
 
-BASE_CHECKPOINT = ROOT / "deploy/artifacts/staging/vision/efficientnet_b2_best.pt"
+BASE_CHECKPOINT = ROOT / "deploy/artifacts/staging/vision/efficientnet_b2_legacy.pt"
 WEIGHTS = EfficientNet_B2_Weights.IMAGENET1K_V1
 
 

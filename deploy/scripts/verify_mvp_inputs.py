@@ -16,7 +16,7 @@ def require(condition, message):
 
 
 def verify(checkpoint=None):
-    manifest = json.loads((ROOT / "deploy/artifacts/manifest.json").read_text())
+    manifest = json.loads((ROOT / "deploy/artifacts/manifest.json").read_text(encoding="utf-8"))
     vision = manifest["vision"]
     labels = vision["class_labels"]
     require(len(labels) == 30 and len(set(labels)) == 30, "Expected 30 unique model labels")
@@ -32,8 +32,10 @@ def verify(checkpoint=None):
     require(vision["provenance"]["public_distribution_authorized"] is True, "Missing project owner distribution permission")
     candidate = manifest["vision_candidate"]
     require(candidate["fallback_labels"] == ["other_food", "non_food"], "Unexpected candidate fallback class order")
-    require(candidate["model_version"] != vision["model_version"] and candidate["filename"] != vision["filename"],
-            "Candidate requires a distinct model version and filename")
+    legacy_filename = Path(vision["build_staging_path"]).name
+    require(candidate["model_version"] != vision["model_version"] and candidate["filename"] != legacy_filename,
+            "Active and legacy checkpoints require distinct model versions and staging filenames")
+    require(legacy_filename == Path(vision["runtime_path"]).name, "Legacy staging and runtime filenames must match")
     require(re.fullmatch(r"[a-z0-9_]+\.pt", candidate["filename"]) and candidate["size_bytes"] > 0
             and candidate["checkpoint_epoch"] > 0, "Invalid candidate checkpoint metadata")
     embedding = manifest["embedding"]

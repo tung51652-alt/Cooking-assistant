@@ -25,9 +25,9 @@ python3.12 -m venv .venv-build
 python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
 python -m pip install -r ai/rag/requirements.txt
 mkdir -p deploy/artifacts/staging/vision
-cp "/path/to/team/efficientnet_b2_epoch5.pt" deploy/artifacts/staging/vision/efficientnet_b2_epoch5.pt
+cp "/path/to/team/efficientnet_b2_epoch5.pt" deploy/artifacts/staging/vision/efficientnet_b2_best.pt
 python deploy/scripts/fetch_embedding_model.py
-python deploy/scripts/verify_mvp_inputs.py --checkpoint deploy/artifacts/staging/vision/efficientnet_b2_epoch5.pt
+python deploy/scripts/verify_mvp_inputs.py --checkpoint deploy/artifacts/staging/vision/efficientnet_b2_best.pt
 python -m ai.rag.ingestion.bundle --model deploy/artifacts/staging/embedding --output deploy/artifacts/staging/recipes
 ```
 

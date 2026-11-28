@@ -10,7 +10,7 @@ Từ root repo với Python 3.11+ (không cần torch hoặc token):
 
 ```bash
 python3 deploy/scripts/fetch_vision_checkpoint.py
-python3 deploy/scripts/verify_mvp_inputs.py --checkpoint deploy/artifacts/staging/vision/efficientnet_b2_best.pt
+python3 deploy/scripts/verify_mvp_inputs.py --checkpoint deploy/artifacts/staging/vision/efficientnet_b2_legacy.pt
 python3 -m unittest discover -s deploy/tests -v
 ```
 

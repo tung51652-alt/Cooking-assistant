@@ -20,6 +20,7 @@ def main():
     args = parser.parse_args()
     manifest = json.loads((ROOT / 'deploy/artifacts/manifest.json').read_text(encoding='utf-8'))
     model = manifest['vision' if args.legacy else 'vision_candidate']
+    filename = Path(model['runtime_path']).name if args.legacy else model['filename']
     image = json.loads(subprocess.check_output(['docker', 'image', 'inspect', args.image], text=True))[0]
     if image['Config']['User'] != '10001:10001':
         raise RuntimeError('Vision image must run as its configured non-root user')
@@ -79,7 +80,7 @@ assert not list(Path('/app').rglob('.env'))
 assert not list(Path('/app').rglob('*.ipynb'))
 '''
         result = subprocess.run(['docker', 'exec', '-i', args.name, 'python', '-c', script,
-                                 model['model_version'], model['filename'], '0.9' if args.legacy else '0.54'],
+                                 model['model_version'], filename, '0.9' if args.legacy else '0.54'],
                                 input=(ROOT / 'ai/cv/inference/tests/fixtures/food.png').read_bytes(),
                                 capture_output=True)
         if result.returncode:

@@ -29,7 +29,7 @@ from ai.cv.inference.model import CHECKPOINT_DIR, MANIFEST, ROOT, load_model
 from ai.cv.inference.schemas import PredictionResponse
 
 FIXTURE = Path(__file__).parent / 'fixtures/food.png'
-LEGACY_CHECKPOINT = CHECKPOINT_DIR / 'efficientnet_b2_best.pt'
+LEGACY_CHECKPOINT = CHECKPOINT_DIR / 'efficientnet_b2_legacy.pt'
 
 
 class FoodApiTests(unittest.TestCase):
