@@ -8,12 +8,12 @@ import argparse
 import csv
 import io
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 from zipfile import ZipFile
 
-from PIL import Image
 import torch
+from PIL import Image
 
 from ai.cv.inference.inference import evaluation_transform
 from ai.cv.inference.model import load_model
@@ -39,7 +39,7 @@ def evaluate(archive, manifest, candidate='2.0.0-rc.2'):
         selected = [members['/'.join(r['relative_path'].split('/')[-2:])] for r in rows]
         for offset in range(0, len(rows), 16):
             tensors, targets = [], []
-            for row, member in zip(rows[offset:offset + 16], selected[offset:offset + 16]):
+            for row, member in zip(rows[offset:offset + 16], selected[offset:offset + 16], strict=True):
                 target = int(row['class_index'])
                 if row['class_name'] != model.classes[target]:
                     raise ValueError('Test label differs from checkpoint taxonomy')
@@ -51,7 +51,7 @@ def evaluate(archive, manifest, candidate='2.0.0-rc.2'):
                 if probabilities.shape != (len(targets), 30) or not torch.isfinite(probabilities).all():
                     raise ValueError('Invalid model output')
                 predictions = torch.argsort(probabilities, dim=1, descending=True, stable=True)[:, :3].tolist()
-            for target, prediction in zip(targets, predictions):
+            for target, prediction in zip(targets, predictions, strict=True):
                 matrix[target][prediction[0]] += 1
                 hits[target] += target in prediction
             if offset % 256 == 0:

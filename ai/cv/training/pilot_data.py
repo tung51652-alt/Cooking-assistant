@@ -1,21 +1,20 @@
 """Prepare audited inputs for the EfficientNet-B2 fallback experiment."""
 
 import argparse
-from collections import Counter, defaultdict
-from concurrent.futures import ThreadPoolExecutor
 import csv
-from dataclasses import dataclass
 import hashlib
 import io
 import json
-from pathlib import Path, PurePosixPath
 import random
+from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 
 from PIL import Image, ImageOps
 
 from data.raw.resolve_vision_labels import FALLBACKS, resolve_labels
-
 
 ROOT = Path(__file__).resolve().parents[3]
 BASE_MANIFEST = ROOT / "data/processed/manifests/30vnfoods_clean_split_manifest.csv"

@@ -1,9 +1,9 @@
 """Check the actual recipes image with real Qdrant on an isolated Docker network."""
 import argparse
 import json
-from pathlib import Path
-import subprocess
 import os
+import subprocess
+from pathlib import Path
 
 RUNNER = r'''
 import json, math, os, pathlib, subprocess, sys, time, urllib.request

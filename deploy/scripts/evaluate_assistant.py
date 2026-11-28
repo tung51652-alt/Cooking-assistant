@@ -1,22 +1,22 @@
 """Fixed Phase 10 acceptance cases; planning is offline and execution never retries POST."""
 import argparse
-from collections import Counter
-from contextlib import closing
-from datetime import datetime, timezone
 import hashlib
-from http.client import HTTPException
 import json
 import math
 import re
-from pathlib import Path
 import sqlite3
 import statistics
 import time
+import xml.etree.ElementTree as ET
+from collections import Counter
+from contextlib import closing
+from datetime import UTC, datetime
+from http.client import HTTPException
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 from uuid import UUID, uuid4
-import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / 'deploy/assistant-evaluation.json'
@@ -227,7 +227,7 @@ def request_pause(value):
 def run(api, cases, directory, candidate_identity=None, pause_seconds=0):
     pause_seconds = request_pause(pause_seconds)
     directory.mkdir(parents=True, exist_ok=False)
-    report = {'report_id': str(uuid4()), 'started_at': datetime.now(timezone.utc).isoformat(),
+    report = {'report_id': str(uuid4()), 'started_at': datetime.now(UTC).isoformat(),
               'manifest_sha256': digest(cases), 'calls': [], 'recipes': {}, 'controlled': {'passed': None},
               'review_rules': cases['review_rules'], 'stopped': False}
     if candidate_identity is not None:
@@ -310,7 +310,7 @@ def collect_usage(report, database):
         for row in report['calls']:
             record = connection.execute('SELECT model,input_tokens,output_tokens,status FROM llm_calls WHERE call_key=?',
                                         (row['call_key'],)).fetchone()
-            row['usage'] = dict(zip(('model', 'input_tokens', 'output_tokens', 'status'), record)) if record else None
+            row['usage'] = dict(zip(('model', 'input_tokens', 'output_tokens', 'status'), record, strict=True)) if record else None
 
 
 def collect_controls(report, cases, junit):
@@ -362,7 +362,7 @@ def main():
             candidate_identity = json.loads(args.candidate_identity.read_text(encoding='utf-8'))
             if not valid_identity(candidate_identity):
                 parser.error('Candidate identity does not match the expected tag, source and digest format')
-        directory = OUTPUT / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '-' + uuid4().hex[:8])
+        directory = OUTPUT / (datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ') + '-' + uuid4().hex[:8])
         report = run(Api(args.base_url), cases, directory, candidate_identity, args.request_pause_seconds)
         path = directory / 'report.json'
     elif args.summarize:

@@ -2,11 +2,11 @@
 
 import hashlib
 import json
-from io import BytesIO
-from pathlib import Path
 import sys
 import tempfile
 import unittest
+from io import BytesIO
+from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -32,7 +32,7 @@ class CheckpointTransferTests(unittest.TestCase):
                 target = Path(directory) / "model.pt"
                 with self.assertRaises(ValueError):
                     download("unused", target, len(expected), hashlib.sha256(expected).hexdigest(),
-                             lambda *a, **k: BytesIO(received))
+                             lambda *a, payload=received, **k: BytesIO(payload))
                 self.assertEqual(list(Path(directory).iterdir()), [])
 
     def test_network_failure_cleans_partial_download(self):
@@ -73,9 +73,9 @@ class ReleaseMetadataTests(unittest.TestCase):
         data = {"tag_name": "vision-model-v1", "assets": [
             {"name": "model.pt", "size": 7, "digest": "sha256:" + value}]}
         for token in ["", "temporary-test-token"]:
-            def metadata(request, **kwargs):
+            def metadata(request, expected_token=token, **kwargs):
                 self.assertEqual(request.host, "api.github.com")
-                self.assertEqual(request.get_header("Authorization"), "Bearer " + token if token else None)
+                self.assertEqual(request.get_header("Authorization"), "Bearer " + expected_token if expected_token else None)
                 return BytesIO(json.dumps(data).encode())
             with patch.dict("os.environ", {"GITHUB_TOKEN": token}):
                 validation = release_validation(vision, metadata)
@@ -96,7 +96,7 @@ class ReleaseMetadataTests(unittest.TestCase):
         ]:
             with self.subTest(fields=sorted(data)):
                 with self.assertRaises(ValueError):
-                    release_validation(vision, lambda *a, **k: BytesIO(json.dumps(data).encode()))
+                    release_validation(vision, lambda *a, payload=data, **k: BytesIO(json.dumps(payload).encode()))
 
 
 if __name__ == "__main__":

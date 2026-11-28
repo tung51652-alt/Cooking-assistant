@@ -13,18 +13,20 @@ Use the existing EfficientNet-B2 checkpoint and fixed 30VNFoods splits alongside
 
 ## Run the pilot
 
-Open [Cooklen_30VNFoods.ipynb](../../ai/cv/training/Cooklen_30VNFoods.ipynb) with the CookLens Vision kernel and choose **Run All**.
+Open [CookLens_pilot_local.ipynb](../../ai/cv/training/CookLens_pilot_local.ipynb) with the CookLens Vision kernel and choose **Run All**.
 The notebook validates the inputs, prepares or reuses the audited manifest, trains for three epochs, and evaluates the selected checkpoint.
 On this workspace, the ignored `ai/cv/runs/issue-67/inputs.json` points to the prepared local inputs.
 On another machine, set the input paths in the first cell.
 Each run writes a checkpoint and report to a timestamped directory.
 If the promotions or fallback manifest change, the notebook builds a fresh audit manifest.
-The command-line entry points below use the same code. [Original 30-dish notebook](https://github.com/tung51652-alt/Cooking-assistant/blob/v2.0.0/ai/cv/training/Cooklen_30VNFoods.ipynb)
+The command-line entry points below use the same code. [Original 30-dish notebook](../../ai/cv/training/Cooklen_30VNFoods.ipynb)
 
 ### Colab data extension
 
 Reuse the 4.6 GB `cooklens-67-inputs.zip` already in My Drive and stage a small `cooklens-67-round2-addon.zip` alongside it after reviewing the candidates.
-The notebook checks the add-on against the base manifest, preserves the old image rows, and continues from the epoch 4 checkpoint already in Drive.
+Open [the standalone Colab notebook](../../ai/cv/training/Cooklen_30VNFoods_Colab.ipynb), select a GPU runtime, and set `source_run` to the epoch 4 run folder in Drive.
+The notebook checks the add-on against the base manifest, preserves the old image rows, and resumes the 32-class checkpoint. It reports progress during training and accuracy, top-three accuracy, and macro F1 after validation.
+The archives and checkpoints must already be available to the person running the notebook.
 The add-on carries its proposed split assignments and only the additional images. Use eligible non-food reserves before adding new non-food photos to preserve the two-to-one balance in every split.
 Verify the exact merged counts, split and group boundaries, and rejection of missing images or an unrelated base archive before exporting to Colab.
 
@@ -66,7 +68,7 @@ The first epoch trains the enlarged head, then the last two feature blocks join 
 The epoch draws twice as many non-food samples as each other class.
 When a class has fewer unique photos than its draw count, the sampler repeats shuffled passes over that class.
 The best validation macro F1 selects the candidate.
-The report compares the existing model and candidate on the same held-out photos, including supported-dish top-three accuracy and fallback false suggestions under the current 65% policy.
+The local pilot report records classifier top-one and top-three accuracy, macro F1, and per-class results on the held-out split. These are classifier metrics measured before the API and UI apply their presentation rules.
 The candidate checkpoint carries the experiment class order and is separate from the release checkpoint.
 
 Add `--smoke --batch-size 4` and use a new output directory for a two-step check that exercises head training, feature fine-tuning, and checkpoint reload.
@@ -81,4 +83,5 @@ Twenty-one visually flagged photos and three photos with unresolved source metad
 
 The notebook ran end to end in a Jupyter kernel on a 99-photo verification slice covering all 32 labels and all three splits.
 It initialized from the pinned checkpoint, completed both normal training stages, reloaded the selected checkpoint, and generated the held-out report.
-Full training and performance evaluation remain pending.
+The Colab continuation selected epoch 5. On 5,103 held-out photos it achieved 87.01% top-one accuracy, 95.59% top-three accuracy, and 0.8575 macro F1.
+Top-one predictions were correct for 17 of 33 `other_food` photos and 64 of 66 `non_food` photos. Checks on the new held-out subset were 5 of 11 and 15 of 16, respectively. Treat the `other_food` result as preliminary given the sample size.

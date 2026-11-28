@@ -1,8 +1,8 @@
 """Review pages must preserve evidence without executing model HTML or pregrading."""
 import json
-from pathlib import Path
 import sys
 import unittest
+from pathlib import Path
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 from render_assistant_review import render
@@ -32,10 +32,15 @@ class AssistantReviewTests(unittest.TestCase):
         self.assertNotIn('XMLHttpRequest',output)
 
     def test_incomplete_or_duplicate_case_sets_cannot_be_rendered_as_acceptance(self):
-        report=self.report();report['calls'].pop()
-        with self.assertRaises(ValueError):render(report)
-        report=self.report();report['calls'][-1]['id']='0'
-        with self.assertRaises(ValueError):render(report)
+        report = self.report()
+        report['calls'].pop()
+        with self.assertRaises(ValueError):
+            render(report)
+        report = self.report()
+        report['calls'][-1]['id'] = '0'
+        with self.assertRaises(ValueError):
+            render(report)
 
 
-if __name__=='__main__':unittest.main()
+if __name__ == '__main__':
+    unittest.main()

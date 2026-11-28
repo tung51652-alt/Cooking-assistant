@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 """Promote a fully accepted candidate without rebuilding or overwriting public tags."""
 import argparse
-from copy import deepcopy
 import json
-from pathlib import Path
 import shutil
 import tarfile
+from copy import deepcopy
+from pathlib import Path
 
 from check_public_metadata import violations
 from prepare_candidate_bundle import APPS, ROOT, candidate_config
-from registry_release import (ASSISTANT_SMOKE, NAMESPACE, automated_acceptance, confirm_registry_identity,
-                              hub_resource, local_image_digest, phase13_acceptance,
-                              quiet_command, verified_metadata)
+from registry_release import (
+    ASSISTANT_SMOKE,
+    NAMESPACE,
+    automated_acceptance,
+    confirm_registry_identity,
+    hub_resource,
+    local_image_digest,
+    phase13_acceptance,
+    quiet_command,
+    verified_metadata,
+)
 
 VERSION = '2.0.0'
 
@@ -76,7 +84,7 @@ def example_environment(metadata):
     return ('HOST_BIND=127.0.0.1\nHOST_PORT=8080\nLLM_PROVIDER=openai\n'
             f'LLM_BASE_URL={endpoints[assistant["provider"]]}\n'
             f'LLM_MODEL={assistant["model_selector"]}\nLLM_API_KEY=\n'
-            'LLM_TIMEOUT_SECONDS=20\nLLM_MAX_INPUT_TOKENS=6000\nLLM_MAX_OUTPUT_TOKENS=512\n')
+            'LLM_TIMEOUT_SECONDS=8\nLLM_MAX_INPUT_TOKENS=6000\nLLM_MAX_OUTPUT_TOKENS=512\n')
 
 
 def promote(root, source_sha):

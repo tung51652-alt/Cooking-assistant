@@ -143,7 +143,7 @@
     "ci_source_uri": "https://github.com/tung51652-alt/Cooking-assistant/releases/download/embedding-model-v1/cooklens-embedding-model-v1.zip"
   },
   "corpus": {
-    "corpus_version": "cooklens-recipes-v3",
+    "corpus_version": "cooklens-recipes-v3-1",
     "recipe_count": 90,
     "reviewed_class_coverage": 30,
     "required_class_coverage": 30,

@@ -1,21 +1,20 @@
 """Fine-tune a separate EfficientNet-B2 candidate with the audited pilot data."""
 
 import argparse
+import json
 from collections import defaultdict
 from contextlib import ExitStack
-import json
 from pathlib import Path
 from zipfile import ZipFile
 
-from PIL import Image, ImageOps
 import torch
+from PIL import Image, ImageOps
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.models import EfficientNet_B2_Weights, efficientnet_b2
 
 from .pilot_data import FALLBACK_ORDER, RELEASE_MANIFEST, ROOT, file_under, sample_epoch
-
 
 BASE_CHECKPOINT = ROOT / "deploy/artifacts/staging/vision/efficientnet_b2_best.pt"
 WEIGHTS = EfficientNet_B2_Weights.IMAGENET1K_V1
@@ -74,8 +73,6 @@ def process_epoch(model, loader, loss_fn, device, class_count, baseline_count, o
         model.eval()
     confusion = torch.zeros(class_count, class_count, dtype=torch.long)
     hits = torch.zeros(class_count, dtype=torch.long)
-    visible_hits = torch.zeros(class_count, dtype=torch.long)
-    shown_counts = torch.zeros(class_count, dtype=torch.long)
     loss_total = 0.0
     loss_examples = 0
     batches = len(loader)
@@ -97,15 +94,12 @@ def process_epoch(model, loader, loss_fn, device, class_count, baseline_count, o
                 loss.backward()
                 optimizer.step()
             probabilities = logits.detach().softmax(dim=1)
-            scores, choices = probabilities.topk(3, dim=1)
+            choices = probabilities.topk(3, dim=1).indices
             correct = (targets[:, None] == choices).any(dim=1)
             predictions = choices[:, 0]
-            shown = (scores[:, 0] >= 0.65) & (predictions < baseline_count)
             indices = targets * class_count + predictions
             confusion += indices.cpu().bincount(minlength=class_count**2).reshape(class_count, class_count)
             hits += targets[correct].cpu().bincount(minlength=class_count)
-            visible_hits += targets[correct & shown].cpu().bincount(minlength=class_count)
-            shown_counts += targets[shown].cpu().bincount(minlength=class_count)
             if batch % progress_interval == 0 or batch == batches:
                 print(f"{stage}: {batch:,}/{batches:,} batches", flush=True)
     actual = confusion.sum(dim=1)
@@ -114,15 +108,13 @@ def process_epoch(model, loader, loss_fn, device, class_count, baseline_count, o
     supported = int(actual[:baseline_count].sum())
     per_class = [
         {"images": int(actual[i]), "top1": int(confusion[i, i]) / max(1, int(actual[i])),
-         "top3": int(hits[i]) / max(1, int(actual[i])), "f1": float(f1[i]),
-         "shown_as_supported_at_65": int(shown_counts[i])}
+         "top3": int(hits[i]) / max(1, int(actual[i])), "f1": float(f1[i])}
         for i in range(class_count)
     ]
     return {"images": total, "loss_images": loss_examples, "loss": loss_total / max(1, loss_examples),
             "top1": int(confusion.diag().sum()) / total, "top3": int(hits.sum()) / total,
             "macro_f1": float(f1[actual > 0].mean()),
             "supported_top3": int(hits[:baseline_count].sum()) / max(1, supported),
-            "supported_top3_shown_at_65": int(visible_hits[:baseline_count].sum()) / max(1, supported),
             "per_class": per_class, "confusion": confusion.tolist()}
 
 

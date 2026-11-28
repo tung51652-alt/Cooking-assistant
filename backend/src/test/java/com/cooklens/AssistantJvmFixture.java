@@ -10,16 +10,28 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.*;
 
 // Test-only bootstrap: production components plus mock-endpoint pricing, never shipped in images.
-@TestConfiguration(proxyBeanMethods=false)
+@TestConfiguration(proxyBeanMethods = false)
 @EnableAutoConfiguration
-@ComponentScan(basePackages="com.cooklens",excludeFilters={
-        @ComponentScan.Filter(type=FilterType.ANNOTATION,classes=TestComponent.class),
-        @ComponentScan.Filter(type=FilterType.ASSIGNABLE_TYPE,classes={CookLensApplication.class,ChatPricing.class})})
+@ComponentScan(
+        basePackages = "com.cooklens",
+        excludeFilters = {
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = TestComponent.class),
+            @ComponentScan.Filter(
+                    type = FilterType.ASSIGNABLE_TYPE,
+                    classes = {CookLensApplication.class, ChatPricing.class})
+        })
 public class AssistantJvmFixture {
-    public static void main(String[] args) { SpringApplication.run(AssistantJvmFixture.class,args); }
-    @Bean ChatPricing fixturePricing() {
+    public static void main(String[] args) {
+        SpringApplication.run(AssistantJvmFixture.class, args);
+    }
+
+    @Bean
+    ChatPricing fixturePricing() {
         return new ChatPricing() {
-            @Override public Quote quote(LlmSettings.Connection config, Prompt prompt) { return new Quote(1000,1_000_000,1_000_000); }
+            @Override
+            public Quote quote(LlmSettings.Connection config, Prompt prompt) {
+                return new Quote(1000, 1_000_000, 1_000_000);
+            }
         };
     }
 }

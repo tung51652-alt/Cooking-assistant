@@ -1,10 +1,10 @@
 """The root Compose must start the packaged app without source-build prerequisites."""
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import unittest
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 

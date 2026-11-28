@@ -1,7 +1,7 @@
 """Keep the training evaluation transform and full softmax probabilities."""
 
-from PIL import Image, ImageOps
 import torch
+from PIL import Image, ImageOps
 from torchvision.models import EfficientNet_B2_Weights
 
 from .errors import VisionError

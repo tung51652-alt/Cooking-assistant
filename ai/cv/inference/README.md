@@ -17,7 +17,7 @@ Mở [Swagger local](http://127.0.0.1:8000/docs), chọn `POST /predict` → **T
 
 Có thể đặt `FOOD_MODEL_PATH` trỏ file checkpoint đã có thay vì dùng staging mặc định. `FOOD_TAXONOMY_PATH` tùy chọn trỏ mapping bundle; phải khớp checkpoint/manifest. `TORCH_NUM_THREADS` mặc định 4, phạm vi 1–32, CPU là runtime mặc định. Không dùng nhiều workers để tránh nhân bộ nhớ/model và thay đổi concurrency đã nghiệm thu. Development có thể dùng `--reload`; mỗi process mới load lại một lần.
 
-Khi có `deploy/artifacts/staging/vision/efficientnet_b2_epoch5.pt`, inference chạy từ repo sẽ ưu tiên checkpoint epoch 5.
+Để dùng model 32 lớp, chép checkpoint epoch 5 đã được nhóm cung cấp vào `deploy/artifacts/staging/vision/efficientnet_b2_epoch5.pt` trước khi khởi động service. Khi có file này, inference chạy từ repo sẽ ưu tiên checkpoint epoch 5. Để chọn rõ phiên bản, đặt `FOOD_MODEL_PATH` trỏ trực tiếp đến file cần dùng.
 `GET /health/ready` trả `model_version: "efficientnet-b2-32class-epoch5"` sau khi tải thành công.
 
 ## Hành vi

@@ -1,8 +1,8 @@
 """Generate the pilot's effective labels from an unchanged photo manifest."""
 import argparse
 import json
-from pathlib import Path
 import re
+from pathlib import Path
 
 KEY = re.compile(r"[a-z0-9]+(?:_[a-z0-9]+)*")
 FALLBACKS = {"non_food", "other_food"}

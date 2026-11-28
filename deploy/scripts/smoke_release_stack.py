@@ -5,11 +5,9 @@ Uses a new, private project and volume; cleanup never targets an existing stack.
 Only selected measurements are persisted, never raw Docker metadata or logs.
 """
 import argparse
-from datetime import datetime
 import json
 import math
 import os
-from pathlib import Path
 import re
 import shutil
 import socket
@@ -17,6 +15,8 @@ import statistics
 import subprocess
 import tempfile
 import time
+from datetime import datetime
+from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from uuid import uuid4

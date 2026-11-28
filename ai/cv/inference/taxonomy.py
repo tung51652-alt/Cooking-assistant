@@ -1,10 +1,10 @@
 """Read the shared taxonomy artifact; never derive canonical keys from predictions."""
 
-from dataclasses import dataclass
 import json
-from pathlib import Path
 import re
 import unicodedata
+from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass(frozen=True)

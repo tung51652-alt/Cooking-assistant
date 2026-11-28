@@ -1,32 +1,32 @@
 """Real model/API regressions; run with the pinned checkpoint staged or FOOD_MODEL_PATH."""
 
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import csv
-from dataclasses import replace
-from io import BytesIO
 import json
 import os
-from pathlib import Path
 import tempfile
-from threading import Event
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
+from io import BytesIO
+from pathlib import Path
+from threading import Event
 from unittest.mock import patch
 from uuid import UUID
 
-from fastapi.testclient import TestClient
 import numpy as np
-from PIL import Image, ImageFilter
 import torch
-from torchvision.models import EfficientNet_B2_Weights
+from fastapi.testclient import TestClient
+from PIL import Image, ImageFilter
+from torchvision.models import EfficientNet_B2_Weights, efficientnet_b2
 
 from ai.cv.inference.errors import MAX_REQUEST_BYTES, MAX_UPLOAD_BYTES
 from ai.cv.inference.guard import RequestGuard, Runtime
 from ai.cv.inference.images import BLUR_LAPLACIAN_THRESHOLD, laplacian_variance
 from ai.cv.inference.inference import evaluation_transform, predict_image
 from ai.cv.inference.main import CONFIDENCE_THRESHOLD, create_app
+from ai.cv.inference.model import DEFAULT_CHECKPOINT, MANIFEST, ROOT, load_model
 from ai.cv.inference.schemas import PredictionResponse
-from ai.cv.inference.model import DEFAULT_CHECKPOINT, ROOT, load_model
 
 FIXTURE = Path(__file__).parent / 'fixtures/food.png'
 
@@ -352,6 +352,43 @@ class FoodApiTests(unittest.TestCase):
 
 
 class LifecycleTests(unittest.TestCase):
+    def test_candidate_checkpoint_loads_32_outputs_and_rejects_wrong_epoch(self):
+        manifest = json.loads(MANIFEST.read_text(encoding='utf-8'))
+        candidate = manifest['vision_candidate']
+        classes = manifest['vision']['class_labels'] + candidate['fallback_labels']
+        network = efficientnet_b2(weights=None)
+        network.classifier[1] = torch.nn.Linear(network.classifier[1].in_features, len(classes))
+        checkpoint = {
+            'architecture': manifest['vision']['architecture'],
+            'image_size': manifest['vision']['transform']['crop_size'][0],
+            'classes': classes,
+            'model_state_dict': network.state_dict(),
+            'epoch': candidate['checkpoint_epoch'],
+            'smoke': False,
+        }
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / candidate['filename']
+            local_manifest = Path(folder) / 'manifest.json'
+
+            def write_checkpoint():
+                torch.save(checkpoint, path)
+                candidate['size_bytes'] = path.stat().st_size
+                local_manifest.write_text(json.dumps(manifest), encoding='utf-8')
+
+            write_checkpoint()
+            with (patch('ai.cv.inference.model.MANIFEST', local_manifest),
+                  patch.dict(os.environ, {'FOOD_MODEL_PATH': str(path)})):
+                model = load_model()
+                self.assertEqual(model.model_version, candidate['model_version'])
+                self.assertEqual(model.classes, tuple(classes))
+                self.assertEqual(model.network.classifier[1].out_features, 32)
+                self.assertEqual(len(model.dishes), 30)
+
+                checkpoint['epoch'] -= 1
+                write_checkpoint()
+                with self.assertRaisesRegex(ValueError, 'Unexpected candidate checkpoint epoch'):
+                    load_model()
+
     def test_unstarted_app_is_live_but_not_ready(self):
         client = TestClient(create_app())
         self.assertEqual(client.get('/health/live').status_code, 200)

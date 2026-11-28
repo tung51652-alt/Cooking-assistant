@@ -52,6 +52,7 @@ jobs:
         run: |
           python -m unittest discover -s data/tests -v
           python -m unittest discover -s ai/cv/inference/tests -v
+          python -m unittest discover -s ai/cv/training/tests -v
       - name: Build experimental CPU image
         run: docker build -f ai/cv/Dockerfile -t cooklens-vision:local .
       - name: Verify offline read-only image

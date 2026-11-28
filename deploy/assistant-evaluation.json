@@ -46,6 +46,6 @@
     {"id":"F01","rubric":"Pending duplicate không gọi lại, reply muộn không đổi state; usage vẫn settle.","test":"pendingReplyAllowsActionsAndLateReplyKeepsUsageButCannotChangeState"},
     {"id":"F02","rubric":"Replay completed không gọi lại provider và trả latest state.","test":"chatCommandsAndRepliesShareStateAndReplayWithoutAnotherCall"},
     {"id":"F03","rubric":"Provider lỗi/rate và replay không tạo call lại; cooking command vẫn dùng được.","test":"failuresConsumeRateWindowAndReplaysAndCommandsRemainAvailable"},
-    {"id":"F04","rubric":"Timeout là terminal, không ghi nửa hội thoại và không retry upstream.","test":"timeoutIsTerminalAndDoesNotAppendHalfConversation"}
+    {"id":"F04","rubric":"Sau tối đa hai attempts trong deadline chung, timeout là terminal; không ghi nửa hội thoại và replay không gọi lại upstream.","test":"timeoutIsTerminalAndDoesNotAppendHalfConversation"}
   ]
 }

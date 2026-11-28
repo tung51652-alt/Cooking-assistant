@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Package a local-image candidate; never publish images or claim registry acceptance."""
 import argparse
-from copy import deepcopy
 import json
-from pathlib import Path
 import re
+from copy import deepcopy
+from pathlib import Path
 
 from check_public_metadata import violations
 
@@ -13,8 +13,8 @@ APPS = ('vision', 'recipes', 'backend', 'frontend')
 GATEWAY_BIND = '${HOST_BIND:-127.0.0.1}'
 LLM_DEFAULTS = {
     'LLM_PROVIDER': 'openai', 'LLM_BASE_URL': 'https://generativelanguage.googleapis.com/v1beta/openai',
-    'LLM_MODEL': 'gemini-3.1-flash-lite', 'LLM_API_KEY': '',
-    'LLM_TIMEOUT_SECONDS': '20', 'LLM_MAX_OUTPUT_TOKENS': '512', 'LLM_MAX_INPUT_TOKENS': '6000',
+    'LLM_MODEL': 'gemini-3.5-flash-lite', 'LLM_API_KEY': '',
+    'LLM_TIMEOUT_SECONDS': '8', 'LLM_MAX_OUTPUT_TOKENS': '512', 'LLM_MAX_INPUT_TOKENS': '6000',
 }
 
 

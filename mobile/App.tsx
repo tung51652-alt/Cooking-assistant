@@ -7,9 +7,11 @@ import { File, UploadType } from 'expo-file-system';
 import { useFonts } from 'expo-font';
 import * as SecureStore from 'expo-secure-store';
 import { ApiError, createApi, isVisionRecoveryCode, normalizeBaseUrl, presentVisionResult, recipeSourceHref, type NativeFileUploader, type VisionPredictionResult } from '../packages/cooklens-api';
-import type { Dish, Prediction, RecipeDocument, RecipeSummary, RecipeSource } from '../packages/cooklens-api/types';
+import type { Dish, LlmUserConfig, Prediction, RecipeDocument, RecipeSummary, RecipeSource } from '../packages/cooklens-api/types';
 import { chooseImage, discardImage, uploadBody, type UploadImage } from './src/image';
 import { CookingComposer, CookingSessionScreen } from './src/assistant/CookingSessionScreen';
+import { createLlmConfigStore, formatLlmBadge } from './src/assistant/llm-config';
+import { LlmSettingsModal } from './src/assistant/LlmSettingsModal';
 import { createCookingSessionController } from './src/assistant/session-controller';
 import { createSessionPointerStore } from './src/assistant/session-pointer';
 import { filterDishes } from './src/dishes';
@@ -17,6 +19,7 @@ import { filterDishes } from './src/dishes';
 type Page = 'upload' | 'recognition' | 'assistant';
 const configuredUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 const sessionStore = createSessionPointerStore(SecureStore);
+const llmConfigStore = createLlmConfigStore(SecureStore);
 const confidenceFormat = new Intl.NumberFormat('vi-VN', {
   style: 'percent', maximumFractionDigits: 1,
 });
@@ -103,8 +106,14 @@ function CookLens() {
   const [preview, setPreview] = useState<{ title: string; document?: RecipeDocument } | null>(null);
   const detail = preview?.document?.recipe;
   const [showFilter, setShowFilter] = useState(false);
+  const [llmConfig, setLlmConfig] = useState<LlmUserConfig | null>(null);
+  const [llmModalOpen, setLlmModalOpen] = useState(false);
+  const [llmModalInitialMode, setLlmModalInitialMode] = useState<'default' | 'custom' | undefined>(undefined);
+  const [llmStorageNotice, setLlmStorageNotice] = useState('');
+  const llmConfigRef = useRef<LlmUserConfig | null>(null);
+  const llmConfigTouched = useRef(false);
   const [cooking] = useState(() => api && gateway ? createCookingSessionController({
-    api, gateway, store: sessionStore, operationId: randomUUID,
+    api, gateway, store: sessionStore, operationId: randomUUID, getLlmConfig: () => llmConfigRef.current,
   }) : null);
   const [manual, setManual] = useState(false);
   const [filter, setFilter] = useState('');
@@ -168,6 +177,15 @@ function CookLens() {
     });
     return () => { mounted.current = false; photoGeneration.current++; generation.current++;
       flight.current?.abort(); subscription.remove(); discardImage(imageRef.current); };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    void llmConfigStore.read().then(saved => {
+      if (!active || llmConfigTouched.current) return;
+      llmConfigRef.current = saved;
+      setLlmConfig(saved);
+    });
+    return () => { active = false; };
   }, []);
   useEffect(() => {
     if (scrollTarget.current === null) return;
@@ -277,6 +295,33 @@ function CookLens() {
     setError(''); retry.current = null; setPreview(null);
   }
 
+  function openLlmSettings(mode?: 'default' | 'custom') {
+    setLlmModalInitialMode(mode);
+    setLlmModalOpen(true);
+  }
+
+  async function saveLlmSettings(config: LlmUserConfig) {
+    llmConfigTouched.current = true;
+    llmConfigRef.current = config;
+    setLlmConfig(config);
+    setLlmModalOpen(false);
+    const saved = await llmConfigStore.write(config);
+    if (mounted.current) {
+      setLlmStorageNotice(saved ? '' : 'Không lưu được khóa API vào SecureStore. Cấu hình hiện chỉ áp dụng khi ứng dụng đang mở.');
+    }
+  }
+
+  async function clearLlmSettings() {
+    llmConfigTouched.current = true;
+    llmConfigRef.current = null;
+    setLlmConfig(null);
+    setLlmModalOpen(false);
+    const cleared = await llmConfigStore.clear();
+    if (mounted.current) {
+      setLlmStorageNotice(cleared ? '' : 'Không xóa được khóa API đã lưu trong SecureStore. Ứng dụng đã quay về mặc định cho phiên này.');
+    }
+  }
+
   function resumeCooking() {
     if (!cooking) return;
     setConfirmed(null); setRecipes(null); setDetail(null); setPreview(null);
@@ -295,13 +340,36 @@ function CookLens() {
           <Text style={styles.label}>‹</Text>
         </Pressable>
         <Text style={[styles.chatBrand, styles.chatCopy]}>CookLens</Text>
+        <Pressable accessibilityRole="button"
+          accessibilityLabel={llmConfig ? `Cài đặt trợ lý, đang dùng ${formatLlmBadge(llmConfig)}` : 'Cài đặt trợ lý'}
+          onPress={() => openLlmSettings()}
+          style={[styles.llmPill, llmConfig && styles.llmPillActive]}>
+          <Text style={[styles.llmPillText, llmConfig && styles.llmPillTextActive]} numberOfLines={1}>
+            {llmConfig ? formatLlmBadge(llmConfig) : 'Cài đặt trợ lý'}
+          </Text>
+        </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Ảnh mới" onPress={newPhoto}
           style={styles.sheetClose}><Text style={styles.label}>+</Text></Pressable>
       </View> : <>
-        <View style={styles.header}><Text accessibilityRole="header" style={styles.brand}>CookLens<Text style={{ color: '#c44b1b' }}> ✦</Text></Text>
-          <Text style={styles.small}>Từ một bức ảnh đến bữa cơm Việt</Text></View>
+        <View style={styles.header}>
+          <View style={styles.headerTopRow}>
+            <Text accessibilityRole="header" style={styles.brand}>CookLens<Text style={{ color: '#c44b1b' }}> ✦</Text></Text>
+            <Pressable accessibilityRole="button"
+              accessibilityLabel={llmConfig ? `Cài đặt trợ lý, đang dùng ${formatLlmBadge(llmConfig)}` : 'Cài đặt trợ lý'}
+              onPress={() => openLlmSettings()}
+              style={({ pressed }) => [styles.llmPill, llmConfig && styles.llmPillActive, pressed && { opacity: .55 }]}>
+              <Text style={[styles.llmPillText, llmConfig && styles.llmPillTextActive]} numberOfLines={1}>
+                {llmConfig ? formatLlmBadge(llmConfig) : 'Cài đặt trợ lý'}
+              </Text>
+            </Pressable>
+          </View>
+          <Text style={styles.small}>Từ một bức ảnh đến bữa cơm Việt</Text>
+        </View>
         {page !== 'upload' && <Button title="← Quay lại" secondary onPress={back} />}
       </>}
+      {!!llmStorageNotice && <View accessibilityLiveRegion="polite" style={styles.notice}>
+        <Text style={styles.small}>{llmStorageNotice}</Text>
+      </View>}
       {!api && <View style={styles.error}><Text style={styles.body}>Chưa cấu hình được máy chủ CookLens. Hãy làm theo phần kết nối trong hướng dẫn mobile rồi khởi động lại ứng dụng.</Text></View>}
       <Text accessibilityRole="header" style={chat ? styles.subtitle : styles.title}>{chat ? 'Trợ lý nấu ăn' : page === 'upload' ? 'Hôm nay, mình nấu gì?' : image ? 'Đây có phải món của bạn?' : 'Chọn món'}</Text>
       {page === 'upload' && <>
@@ -408,7 +476,8 @@ function CookLens() {
       {chat && confirmed && document && !recipes?.some(recipe => recipe.id === document.recipe.id) &&
         <Button title={`Xem công thức ${document.recipe.title}`} secondary onPress={() => setPreview({ title: document.recipe.title, document })} />}
       {chat && cooking && (!confirmed || document) && <CookingSessionScreen controller={cooking} Button={Button}
-        document={document} onChooseDish={openCatalog} onOpenRecipe={value => setPreview({ title: value.recipe.title, document: value })}
+        document={document} llmConfig={llmConfig} onOpenLlmSettings={openLlmSettings}
+        onChooseDish={openCatalog} onOpenRecipe={value => setPreview({ title: value.recipe.title, document: value })}
         scrollToChat={scrollToChat} />}
       {!!busy && !preview && <View accessibilityLiveRegion="polite" style={styles.loading}><ActivityIndicator color="#b84415" /><Text style={styles.body}>{busy}</Text></View>}
       {!!busy && !preview && !!flight.current && <Button title="Hủy tác vụ" secondary onPress={() => { cancel(); setError(''); retry.current = null; }} />}
@@ -456,6 +525,15 @@ function CookLens() {
         </SafeAreaView>
       </View>
     </Modal>
+    <LlmSettingsModal
+      open={llmModalOpen}
+      initialMode={llmModalInitialMode}
+      currentConfig={llmConfig}
+      api={api}
+      onSave={saveLlmSettings}
+      onClear={clearLlmSettings}
+      onClose={() => setLlmModalOpen(false)}
+    />
   </SafeAreaView>;
 }
 
@@ -488,7 +566,15 @@ const styles = StyleSheet.create({
   sheetClose: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: '#f5e8d6' },
   sheetContent: { padding: 14, gap: 12 },
   safe: { flex: 1, backgroundColor: '#fbf7ee' }, content: { padding: 22, gap: 18, maxWidth: 700, width: '100%', alignSelf: 'center' },
-  header: { paddingVertical: 16, gap: 6 }, brand: { fontSize: 29, fontFamily: 'Epilogue', color: '#30251e' },
+  header: { paddingVertical: 16, gap: 6 },
+  headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 },
+  llmPill: { minHeight: 38, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, backgroundColor: '#f2e4d3',
+    borderWidth: 1, borderColor: '#d8bea2', justifyContent: 'center', maxWidth: 210 },
+  llmPillActive: { backgroundColor: '#fff0df', borderColor: '#b84415' },
+  llmPillText: { fontSize: 13, fontFamily: 'JakartaSemi', color: '#713b1f' },
+  llmPillTextActive: { color: '#a83d0d' },
+  notice: { backgroundColor: '#f7efe5', borderColor: '#d8bea2', borderWidth: 1, padding: 12, borderRadius: 14 },
+  brand: { fontSize: 29, fontFamily: 'Epilogue', color: '#30251e' },
   title: { fontSize: 32, fontFamily: 'Epilogue', color: '#35271d' }, subtitle: { fontSize: 23, fontFamily: 'Epilogue', color: '#35271d' },
   body: { fontSize: 16, fontFamily: 'Jakarta', lineHeight: 25, color: '#4d4037', flexShrink: 1 }, small: { fontSize: 14, fontFamily: 'Jakarta', lineHeight: 22, color: '#6b5b4f' },
   label: { fontSize: 17, fontFamily: 'JakartaSemi', color: '#403025', flexShrink: 1 },

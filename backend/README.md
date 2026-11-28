@@ -53,7 +53,8 @@ Native library SQLite được đóng gói tại `/app/sqlite` để dùng đư�
 `ChatProvider` có adapter Chat Completions tương thích OpenAI dùng Java HttpClient, không thêm SDK.
 `ChatContextBuilder` lấy recipe snapshot/state server, tách system instruction khỏi dữ liệu và giữ tối đa 6 cặp hội thoại gần nhất.
 Adapter/context builder đã nối `/messages`, kiểm chứng bằng HTTP provider giả.
-Context giữ nguyên recipe, thêm current instruction tách rõ; số lượng ingredients là tổng, instructions là phân bổ, dữ liệu null/ước lượng không được biến thành số chính xác.
+Context giữ nội dung nấu ăn và nguồn, loại `source.modifications` chứa ghi chú biên tập, thêm current instruction tách rõ.
+Số lượng ingredients là tổng, instructions là phân bổ, dữ liệu null/ước lượng không được biến thành số chính xác.
 Các trial profile được chọn đặt temperature 0,1, không sửa top_p; Nemotron dùng thinking off, Super dùng `reasoning_effort=none`, Gemma không nhận kwargs của Nemotron.
 Ưu tiên câu trả lời ngắn, hỏi lại câu mơ hồ và tách rõ gợi ý.
 Header `Server-Timing` chỉ chứa số ms prepare/provider/persist/total để chẩn đoán, không chứa session ID hoặc nội dung.
@@ -65,9 +66,9 @@ Provider hiện tại là Gemini do người dùng chọn; kết quả từng l�
 | --- | --- |
 | `LLM_PROVIDER` | `openai`; giá trị khác trả `ASSISTANT_PROVIDER_UNSUPPORTED` khi dùng trợ lý |
 | `LLM_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta/openai`; HTTPS, không credential/query/fragment; HTTP chỉ loopback cho mock hoặc local endpoint |
-| `LLM_MODEL` | `gemini-3.1-flash-lite`; Google AI Studio key, `reasoning_effort=minimal` |
+| `LLM_MODEL` | `gemini-3.5-flash-lite`; Google AI Studio key, `reasoning_effort=minimal` cho cả 3.5 và 3.1 |
 | `LLM_API_KEY` | Trống; chỉ cấp runtime backend, không đưa vào Git/client/image/log |
-| `LLM_TIMEOUT_SECONDS` | `20`, cho phép 1–20; connect tối đa 2 s |
+| `LLM_TIMEOUT_SECONDS` | `8`, cho phép 1–20; deadline chung gồm retry/backoff; mỗi attempt tối đa 4 s, connect tối đa 2 s |
 | `LLM_MAX_OUTPUT_TOKENS` | `512`, cho phép 1–512 |
 | `LLM_MAX_INPUT_TOKENS` | `6000`, cho phép 1–6000 estimated input tokens |
 
@@ -75,15 +76,20 @@ Settings được kiểm tra khi dùng trợ lý, không làm startup/readiness 
 Admission ước lượng mỗi message bằng `ceil(UTF-8 bytes / 3) + 16`, cộng 32 mỗi prompt; không dùng ước lượng này làm usage/billing thật.
 History tối đa 2.500 estimated tokens; toàn nội dung tối đa 20.000 byte UTF-8 và JSON request 64 KiB.
 Bỏ nguyên cặp history cũ để vừa trần; không cắt recipe/câu hỏi bắt buộc.
-Adapter không streaming/tools/redirect/retry/fallback; với model Nemotron 3 Ultra đặt `enable_thinking=false`.
+Adapter không streaming/tools/redirect/fallback; với model Nemotron 3 Ultra đặt `enable_thinking=false`.
+Retry tối đa một lần cho timeout, HTTP 502/503 hoặc lỗi kết nối `ConnectException`, backoff 300 ms, chỉ khi deadline còn hơn 800 ms.
+Mỗi attempt dùng tối đa 4 s hoặc thời gian còn lại (lấy giá trị nhỏ hơn); mặc định tổng 8 s. `.env` cũ đặt 20 s vẫn chỉ có tối đa hai attempt 4 s và backoff, khoảng 8,3 s cộng overhead.
+Không retry auth/quota/response sai định dạng; timeout cuối vẫn trả 504. Request timeout được hủy trước retry; Google có thể vẫn xử lý và tính phí request đó.
 Response tối đa 1 MiB, chỉ nhận final content; reply rỗng/truncated/tool call, model sai hoặc usage sai bị từ chối với lỗi public cố định.
 Usage thiếu giữ null; usage hợp lệ đi kèm cả failure để orchestration có thể giữ chi phí của call thất bại hoặc stale.
 Xem [model](https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b) và [API](https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b/apireference) NVIDIA; API thật, chất lượng tiếng Việt và latency chưa được nghiệm thu.
 
 Gemini dùng [API tương thích OpenAI](https://aistudio.google.com/docs/openai), không thêm SDK hoặc service.
-Policy ngày 25/11/2026 dùng trần [Standard paid](https://aistudio.google.com/docs/pricing#gemini-3.1-flash-lite): $0,25 input / $1,50 output mỗi triệu token, kể cả khi key dùng free tier.
-Reservation lấy [trần input model 1.048.576 token](https://aistudio.google.com/docs/models/gemini-3.1-flash-lite) và output tối đa đã cấu hình, không coi admission estimate là token billing.
-Với output 512, giữ chỗ $0,262912 trước call; settle bằng usage thật sau call, thiếu usage giữ reservation.
+Policy 3.5 xác minh ngày 27/11/2026 dùng trần [Standard paid](https://aistudio.google.com/docs/pricing#gemini-3.5-flash-lite): $0,30 input / $2,50 output mỗi triệu token, kể cả khi key dùng free tier.
+Giữ policy 3.1 đã xác minh ngày 25/11/2026: $0,25 input / $1,50 output mỗi triệu token; không tự fallback giữa hai model.
+Reservation lấy [trần input model 1.048.576 token](https://aistudio.google.com/docs/models/gemini-3.5-flash-lite) và output tối đa đã cấu hình, không coi admission estimate là token billing.
+Với output 512, giữ chỗ $0,631706 cho 3.5 hoặc $0,525824 cho 3.1, gồm tối đa hai attempt trước call; settle bằng usage thật nếu không retry sau timeout.
+Sau retry do timeout, giữ usage unknown và toàn reservation, kể cả attempt thứ hai thành công hoặc trả response không hợp lệ; không dùng riêng usage của attempt thứ hai để suy tổng chi phí.
 Ledger tính theo trần giá đã xác minh, không thay hóa đơn Google hoặc tự suy free quota.
 Không gửi tools, ảnh hoặc caching trong request chat; chỉ recipe snapshot và hội thoại text.
 
