@@ -2,9 +2,9 @@
 import argparse
 import hashlib
 import json
-from pathlib import Path
 import shutil
 import tempfile
+from pathlib import Path
 from urllib.parse import quote
 from urllib.request import urlopen
 

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Exercise the public gateway with real CV, E5 and Qdrant in an isolated Compose project."""
 import argparse
-from contextlib import closing
 import json
 import os
-from pathlib import Path
 import socket
 import sqlite3
 import subprocess
 import tempfile
 import time
+from contextlib import closing
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from uuid import uuid4
@@ -102,7 +102,7 @@ def run(args):
         bad, mime = image(b'not an image')
         assert request('/api/vision/predict', bad, mime, 400)['code'] == 'INVALID_IMAGE'
         spec = internal_request('/v3/api-docs')
-        assert spec['info']['version'] == '1.0.0' and len(spec['paths']) == 9
+        assert spec['info']['version'] == '1.0.0' and len(spec['paths']) == 10
         command('exec', '-T', 'recipes', 'python', '-c',
                 "from urllib.request import urlopen; assert urlopen('http://backend:8080/swagger-ui/index.html').status == 200")
 

@@ -1,10 +1,10 @@
 """Stage the public versioned E5 artifact; never persist transfer validation values."""
 import argparse
 import json
-from pathlib import Path
 import shutil
 import tempfile
 import zipfile
+from pathlib import Path
 
 from fetch_vision_checkpoint import download, release_validation
 from verify_mvp_inputs import ROOT

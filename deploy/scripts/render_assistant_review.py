@@ -3,7 +3,7 @@ import argparse
 import json
 from pathlib import Path
 
-from evaluate_assistant import OUTPUT, FIELDS
+from evaluate_assistant import FIELDS, OUTPUT
 
 
 def render(report, notices=None):

@@ -10,12 +10,12 @@ const otherId = '22222222-2222-4222-8222-222222222222';
 const [recipe, otherRecipe] = JSON.parse(readFileSync(new URL('../../../data/recipes/corpus.json', import.meta.url)));
 const document = { recipe, corpus_version: 'cooklens-recipes-v1' };
 const state = (version = 0, extra = {}) => ({
-  id, recipe, corpus_version: document.corpus_version, status: version ? 'cooking' : 'ready',
+  id, recipe, corpus_version: document.corpus_version, recipe_version: recipe.updated_at, status: version ? 'cooking' : 'ready',
   version, current_step: version ? 1 : 0, total_steps: recipe.instructions.length, history: [], messages: [],
   ...extra,
 });
 
-function fixture(overrides = {}, storeOverrides = {}) {
+function fixture(overrides = {}, storeOverrides = {}, options = {}) {
   const calls = [];
   let pointer = null;
   let counter = 0;
@@ -31,7 +31,7 @@ function fixture(overrides = {}, storeOverrides = {}) {
     clear: async (_gateway, sessionId) => { if (pointer?.sessionId === sessionId) pointer = null; },
     ...storeOverrides,
   };
-  const controller = createCookingSessionController({ api, store, gateway, operationId: () => 'operation-' + ++counter });
+  const controller = createCookingSessionController({ api, store, gateway, operationId: () => 'operation-' + ++counter, ...options });
   return { controller, calls, store, pointer: () => pointer };
 }
 
@@ -42,6 +42,27 @@ test('creates from recipe identity and accepts a replay that already started', a
   assert.deepEqual(body, { recipe_id: recipe.id, corpus_version: document.corpus_version, operation_id: 'operation-1' });
   assert.equal(controller.getSnapshot().session.version, 1);
   assert.deepEqual(pointer(), { gateway, sessionId: id });
+});
+
+test('selecting a recipe waits for the first send and preserves its typed draft', async () => {
+  let sent;
+  const { controller, calls } = fixture({
+    sessionMessage: async (_id, body) => {
+      sent = body;
+      return state(1, { status: 'ready', current_step: 0, messages: [
+        { role: 'user', text: body.text }, { role: 'assistant', text: 'Theo công thức.' },
+      ] });
+    },
+  });
+  await controller.prepareRecipe(document);
+  assert.equal(controller.getSnapshot().session, null);
+  assert.equal(controller.getSnapshot().canSend, true);
+  assert.deepEqual(calls, []);
+  controller.setDraft('Cần bao nhiêu đậu phụ?');
+  await controller.sendMessage();
+  assert.equal(calls[0][0], 'create');
+  assert.equal(sent.text, 'Cần bao nhiêu đậu phụ?');
+  assert.equal(controller.getSnapshot().draft, '');
 });
 
 test('rapid duplicate taps send one action and explicit retry reuses its exact body', async () => {
@@ -316,12 +337,67 @@ test('known provider timeout refreshes and retains the draft for a new deliberat
   controller.setDraft(question);
   await controller.sendMessage();
   assert.deepEqual(calls, [calls[0], 'GET']);
-  assert.equal(controller.getSnapshot().draft, question);
-  assert.equal(controller.getSnapshot().canAct, true);
+  const snap = controller.getSnapshot();
+  assert.equal(snap.draft, question);
+  assert.equal(snap.canAct, true);
+  assert.equal(snap.refreshRequired, false);
+  assert.equal(snap.canResend, true);
+  assert.equal(snap.error.retryable, false);
+  assert.equal(snap.error.message.includes('tải lại phiên'), false);
   await controller.retry();
   assert.equal(calls.length, 2);
   await controller.sendMessage();
   assert.notEqual(calls[2].operation_id, calls[0].operation_id);
+});
+
+test('failed refresh after provider timeout exposes refreshRequired retry and recovers to resend action', async () => {
+  let failGet = true;
+  const calls = [];
+  const { controller } = fixture({
+    sessionMessage: async (_id, body) => {
+      calls.push(body);
+      if (calls.length === 1) throw new ApiError('Hãy tải lại phiên', 504, 'ASSISTANT_PROVIDER_TIMEOUT');
+      return state(1, { messages: answer });
+    },
+    getSession: async () => {
+      calls.push('GET');
+      if (failGet) throw new ApiError('network error');
+      return state();
+    },
+  });
+  await controller.openRecipe(document);
+  controller.setDraft(question);
+  await controller.sendMessage();
+  assert.equal(controller.getSnapshot().refreshRequired, true);
+  assert.equal(controller.getSnapshot().canAct, false);
+  assert.equal(controller.getSnapshot().canResend, false);
+  assert.equal(controller.getSnapshot().error.retryable, true);
+  failGet = false;
+  await controller.retry();
+  const recovered = controller.getSnapshot();
+  assert.deepEqual(calls, [calls[0], 'GET', 'GET']);
+  assert.equal(recovered.refreshRequired, false);
+  assert.equal(recovered.canAct, true);
+  assert.equal(recovered.canResend, true);
+  assert.equal(recovered.draft, question);
+  assert.equal(recovered.error.message.includes('tải lại phiên'), false);
+});
+
+test('auto-refresh after timeout clears draft and error when the question was already committed', async () => {
+  const { controller } = fixture({
+    sessionMessage: async () => {
+      throw new ApiError('timeout', 504, 'ASSISTANT_PROVIDER_TIMEOUT');
+    },
+    getSession: async () => state(1, { messages: answer }),
+  });
+  await controller.openRecipe(document);
+  controller.setDraft(question);
+  await controller.sendMessage();
+  const snap = controller.getSnapshot();
+  assert.deepEqual(snap.session.messages, answer);
+  assert.equal(snap.draft, '');
+  assert.equal(snap.error, null);
+  assert.equal(snap.canResend, false);
 });
 
 test('quota and configuration errors preserve steps and do not replay chat', async () => {
@@ -382,4 +458,77 @@ test('a reply after leaving and opening another recipe cannot affect its draft o
   await request;
   assert.equal(controller.getSnapshot().session.id, otherId);
   assert.equal(controller.getSnapshot().draft, 'Câu hỏi mới');
+});
+
+test('passes custom llmConfig to sessionMessage and omits it when cleared back to default', async () => {
+  const customConfig = {
+    provider: 'openai',
+    base_url: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini',
+    api_key: 'sk-test-key-123',
+  };
+  let activeConfig = customConfig;
+  const seen = [];
+  const { controller } = fixture({
+    sessionMessage: async (...args) => {
+      const [_id, body, _signal, llmConfig] = args;
+      seen.push({ text: body.text, argCount: args.length, llmConfig });
+      const nextVersion = body.expected_version + 1;
+      return state(nextVersion, {
+        status: 'ready',
+        current_step: 0,
+        messages: Array.from({ length: nextVersion }, (_, i) => [
+          { role: 'user', text: `Q${i + 1}` },
+          { role: 'assistant', text: `A${i + 1}` },
+        ]).flat(),
+      });
+    },
+  }, {}, { getLlmConfig: () => activeConfig });
+
+  await controller.openRecipe(document);
+  controller.setDraft('Hỏi với khóa riêng');
+  await controller.sendMessage();
+  assert.equal(seen[0].argCount, 4);
+  assert.deepEqual(seen[0].llmConfig, customConfig);
+
+  activeConfig = null;
+  controller.setDraft('Hỏi bằng mặc định');
+  await controller.sendMessage();
+  assert.equal(seen[1].argCount, 3);
+  assert.equal(seen[1].llmConfig, undefined);
+});
+
+test('setLlmConfig updates and clears the llmConfig passed to sessionMessage', async () => {
+  const geminiConfig = {
+    provider: 'gemini',
+    base_url: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    model: 'gemini-2.5-flash',
+    api_key: 'AIzaTestKey123',
+  };
+  const configs = [];
+  const { controller } = fixture({
+    sessionMessage: async (_id, body, _signal, llmConfig) => {
+      configs.push(llmConfig);
+      const nextVersion = body.expected_version + 1;
+      return state(nextVersion, {
+        status: 'ready',
+        current_step: 0,
+        messages: Array.from({ length: nextVersion }, (_, i) => [
+          { role: 'user', text: `Q${i + 1}` },
+          { role: 'assistant', text: `A${i + 1}` },
+        ]).flat(),
+      });
+    },
+  });
+
+  await controller.openRecipe(document);
+  controller.setLlmConfig(geminiConfig);
+  controller.setDraft('Câu hỏi 1');
+  await controller.sendMessage();
+  assert.deepEqual(configs[0], geminiConfig);
+
+  controller.setLlmConfig(null);
+  controller.setDraft('Câu hỏi 2');
+  await controller.sendMessage();
+  assert.equal(configs[1], undefined);
 });

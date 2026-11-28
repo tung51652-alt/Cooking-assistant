@@ -51,7 +51,7 @@ Chỉ đưa base URL công khai vào `EXPO_PUBLIC_*`. Giữ `LLM_API_KEY` riêng
 ## Phiên hướng dẫn nấu trên Android
 
 Luồng này dùng gateway từ ứng viên chứa API phiên và hỏi đáp. `2.0.0-rc.2` phục vụ luồng ảnh/công thức.
-Trong trang chi tiết, chọn **Hướng dẫn nấu**. Gửi câu hỏi về công thức hoặc chọn **Bắt đầu nấu** rồi dùng các nút bước tiếp, bước trước, nhắc lại và kết thúc.
+Trong trang chi tiết, chọn **Hướng dẫn nấu**. Gửi câu hỏi về công thức hoặc chọn **Bắt đầu nấu** rồi dùng các nút bước tiếp, bước trước và kết thúc.
 Chọn **Tiếp tục phiên nấu** ở màn hình đầu để đọc phiên đã lưu của gateway đang cấu hình.
 Nếu phiên đã hết hạn, mở lại công thức để tạo phiên mới.
 Khi trở lại ứng dụng, màn hướng dẫn chỉ đọc trạng thái từ máy chủ.
@@ -62,9 +62,11 @@ Phiên giữ công thức, bước và hội thoại ở backend trong 24 giờ.
 Ứng dụng dùng SecureStore để giữ ID phiên gần nhất và địa chỉ gateway tương ứng.
 Nếu thiết bị không lưu được ID, điều khiển bước vẫn hoạt động trong phiên đang mở.
 
+Người dùng cũng có thể mở **Cài đặt trợ lý** để chọn chế độ **Mặc định hệ thống** hoặc **Dùng khóa API riêng** (Google Gemini, OpenAI, NVIDIA NIM, hoặc nhà cung cấp tùy chỉnh tương thích OpenAI qua HTTPS). Khóa API riêng được lưu trong `expo-secure-store` trên thiết bị, có thể kiểm tra trước qua nút **Kiểm tra kết nối (Test hello)**, và chỉ được gửi trực tiếp qua header `X-LLM-*` kèm yêu cầu hỏi đáp; có thể bấm **Quay về mặc định** để xóa khóa bất kỳ lúc nào.
+
 ## Kiểm tra
 
-Từ root, chạy `npm --prefix mobile run test:assistant` để kiểm tra xử lý phiên và lưu ID.
+Từ root, chạy `npm --prefix mobile run test:assistant` để kiểm tra xử lý phiên, lưu ID và cấu hình khóa API trợ lý.
 
 ```powershell
 npx expo install --check
@@ -75,4 +77,4 @@ npm run export
 Lệnh export chỉ kiểm chứng bundling Android/iOS, không phát hành bundle hoặc native app. Output `dist`, Metro cache và metadata tự sinh không commit/upload làm release. Font Epilogue/Plus Jakarta Sans được đóng gói local; giấy phép tại `notices/`.
 
 Từ root repo, chạy `node --experimental-strip-types --test packages/cooklens-api/client.test.mjs` để kiểm tra contract dùng chung.
-Xem ma trận Android thật trong [kế hoạch hoàn tất](../docs/plan/2026-11-23-phase12-13-completion.md#3-hoàn-tất-màn-hình-và-chạy-native-acceptance) và cập nhật kết quả trong [Phase 12](../docs/plan/phase-12-mobile.md).
+Ma trận Android thật nằm trong [kế hoạch phát hành](../docs/plan/2026-11-27-release-2.1.0.md); kết quả ghi vào [acceptance](../docs/acceptance.md).

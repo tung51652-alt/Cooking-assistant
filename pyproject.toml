@@ -1,0 +1,28 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+exclude = [
+    "*.ipynb",
+    ".venv",
+    ".venv-build",
+    "venv",
+    "node_modules",
+    "backend/target",
+    "deploy/artifacts/staging",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = [
+    "E501", # Allow long Vietnamese strings and SQL/error literals without forced wrapping
+    "B008", # FastAPI uses Depends(...) and File(...) calls in endpoint default arguments
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ai", "data"]
+combine-as-imports = true
+
+[tool.ruff.format]
+quote-style = "preserve"
+indent-style = "space"
+line-ending = "lf"

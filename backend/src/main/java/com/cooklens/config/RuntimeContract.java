@@ -12,9 +12,12 @@ import org.springframework.stereotype.Component;
 public class RuntimeContract {
     public final String apiVersion, modelVersion, taxonomyVersion, corpusVersion, embeddingVersion;
     public final List<Dish> dishes;
+
     public RuntimeContract(ObjectMapper mapper) throws IOException {
         try (var manifest = new ClassPathResource("contract/manifest.json").getInputStream();
-             var taxonomy = new ClassPathResource("contract/30vnfoods-label-map.json").getInputStream()) {
+                var taxonomy =
+                        new ClassPathResource("contract/30vnfoods-label-map.json")
+                                .getInputStream()) {
             var m = mapper.readTree(manifest);
             apiVersion = m.required("public_api_version").asText();
             modelVersion = m.required("vision").required("model_version").asText();
@@ -23,16 +26,25 @@ public class RuntimeContract {
             embeddingVersion = m.required("embedding").required("embedding_version").asText();
             var t = mapper.readTree(taxonomy);
             dishes = mapper.readerForListOf(Dish.class).readValue(t.required("labels"));
-            if (dishes.size() != 30 || !taxonomyVersion.equals(t.required("taxonomy_version").asText())
-                    || new HashSet<>(dishes.stream().map(Dish::normalizedDish).toList()).size() != 30)
+            if (dishes.size() != 30
+                    || !taxonomyVersion.equals(t.required("taxonomy_version").asText())
+                    || new HashSet<>(dishes.stream().map(Dish::normalizedDish).toList()).size()
+                            != 30)
                 throw new IllegalStateException("Invalid bundled runtime contract");
-            for (int i=0; i<30; i++) if (dishes.get(i).classId() != i)
-                throw new IllegalStateException("Invalid bundled class order");
+            for (int i = 0; i < 30; i++)
+                if (dishes.get(i).classId() != i)
+                    throw new IllegalStateException("Invalid bundled class order");
         }
     }
+
     public Dish requireDish(String canonical) {
-        return dishes.stream().filter(d -> d.normalizedDish().equals(canonical)).findFirst()
+        return dishes.stream()
+                .filter(d -> d.normalizedDish().equals(canonical))
+                .findFirst()
                 .orElseThrow(() -> new ApiFailure(422, "INVALID_DISH"));
     }
-    public void require(boolean valid) { if (!valid) throw ApiFailure.unavailable(); }
+
+    public void require(boolean valid) {
+        if (!valid) throw ApiFailure.unavailable();
+    }
 }

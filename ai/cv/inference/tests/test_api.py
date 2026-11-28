@@ -1,30 +1,32 @@
 """Real model/API regressions; run with the pinned checkpoint staged or FOOD_MODEL_PATH."""
 
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import csv
-from dataclasses import replace
-from io import BytesIO
 import json
 import os
-from pathlib import Path
 import tempfile
-from threading import Event
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
+from io import BytesIO
+from pathlib import Path
+from threading import Event
 from unittest.mock import patch
 from uuid import UUID
 
-from fastapi.testclient import TestClient
-from PIL import Image
+import numpy as np
 import torch
+from fastapi.testclient import TestClient
+from PIL import Image, ImageFilter
 from torchvision.models import EfficientNet_B2_Weights
 
 from ai.cv.inference.errors import MAX_REQUEST_BYTES, MAX_UPLOAD_BYTES
 from ai.cv.inference.guard import RequestGuard, Runtime
+from ai.cv.inference.images import BLUR_LAPLACIAN_THRESHOLD, laplacian_variance
 from ai.cv.inference.inference import evaluation_transform, predict_image
-from ai.cv.inference.main import create_app
-from ai.cv.inference.schemas import PredictionResponse
+from ai.cv.inference.main import CONFIDENCE_THRESHOLD, create_app
 from ai.cv.inference.model import ROOT, load_model
+from ai.cv.inference.schemas import PredictionResponse
 
 FIXTURE = Path(__file__).parent / 'fixtures/food.png'
 
@@ -128,12 +130,33 @@ class FoodApiTests(unittest.TestCase):
 
     def test_grayscale_rgba_and_jpeg(self):
         with Image.open(BytesIO(self.food)) as source:
-            for mode, fmt, mime in [('L', 'PNG', 'image/png'), ('RGBA', 'PNG', 'image/png'),
-                                    ('RGB', 'JPEG', 'image/jpeg')]:
+            for mode, fmt, mime in [('RGBA', 'PNG', 'image/png'), ('RGB', 'JPEG', 'image/jpeg')]:
                 with self.subTest(mode=mode):
                     buffer = BytesIO()
                     source.convert(mode).save(buffer, format=fmt)
                     self.assertEqual(self.upload(buffer.getvalue(), mime).status_code, 200)
+
+            with self.subTest(mode='L'):
+                buffer = BytesIO()
+                source.convert('L').save(buffer, format='PNG')
+                grayscale_bytes = buffer.getvalue()
+                real_response = self.upload(grayscale_bytes, 'image/png')
+                self.assertEqual(real_response.status_code, 422)
+                self.assertEqual(real_response.json()['code'], 'LOW_CONFIDENCE_PREDICTION')
+
+                converted_modes = []
+                original = predict_image
+
+                def capture_mode(image, model):
+                    converted_modes.append(image.mode)
+                    preds = original(image, model)
+                    preds[0] = dict(preds[0], confidence=CONFIDENCE_THRESHOLD)
+                    return preds
+
+                with patch('ai.cv.inference.main.predict_image', side_effect=capture_mode):
+                    response = self.upload(grayscale_bytes, 'image/png')
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(converted_modes, ['RGB'])
 
     def test_invalid_upload_status_and_safe_envelope(self):
         cases = [(b'not-image', 'text/plain', 415), (b'bad', 'image/png', 400),
@@ -163,6 +186,75 @@ class FoodApiTests(unittest.TestCase):
             self.assertEqual(self.upload().status_code, 400)
         with patch.object(Image, 'MAX_IMAGE_PIXELS', 10):
             self.assertEqual(self.upload().status_code, 400)
+
+    def test_blurry_and_solid_images_are_rejected_before_inference(self):
+        with Image.open(BytesIO(self.food)) as source:
+            rgb = source.convert('RGB')
+        blurry = rgb.filter(ImageFilter.GaussianBlur(radius=8))
+        solid = Image.new('RGB', (300, 300), (120, 120, 120))
+        upscaled_sharp = rgb.resize((rgb.width * 3, rgb.height * 3), Image.Resampling.BICUBIC)
+        upscaled_blurry = upscaled_sharp.filter(ImageFilter.GaussianBlur(radius=24))
+
+        self.assertGreaterEqual(laplacian_variance(rgb), BLUR_LAPLACIAN_THRESHOLD)
+        self.assertGreaterEqual(laplacian_variance(upscaled_sharp), BLUR_LAPLACIAN_THRESHOLD)
+        self.assertLess(laplacian_variance(blurry), BLUR_LAPLACIAN_THRESHOLD)
+        self.assertLess(laplacian_variance(upscaled_blurry), BLUR_LAPLACIAN_THRESHOLD)
+        self.assertEqual(laplacian_variance(solid), 0.0)
+
+        for label, bad_image in [('gaussian_blur', blurry), ('upscaled_blur', upscaled_blurry), ('solid', solid)]:
+            with self.subTest(case=label):
+                buffer = BytesIO()
+                bad_image.save(buffer, format='PNG')
+                with patch('ai.cv.inference.main.predict_image') as infer_spy:
+                    response = self.upload(buffer.getvalue())
+                infer_spy.assert_not_called()
+                self.assertEqual(response.status_code, 422)
+                payload = response.json()
+                self.assertEqual(payload['code'], 'IMAGE_BLURRY')
+                self.assertEqual(
+                    payload['message'],
+                    'Ảnh bị mờ, không đủ rõ nét để nhận diện món ăn. Vui lòng chụp hoặc chọn ảnh rõ nét hơn.',
+                )
+                UUID(payload['request_id'])
+                self.assertEqual(response.headers['x-request-id'], payload['request_id'])
+
+    def test_low_confidence_prediction_is_rejected_and_threshold_boundary(self):
+        rng = np.random.default_rng(42)
+        noise = Image.fromarray(rng.integers(0, 255, (300, 300, 3), dtype=np.uint8))
+        noise_buf = BytesIO()
+        noise.save(noise_buf, format='PNG')
+
+        noise_response = self.upload(noise_buf.getvalue())
+        self.assertEqual(noise_response.status_code, 422)
+        noise_payload = noise_response.json()
+        self.assertEqual(noise_payload['code'], 'LOW_CONFIDENCE_PREDICTION')
+        self.assertEqual(
+            noise_payload['message'],
+            'Chưa xác định được món từ ảnh này. Hãy chọn ảnh khác hoặc chọn món theo tên.',
+        )
+        UUID(noise_payload['request_id'])
+        self.assertEqual(noise_response.headers['x-request-id'], noise_payload['request_id'])
+
+        def fake_predictions(top1_confidence: float):
+            return [
+                {'rank': 1, 'class_id': 28, 'normalized_dish': 'pho', 'display_name': 'Phở', 'confidence': top1_confidence},
+                {'rank': 2, 'class_id': 23, 'normalized_dish': 'com_tam', 'display_name': 'Cơm tấm', 'confidence': 0.2},
+                {'rank': 3, 'class_id': 9, 'normalized_dish': 'banh_mi', 'display_name': 'Bánh mì', 'confidence': 0.1},
+            ]
+
+        with patch('ai.cv.inference.main.predict_image', return_value=fake_predictions(CONFIDENCE_THRESHOLD - 0.0001)):
+            below = self.upload()
+        self.assertEqual(below.status_code, 422)
+        self.assertEqual(below.json()['code'], 'LOW_CONFIDENCE_PREDICTION')
+
+        with patch('ai.cv.inference.main.predict_image', return_value=fake_predictions(CONFIDENCE_THRESHOLD)):
+            at_threshold = self.upload()
+        self.assertEqual(at_threshold.status_code, 200)
+        self.assertEqual(at_threshold.json()['predictions'][0]['confidence'], CONFIDENCE_THRESHOLD)
+
+        sharp_ok = self.upload()
+        self.assertEqual(sharp_ok.status_code, 200)
+        self.assertGreaterEqual(sharp_ok.json()['predictions'][0]['confidence'], CONFIDENCE_THRESHOLD)
 
     def test_health_and_swagger(self):
         self.assertEqual(self.client.get('/health/live').status_code, 200)

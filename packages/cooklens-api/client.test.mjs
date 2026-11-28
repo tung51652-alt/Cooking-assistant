@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { createApi, normalizeBaseUrl } from './index.ts';
+import { createApi, normalizeBaseUrl, recipeSourceHref } from './index.ts';
 
 const requestId = () => '11111111-1111-4111-8111-111111111111';
 const taxonomy = JSON.parse(readFileSync(new URL('../../data/processed/30vnfoods-label-map.json', import.meta.url)));
@@ -11,6 +11,23 @@ const envelope = value => ({ api_version: '1.0.0', request_id: requestId(), ...v
 function response(data, status = 200) {
   return new Response(JSON.stringify(envelope(data)), { status, headers: { 'Content-Type': 'application/json', 'X-Request-ID': requestId() } });
 }
+
+test('recipe source links allow recipe pages and suppress GitHub pull requests', () => {
+  const { source } = corpus.find(recipe => new URL(recipe.source.url).hostname === 'vi.wikibooks.org');
+  assert.equal(recipeSourceHref(source.url), new URL(source.url).href);
+  const credentialed = new URL('https://example.com/recipe');
+  credentialed.username = 'name';
+  credentialed.password = 'password';
+  for (const url of [
+    'https://github.com/owner/recipes/pull/10',
+    'https://github.com/owner/recipes/pull/10/files#diff',
+    credentialed.href,
+    'javascript:alert(1)',
+    '/recipe',
+  ]) {
+    assert.equal(recipeSourceHref(url), null, url);
+  }
+});
 
 const sessionId='22222222-2222-4222-8222-222222222222';
 const startOperation='33333333-3333-4333-8333-333333333333';
@@ -78,10 +95,65 @@ test('assistant still accepts legacy action-only sessions', async t => {
 });
 
 test('assistant persistence errors retain their machine-readable code', async t => {
-  for (const [status,code] of [[409,'ASSISTANT_REQUEST_IN_PROGRESS'],[409,'SESSION_MESSAGE_LIMIT'],[503,'ASSISTANT_OUTCOME_UNKNOWN'],[504,'ASSISTANT_PROVIDER_TIMEOUT'],
-    [503,'ASSISTANT_PROVIDER_AUTH_FAILED'],[503,'ASSISTANT_PROVIDER_UNSUPPORTED'],[429,'ASSISTANT_RATE_LIMITED'],[503,'ASSISTANT_BUDGET_EXCEEDED'],[422,'ASSISTANT_CONTEXT_TOO_LARGE']]) {
+  for (const [status,code] of [[503,'ASSISTANT_NOT_CONFIGURED'],[409,'ASSISTANT_REQUEST_IN_PROGRESS'],[409,'SESSION_MESSAGE_LIMIT'],[503,'ASSISTANT_OUTCOME_UNKNOWN'],[504,'ASSISTANT_PROVIDER_TIMEOUT'],
+    [503,'ASSISTANT_PROVIDER_AUTH_FAILED'],[503,'ASSISTANT_PROVIDER_UNSUPPORTED'],[429,'ASSISTANT_RATE_LIMITED'],[503,'ASSISTANT_BUDGET_EXCEEDED'],[422,'ASSISTANT_CONTEXT_TOO_LARGE'],
+    [422,'ASSISTANT_MODEL_INVALID'],[422,'VALIDATION_ERROR']]) {
     t.mock.method(globalThis,'fetch',async () => response({ code, message:'Không lộ nội dung provider' },status));
     await assert.rejects(api.getSession(sessionId,new AbortController().signal),error => error.code===code && error.status===status);
+  }
+});
+
+test('sessionMessage attaches BYOK headers when llmConfig is provided and omits them otherwise', async t => {
+  const value = chatSession();
+  const operation = 'BBBBBBBB-BBBB-4BBB-8BBB-BBBBBBBBBBBB';
+  let capturedHeaders;
+  t.mock.method(globalThis, 'fetch', async (_url, init) => {
+    capturedHeaders = new Headers(init.headers);
+    return response({ session: value });
+  });
+  await api.sessionMessage(sessionId, { text: 'Test BYOK', expected_version: 1, operation_id: operation }, new AbortController().signal, {
+    provider: 'openai',
+    base_url: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini',
+    api_key: 'sk-test-secret-1234',
+  });
+  assert.equal(capturedHeaders.get('X-LLM-Provider'), 'openai');
+  assert.equal(capturedHeaders.get('X-LLM-Base-Url'), 'https://api.openai.com/v1');
+  assert.equal(capturedHeaders.get('X-LLM-Model'), 'gpt-4o-mini');
+  assert.equal(capturedHeaders.get('X-LLM-Api-Key'), 'sk-test-secret-1234');
+
+  await api.sessionMessage(sessionId, { text: 'Test default', expected_version: 1, operation_id: operation }, new AbortController().signal);
+  assert.equal(capturedHeaders.get('X-LLM-Api-Key'), null);
+});
+
+test('testLlmConfig posts config and validates response shape', async t => {
+  t.mock.method(globalThis, 'fetch', async (url, init) => {
+    assert.equal(url, 'http://localhost:8080/api/assistant/llm/test');
+    assert.equal(init.method, 'POST');
+    assert.deepEqual(JSON.parse(init.body), {
+      provider: 'gemini',
+      base_url: 'https://generativelanguage.googleapis.com/v1beta/openai',
+      model: 'gemini-2.5-flash',
+      api_key: 'AIzaTestKey12345',
+    });
+    return response({ ok: true, provider: 'gemini', model: 'gemini-2.5-flash', reply: 'Hello!', latency_ms: 142 });
+  });
+  const result = await api.testLlmConfig({
+    provider: 'gemini',
+    base_url: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    model: 'gemini-2.5-flash',
+    api_key: 'AIzaTestKey12345',
+  }, new AbortController().signal);
+  assert.deepEqual(result, { ok: true, provider: 'gemini', model: 'gemini-2.5-flash', reply: 'Hello!', latency_ms: 142 });
+
+  globalThis.fetch = async () => response({ ok: false, provider: 'gemini', model: 'gemini-2.5-flash', reply: '', latency_ms: 10 });
+  await assert.rejects(api.testLlmConfig({ provider: 'gemini', model: 'gemini-2.5-flash', api_key: 'AIzaTestKey12345' }, new AbortController().signal), /đúng định dạng/);
+});
+
+test('vision predict maps IMAGE_BLURRY and LOW_CONFIDENCE_PREDICTION to Vietnamese messages and preserves code', async t => {
+  for (const [code, pattern] of [['IMAGE_BLURRY', /Ảnh bị mờ/], ['LOW_CONFIDENCE_PREDICTION', /Chưa xác định được món/]]) {
+    t.mock.method(globalThis, 'fetch', async () => response({ code, message: 'raw' }, 422));
+    await assert.rejects(api.predict(new FormData(), new AbortController().signal), error => error.code === code && error.status === 422 && pattern.test(error.message));
   }
 });
 

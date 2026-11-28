@@ -7,7 +7,7 @@ import httpx
 
 
 def evaluate(url, queries):
-    specification = json.loads(queries.read_text())
+    specification = json.loads(queries.read_text(encoding='utf-8'))
     cases = specification['cases']
     if not cases or len({c['case'] for c in cases}) != len(cases):
         raise ValueError('Evaluation cases must be nonempty and uniquely named')
@@ -77,7 +77,8 @@ def evaluate(url, queries):
             'review_status': specification['review_status'], 'technical_gate_met': technical_gate,
             'external_review_complete': external_review,
             'acceptance_gate_met': technical_gate and external_review,
-            'limitation': '27 dishes have one candidate. Separate semantic pass used the same implementation agent; external review and kitchen verification remain Phase 7 work.'}
+            'limitation': 'Single-candidate dishes measure coverage more than ranking. '
+                          'Contrastive queries measure ranking among variants. External cooking review is tracked separately.'}
 
 
 if __name__ == '__main__':
@@ -91,7 +92,7 @@ if __name__ == '__main__':
     output = json.dumps(report, ensure_ascii=False, indent=2) + '\n'
     if args.report:
         args.report.parent.mkdir(parents=True, exist_ok=True)
-        args.report.write_text(output)
+        args.report.write_text(output, encoding='utf-8')
     print(output, end='')
     if args.require_technical_gate and not report['technical_gate_met']:
         raise SystemExit('Recipe retrieval technical gate failed')

@@ -3,10 +3,10 @@
 
 import argparse
 import json
-from pathlib import Path
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -74,7 +74,7 @@ assert not list(Path('/app').rglob('*.ipynb'))
 '''
         result = subprocess.run(['docker', 'exec', '-i', args.name, 'python', '-c', script],
                                 input=(ROOT / 'ai/cv/inference/tests/fixtures/food.png').read_bytes(),
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                capture_output=True)
         if result.returncode:
             raise RuntimeError('Vision container smoke assertions failed; response content omitted')
         peak = subprocess.check_output(['docker', 'exec', args.name, 'cat', '/sys/fs/cgroup/memory.peak'], text=True)

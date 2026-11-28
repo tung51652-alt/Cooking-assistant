@@ -39,7 +39,9 @@ File ≤10 MiB, multipart body ≤11 MiB, ảnh ≤25 triệu pixel, một frame
 Mỗi prediction có `rank`, `class_id`, `normalized_dish`, `display_name`, `confidence`.
 Sort confidence giảm dần, tie-break class ID tăng dần; không trùng class.
 Confidence lấy từ softmax toàn bộ 30 lớp, không chuẩn hóa lại Top-3; tổng ≤1 với sai số 1e-6.
-UI luôn yêu cầu xác nhận/sửa, không dùng threshold để tự chọn hoặc tuyên bố phát hiện ngoài miền.
+Nếu confidence cao nhất dưới 65%, API trả 422 `LOW_CONFIDENCE_PREDICTION`.
+UI yêu cầu xác nhận món khi có gợi ý và cho phép chọn ảnh khác hoặc tra món theo tên khi ảnh bị từ chối.
+Điểm softmax thể hiện độ tin cậy của gợi ý trong 30 lớp món thuộc danh mục.
 
 ## Truy xuất công thức
 
@@ -88,7 +90,7 @@ Gateway có `/actuator/health/liveness` và `/actuator/health/readiness` cho v�
 `recipe-init` là CLI one-shot, không có API và phải exit khác 0 khi seed lỗi.
 Release không publish trực tiếp AI/Qdrant hoặc Actuator debug.
 
-## Phiên trợ lý (Phase 8–9)
+## Phiên trợ lý
 
 Các route mới vẫn dùng JSON/envelope/version và `X-Request-ID` như API cũ.
 Tất cả thành công trả HTTP 200 với `{api_version, request_id, session}`.
@@ -113,7 +115,6 @@ Session gồm `id`, `corpus_version`, `recipe_version` (= recipe `updated_at`), 
 `created_at`, `updated_at`, `expires_at` (UTC ISO-8601), `history` và `messages`.
 Recipe là snapshot do server đã validate, giữ nguyên nguồn/license và metadata null.
 Phiên đã tạo giữ snapshot/version cũ sau thay corpus; tạo phiên mới với version sai trả 409.
-`messages` rỗng trong Phase 9; Phase 10 mới triển khai trả lời/provider và lưu hội thoại.
 
 | Action | Trạng thái hợp lệ | Kết quả |
 | --- | --- | --- |
@@ -141,7 +142,7 @@ Sau 409 đọc lại session trước khi gửi thao tác mới; response đến
 Tuổi phiên cố định 24 giờ từ lúc tạo, không gia hạn theo request/replay.
 Hết hạn trả 410; không có trả 404; record hết hạn trên 7 ngày được dọn khi tạo phiên.
 Tối đa 10.000 record, vượt trả 503; sau dọn record cũ trả 404.
-Source hiện dùng SQLite schema `PRAGMA user_version=3`, tự migrate schema 1/2 trong một transaction.
+SQLite dùng schema `PRAGMA user_version=3`, tự migrate schema 1/2 trong một transaction.
 Schema lạ/DB lỗi/quyền ghi thiếu trả 503,
 không tự xóa database, hạ schema hoặc ảnh hưởng readiness ảnh/công thức.
 Dedup/replay chỉ được bảo đảm khi record phiên còn được giữ; create replay cùng payload trên phiên hết hạn nhưng chưa dọn trả 410.
@@ -163,19 +164,20 @@ Shared client chuẩn hóa UUID phiên và operation thành chữ thường trư
 | 410 | `SESSION_EXPIRED` |
 | 503 | `ASSISTANT_STORAGE_UNAVAILABLE`, `ASSISTANT_NOT_CONFIGURED` |
 
-## Mở rộng chat (thiết kế Phase 10)
+## Hội thoại
 
-Source Phase 10 đã nối `/messages` với provider/context/state và admission/accounting, kiểm chứng HTTP bằng provider giả.
 Chưa cấu hình key hoặc pricing policy hợp lệ thì không nhận operation/call mới; cooking commands vẫn hoạt động.
-Compose đã forward config chỉ backend và thêm egress bridge; kiểm chứng Docker runtime/API thật còn mở.
-DTO/controller/OpenAPI và client dùng chung phải được cập nhật cùng triển khai, không duy trì schema OpenAPI viết tay.
+
+`/messages` nhận thêm key của người dùng qua header tùy chọn `X-LLM-Api-Key`, `X-LLM-Provider` (`gemini`, `openai`, `nvidia`, `custom`), `X-LLM-Model` và `X-LLM-Base-Url`.
+Preset dùng đúng base URL đã định; `custom` cần HTTPS, không credential/query/fragment, path kết thúc `/v1`, `/openai` hoặc `/v1beta/openai`.
+Host `custom` phải phân giải ra địa chỉ public; địa chỉ loopback, private, link-local hoặc multicast trả 503 `ASSISTANT_PROVIDER_UNAVAILABLE` và kết nối được pin vào IP đã kiểm tra.
+Header sai trả 422 `VALIDATION_ERROR`; khi có key người dùng, backend không lưu key, không áp ngân sách server, vẫn áp rate limit phiên.
 
 ### State và hội thoại
 
 Giữ các route, body, envelope `api_version: "1.0.0"` và các field Session hiện có.
 `version` tiếp tục là revision của state phiên: mỗi action hợp lệ hoặc một cặp hỏi/đáp đã commit tăng đúng một lần.
-Không có chat thành công ở Phase 9 nên việc kích hoạt `/messages` không thay một hành vi chat thành công đã có.
-Client phải bỏ giả định nội bộ `version == history.length` khi hỗ trợ chat.
+Client không được giả định `version == history.length`.
 
 - `history` chỉ chứa cooking actions, tối đa 100 event, slot cuối vẫn dành cho `finish`.
   Version của action tăng nghiêm ngặt nhưng có thể có khoảng trống do chat.
@@ -197,8 +199,8 @@ State cuối có version 3, hai action với version `[1, 3]`, hai message và b
 1. Trong transaction ngắn: validate dữ liệu lưu/expiry, kiểm tra replay trước expected_version/status/quota, sau đó nhận operation mới và snapshot state.
    Chỉ cho một provider call đang chờ trên mỗi phiên; operation khác gặp pending trả 409 `ASSISTANT_REQUEST_IN_PROGRESS`.
    Cooking actions và GET không bị pending chat chặn; chúng vẫn có thể làm snapshot chat cũ đi.
-2. Gọi provider ngoài transaction SQLite, với deadline tổng 20 s và connect timeout 2 s.
-   Không tự retry upstream, fallback provider hoặc giữ writer lock trong thời gian chờ.
+2. Gọi provider ngoài transaction SQLite trong deadline chung `LLM_TIMEOUT_SECONDS` (mặc định 8 s, tối đa 20 s), connect timeout 2 s.
+   Tối đa hai lần thử, mỗi lần ≤4 s; chỉ thử lại một lần khi timeout, 502/503 hoặc lỗi kết nối và còn đủ thời gian; không fallback provider hoặc giữ writer lock trong thời gian chờ.
 3. Khi có kết quả: transaction mới validate lại phiên/expiry và expected_version trước khi commit nguyên tử cặp message, kết quả operation, version và updated_at.
    Operation phải vẫn pending và còn deadline; completion đến sau khi operation đã thành lỗi cuối không được mở lại hoặc commit, kể cả version phiên chưa đổi.
    Nếu state đã đổi, trả 409 `SESSION_VERSION_CONFLICT`; nếu hết hạn trả 410; không lưu câu trả lời vào hội thoại.
@@ -215,7 +217,7 @@ Giữ operation records tới khi phiên được purge; không log text, key ho
 ### Lệnh bước nấu và context
 
 Chỉ ánh xạ nguyên câu sau trim/NFC/lowercase: `bắt đầu`, `bước tiếp`, `bước trước`, `nhắc lại`, `kết thúc` thành action tương ứng.
-Các lệnh này gọi cùng logic action/dedup/version của Phase 9, không gọi provider, không thêm cặp message và không tính vào 30 lượt hỏi đáp.
+Các lệnh này gọi cùng logic action/dedup/version, không gọi provider, không thêm cặp message và không tính vào 30 lượt hỏi đáp.
 Phân loại operation vẫn ghi nhận route/body gốc để replay qua route khác không bị coi là cùng request.
 Không dùng output model để gọi action hoặc ghi đè state; câu dài chứa từ khóa không được tự suy thành lệnh.
 
@@ -229,7 +231,7 @@ Adapter không streaming/tools, response tối đa 1 MiB; từ chối reply rỗ
 Output tối đa 512 tokens; câu trả lời tiếng Việt là plain text, phân biệt dữ kiện công thức với gợi ý, không bịa nguồn/định lượng.
 Client `/messages` dùng timeout 25 s; không tự retry POST và bỏ response khi đổi phiên hoặc nhận version thấp hơn state đang giữ.
 Response `/messages` có header tùy chọn `Server-Timing` với `assistant_prepare`, `assistant_provider`, `assistant_persist`, `assistant_total`, đơn vị ms, không có text/ID/key.
-Timing bắt đầu ở controller trước parse, total kết thúc trước serialize response; provider gồm network/HTTP/parse, không phải số đo nội bộ NVIDIA.
+Timing bắt đầu ở controller trước parse, total kết thúc trước serialize response; provider gồm network/HTTP/parse, không phải thời gian xử lý nội bộ của provider.
 Header cũng được set khi service báo lỗi; replay/lệnh không gọi provider có provider duration bằng 0, không thay envelope/DTO/state hoặc timeout.
 
 ### Persistence và lỗi bổ sung
@@ -251,16 +253,16 @@ Giới hạn 12 provider attempts được nhận trong sliding window 60 s/phi�
 Tháng UTC cảnh báo tại $5 (một marker bền vững/tháng), từ chối khi tổng đã đạt $10 hoặc reservation mới làm vượt $10.
 Tổng dùng charge đã biết hoặc reservation còn giữ; thiếu một trong input/output usage thì không hoàn reservation về 0.
 Usage được settle trước khi commit reply, kể cả khi reply bị loại vì stale/expiry; settlement lặp không ghi đè charge đã xác nhận.
-Pricing runtime hiện chỉ nhận trial NVIDIA đúng endpoint/model đã đối chiếu với mức 0 USD; endpoint/model khác chưa có policy đã xác minh trả `ASSISTANT_NOT_CONFIGURED` trước admission.
+Pricing runtime chỉ nhận endpoint/model có policy giá đã xác minh: Gemini 3.5 và 3.1 Flash-Lite qua Google và các model trial NVIDIA đã pin; cấu hình khác trả `ASSISTANT_NOT_CONFIGURED` trước admission.
 Các profile/operational alias được pin rõ trong `LlmSettings`, không chấp nhận model tùy ý hoặc wildcard; chat turn giữ reported model thực tế, ledger model là selector dùng khi admission.
-Super endpoint public trả serving name khác selector; đây là mapping quan sát được, không xác nhận checkpoint/VL tương đương, không gửi image và không tự fallback.
 Policy giá trả phí phải có đơn giá và giới hạn billing bảo đảm được trước khi bật; ước lượng admission không được coi là tokenizer billing.
 
-| HTTP | Code Phase 10 | Ý nghĩa |
+| HTTP | Code hội thoại | Ý nghĩa |
 | --- | --- | --- |
 | 409 | `ASSISTANT_REQUEST_IN_PROGRESS` | Có provider call đang chờ; đọc lại phiên trước thao tác mới |
 | 409 | `SESSION_MESSAGE_LIMIT` | Đủ 30 cặp hỏi/đáp; action vẫn hoạt động |
 | 422 | `ASSISTANT_CONTEXT_TOO_LARGE` | Context bắt buộc vượt trần input, không gửi provider |
+| 422 | `ASSISTANT_MODEL_INVALID` | Key người dùng: provider trả 400/404 cho model đã chọn |
 | 429 | `ASSISTANT_RATE_LIMITED` | Vượt 12 request chat mới/phút/phiên hoặc provider trả 429 |
 | 503 | `ASSISTANT_PROVIDER_UNSUPPORTED` | Adapter chưa hỗ trợ cấu hình đã chọn |
 | 503 | `ASSISTANT_PROVIDER_AUTH_FAILED` | Provider trả 401/403; không chuyển lỗi này thành lỗi đăng nhập của người dùng |

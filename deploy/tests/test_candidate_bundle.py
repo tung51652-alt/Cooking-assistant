@@ -1,12 +1,12 @@
 """Candidate transfer must preserve isolation, image versions and honest acceptance metadata."""
-from copy import deepcopy
 import argparse
 import json
-from pathlib import Path
 import re
 import sys
 import tempfile
 import unittest
+from copy import deepcopy
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from prepare_candidate_bundle import ROOT, candidate_config, prepare
@@ -36,7 +36,7 @@ class CandidateBundleTests(unittest.TestCase):
         prepared, _ = candidate_config(config)
         environment = prepared['services']['backend']['environment']
         self.assertEqual(environment['LLM_API_KEY'], '${LLM_API_KEY:-}')
-        self.assertEqual(environment['LLM_MODEL'], '${LLM_MODEL:-gemini-3.1-flash-lite}')
+        self.assertEqual(environment['LLM_MODEL'], '${LLM_MODEL:-gemini-3.5-flash-lite}')
         self.assertEqual(config['services']['backend']['environment'], {'LLM_API_KEY': ''})
 
     def test_port_override_and_project_isolation_survive_packaging(self):

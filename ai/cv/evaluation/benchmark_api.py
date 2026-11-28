@@ -1,17 +1,17 @@
 """Measure warm CPU HTTP inference without storing requests, IDs or model identifiers."""
 
 import argparse
-from io import BytesIO
 import json
-from pathlib import Path
 import platform
 import resource
 import statistics
 import time
+from io import BytesIO
+from pathlib import Path
 
+import torch
 from fastapi.testclient import TestClient
 from PIL import Image
-import torch
 
 from ai.cv.inference.main import create_app
 

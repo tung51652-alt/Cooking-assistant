@@ -3,12 +3,12 @@
 
 import argparse
 import base64
-from collections import Counter
 import json
-from pathlib import Path
 import re
 import subprocess
 import sys
+from collections import Counter
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PATTERNS = {

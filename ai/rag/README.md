@@ -1,7 +1,7 @@
 # Recipes service
 
-API công thức dùng multilingual-e5-small và Qdrant, truy xuất từ 33 công thức phủ
-30 món. Không gọi LLM/web search lúc runtime. Nguồn và giấy phép ở
+API công thức dùng multilingual-e5-small và Qdrant để truy xuất 90 công thức phủ 30 món. Khi chạy, API chỉ dùng model và index cục bộ.
+Nguồn và giấy phép ở
 [data/recipes](../../data/recipes/README.md); model ở [artifact manifest](../../deploy/artifacts/manifest.json).
 
 ## API nội bộ
@@ -38,10 +38,10 @@ Runtime CPU 4 thread, RAM budget 2 GiB, non-root/read-only; model và dữ liệ
 
 ## Kiểm tra
 
-Corpus: `python3 data/recipes/validate.py --require-full-coverage` từ root.
+Kiểm tra cấu trúc corpus từ root bằng `python3 data/recipes/validate.py`. Bản phát hành chạy thêm `--require-full-coverage` để kiểm tra đủ 30 món.
 Smoke image riêng: `python3 deploy/scripts/smoke_recipes_container.py --image cooklens-recipes:local`
 (sau khi build image local). Harness tạo và thu dọn tài nguyên riêng.
 
-[recipe_evaluation.py](../../deploy/scripts/recipe_evaluation.py) chạy bộ 204 query
-trong container recipes, không mở cổng AI; CI dùng cùng helper với nghiệm thu.
-Kết quả và giới hạn ở [acceptance.md](../../docs/acceptance.md).
+[recipe_evaluation.py](../../deploy/scripts/recipe_evaluation.py) chạy 259 query trong container recipes, gồm hai query kiểm tra nem chua.
+CI và nghiệm thu dùng cùng helper trên mạng nội bộ Docker.
+Số đo corpus v3 có trong [đánh giá truy xuất](evaluation/REVIEW.md). Kết quả của bản đã phát hành có trong [acceptance.md](../../docs/acceptance.md).

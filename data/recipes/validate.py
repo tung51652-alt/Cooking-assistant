@@ -1,17 +1,33 @@
 """Validate the distributed corpus without installing runtime or ML dependencies."""
 import argparse
-from collections import Counter
-from datetime import date
 import json
 import math
-from pathlib import Path
 import re
 import unicodedata
+from collections import Counter
+from datetime import date
+from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[2]
 ID = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}")
+INGREDIENT_AMOUNT = re.compile(
+    r"(?:\d+(?:[.,/]\d+)?[½¼¾]?|[½¼¾])\s*"
+    r"(?:kilogram|gram|gr|kg|g|ml|lít|cup|tbsp|tsp|muỗng canh|muỗng cà phê|"
+    r"thìa canh|thìa cà phê|bát|chén|hộp|bó|con|quả|trái|cái|bịch|cây|nhánh|xấp)\b",
+    re.IGNORECASE,
+)
 RECIPE_FIELDS = set("id title normalized_dish language cuisine servings prep_time_minutes cook_time_minutes ingredients instructions tags source created_at updated_at".split())
+EDITORIAL_TEXT = re.compile(
+    r"giữ nguyên định lượng và lựa chọn theo nguồn|không suy đoán hoặc quy đổi|"
+    r"ghi chú (?:biên tập|nội bộ)", re.IGNORECASE,
+)
+# Known untranslated source terms; extend this list when reviewing new imports.
+UNTRANSLATED_TEXT = re.compile(r"\b(?:Suppenhühner|Semmelwürfel)\b", re.IGNORECASE)
+STOVE_SETTING = re.compile(
+    r"\b(?:bếp|lửa|nhiệt)\b[^.!?;\n]{0,60}?\b(?:số|mức|nấc)\s*\d+|"
+    r"\b(?:mức|nấc)\s+(?:lửa|nhiệt|bếp)\s*\d+", re.IGNORECASE,
+)
 
 
 def require(condition, message):
@@ -23,6 +39,17 @@ def text(value):
     require(isinstance(value, str) and value.strip() == value and bool(value), "empty/invalid text")
     require(unicodedata.normalize("NFC", value) == value, "text must be NFC")
     require(not re.search(r"[<>\x00-\x08\x0b\x0c\x0e-\x1f]", value), "text must be plain")
+
+
+def cooking_text(value, location):
+    text(value)
+    normalized = " ".join(value.split())
+    require(not EDITORIAL_TEXT.search(normalized),
+            f"{location}: editorial text belongs in source.modifications")
+    require(not UNTRANSLATED_TEXT.search(normalized),
+            f"{location}: untranslated source term in Vietnamese cooking text")
+    require(not STOVE_SETTING.search(normalized),
+            f"{location}: stove setting must use descriptive heat")
 
 
 def positive(value, integer=False):
@@ -48,6 +75,7 @@ def validate(recipes, taxonomy):
         ids.add(recipe["id"])
         for key in ("title", "normalized_dish", "created_at", "updated_at"):
             text(recipe[key])
+        cooking_text(recipe["title"], f"{recipe['id']}.title")
         require(recipe["normalized_dish"] in known, "dish not in taxonomy")
         require(recipe["language"] == "vi" and recipe["cuisine"] == "vietnamese", "invalid locale")
         for key in ("servings", "prep_time_minutes", "cook_time_minutes"):
@@ -58,22 +86,26 @@ def validate(recipes, taxonomy):
         require(isinstance(recipe["ingredients"], list) and recipe["ingredients"], "missing ingredients")
         for item in recipe["ingredients"]:
             require(type(item) is dict and set(item) == set("name normalized_name quantity unit optional note".split()), "ingredient fields")
-            text(item["name"])
+            cooking_text(item["name"], f"{recipe['id']}.ingredients.{item['normalized_name']}.name")
+            require(not INGREDIENT_AMOUNT.search(item["name"]),
+                    "ingredient amount belongs in quantity/unit or note")
             require(isinstance(item["normalized_name"], str) and re.fullmatch(r"[a-z0-9]+(?:_[a-z0-9]+)*", item["normalized_name"]), "invalid ingredient key")
             positive(item["quantity"])
             require(type(item["optional"]) is bool, "optional must be boolean")
             for key in ("unit", "note"):
                 if item[key] is not None:
-                    text(item[key])
+                    cooking_text(item[key], f"{recipe['id']}.ingredients.{item['normalized_name']}.{key}")
+            require(item["unit"] not in {"tbsp", "tsp", "cup", "pound", "gram", "gr", "kilogram", "l", "trái"},
+                    "ingredient unit must use canonical Vietnamese notation")
         require(isinstance(recipe["instructions"], list) and recipe["instructions"], "missing instructions")
         for step, item in enumerate(recipe["instructions"], 1):
             require(type(item) is dict and set(item) == {"step", "text", "duration_minutes"}, "instruction fields")
             require(type(item["step"]) is int and item["step"] == step, "steps must be continuous")
-            text(item["text"])
+            cooking_text(item["text"], f"{recipe['id']}.instructions.{step}")
             positive(item["duration_minutes"], integer=True)
         require(isinstance(recipe["tags"], list) and len(recipe["tags"]) == len(set(recipe["tags"])), "invalid tags")
         for tag in recipe["tags"]:
-            text(tag)
+            cooking_text(tag, f"{recipe['id']}.tags")
         source = recipe["source"]
         require(type(source) is dict and set(source) == set("name url license retrieved_at attribution revision_url modifications".split()), "source fields")
         for key in ("name", "license", "attribution", "modifications"):
@@ -97,19 +129,31 @@ def validate(recipes, taxonomy):
     return {dish: coverage[dish] for dish in sorted(known)}
 
 
+def count_sources(recipes):
+    # Keep the original keys for manifests that predate Vietnamese external sources.
+    counts = Counter(wikibooks=0, cooklens_ai_authored=0)
+    for recipe in recipes:
+        hostname = urlsplit(recipe["source"]["url"]).hostname
+        if "ai_authored" in recipe["tags"]:
+            counts["cooklens_ai_authored"] += 1
+        elif hostname == "wikibooks.org" or hostname.endswith(".wikibooks.org"):
+            counts["wikibooks"] += 1
+        else:
+            counts["external_vietnamese"] += 1
+    return dict(counts)
+
+
 def load(root=ROOT):
-    recipes = json.loads((root / "data/recipes/corpus.json").read_text())
-    taxonomy = json.loads((root / "data/processed/30vnfoods-label-map.json").read_text())
+    recipes = json.loads((root / "data/recipes/corpus.json").read_text(encoding="utf-8"))
+    taxonomy = json.loads((root / "data/processed/30vnfoods-label-map.json").read_text(encoding="utf-8"))
     coverage = validate(recipes, taxonomy)
-    manifest = json.loads((root / "data/recipes/manifest.json").read_text())
+    manifest = json.loads((root / "data/recipes/manifest.json").read_text(encoding="utf-8"))
     require(manifest["coverage"] == coverage, "stale coverage manifest")
     require(manifest["recipe_count"] == len(recipes), "stale recipe count")
     require(manifest["covered_dishes"] == sum(bool(n) for n in coverage.values()), "stale dish count")
     require(manifest["taxonomy_version"] == "1.0.0", "incompatible taxonomy")
     if "source_counts" in manifest:
-        generated = sum("ai_authored" in r["tags"] for r in recipes)
-        require(manifest["source_counts"] == {"wikibooks": len(recipes) - generated, "cooklens_ai_authored": generated},
-                "stale source counts")
+        require(manifest["source_counts"] == count_sources(recipes), "stale source counts")
     return recipes, taxonomy, manifest
 
 

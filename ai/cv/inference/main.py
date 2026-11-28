@@ -1,7 +1,7 @@
 """Internal vision API: uvicorn ai.cv.inference.main:app, one worker/process."""
 
-from contextlib import asynccontextmanager
 import logging
+from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, File, Request, UploadFile
@@ -17,6 +17,7 @@ from .model import load_model
 from .schemas import PredictionResponse
 
 logger = logging.getLogger(__name__)
+CONFIDENCE_THRESHOLD = 0.65
 
 
 def create_app() -> FastAPI:
@@ -88,8 +89,16 @@ def create_app() -> FastAPI:
         image = decode_upload(file)
         try:
             predictions = predict_image(image, runtime.model)
+            if predictions[0]['confidence'] < CONFIDENCE_THRESHOLD:
+                raise VisionError(
+                    422,
+                    'LOW_CONFIDENCE_PREDICTION',
+                    'Chưa xác định được món từ ảnh này. Hãy chọn ảnh khác hoặc chọn món theo tên.',
+                )
             return {'model_version': runtime.model.model_version,
                     'taxonomy_version': runtime.model.taxonomy_version, 'predictions': predictions}
+        except VisionError:
+            raise
         except Exception:
             logger.error('Vision inference failed')
             raise VisionError(500, 'INTERNAL_ERROR', 'Không xử lý được ảnh. Vui lòng thử lại.') from None

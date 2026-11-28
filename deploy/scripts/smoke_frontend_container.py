@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Validate the review web image/proxy, including intentional backend stop and recovery."""
 import argparse
-from http.client import HTTPResponse
 import json
 import os
-from pathlib import Path
 import socket
 import subprocess
 import tempfile
 import time
+from http.client import HTTPResponse
+from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
@@ -84,7 +84,8 @@ def run(args):
     try:
         command('stop','backend')
         assert request('/api/dishes',expected=503)['code'] == 'DEPENDENCY_NOT_READY'
-        with urlopen(args.url,timeout=5) as response: assert response.status == 200
+        with urlopen(args.url, timeout=5) as response:
+            assert response.status == 200
     finally:
         command('start','backend')
         ready()
